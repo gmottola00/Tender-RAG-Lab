@@ -1,0 +1,19 @@
+[project]
+name = "tender-rag-lab"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "charset-normalizer>=3.4.4",
+    "fastapi>=0.124.2",
+    "fasttext>=0.9.3",
+    "ftfy>=6.3.1",
+    "lingua-language-detector>=1.4.2",
+    "pdfplumber>=0.11.8",
+    "pymupdf>=1.26.6",
+    "python-docx>=1.2.0",
+]
+
+[tool.uv]
+src = ["src"]
