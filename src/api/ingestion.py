@@ -11,11 +11,11 @@ from schemas.ingestion import ParsedDocument
 from services.ingestion_service import IngestionService
 
 
-app = FastAPI(title="Tender Ingestion API")
+ingestion = FastAPI(title="Tender Ingestion API")
 service = IngestionService.singleton()
 
 
-@app.post("/parse", response_model=ParsedDocument)
+@ingestion.post("/parse", response_model=ParsedDocument)
 async def parse_document(file: UploadFile = File(...)) -> ParsedDocument:
     """Parse an uploaded PDF or DOCX and return a structured payload."""
     if not file.filename:
