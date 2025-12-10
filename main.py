@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from src.api.ingestion import ingestion
+from api.services.ingestion import ingestion
 from configs.config import settings
 from fastapi.middleware.cors import CORSMiddleware
 
