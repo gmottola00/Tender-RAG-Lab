@@ -3,9 +3,9 @@ set -Eeuo pipefail
 
 # ── Config ────────────────────────────────────────────────────────────────────
 ROOT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
-BACKEND_DIR="${BACKEND_DIR:-$ROOT_DIR/backend}"
+BACKEND_DIR="${BACKEND_DIR:-$ROOT_DIR}"
 BACKEND_PORT="${BACKEND_PORT:-8000}"
-ENV_FILE="${ENV_FILE:-$BACKEND_DIR/.env}"
+ENV_FILE="${ENV_FILE:-$BACKEND_DIR/.venv}"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 ip() { hostname -I | awk '{print $1}'; }
@@ -35,7 +35,7 @@ install() {
 run-api() {
   ensure_cmd uv
   ( cd "$BACKEND_DIR" && \
-    uv run uvicorn app.main:app \
+    uv run uvicorn main:app \
       --host 0.0.0.0 --port "${BACKEND_PORT}" \
       --env-file "${ENV_FILE}" --reload )
 }
