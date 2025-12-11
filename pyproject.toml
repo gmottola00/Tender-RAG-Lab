@@ -11,9 +11,13 @@ dependencies = [
     "ftfy>=6.3.1",
     "lingua-language-detector>=1.4.2",
     "pdfplumber>=0.11.8",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.12.0",
     "pymupdf>=1.26.6",
     "python-docx>=1.2.0",
+    "python-multipart>=0.0.20",
+    "uvicorn[standard]>=0.30.3",
 ]
 
 [tool.uv]
-src = ["src"]
+package = false

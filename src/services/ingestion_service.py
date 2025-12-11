@@ -7,8 +7,8 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Dict, List, Optional, Sequence, Union
 
-from core.ingestion.core import heading_detection, lang_detect, ocr, parser_docx, parser_pdf
-from core.ingestion.core.file_utils import temporary_directory
+from src.core.ingestion.core import heading_detection, lang_detect, ocr, parser_docx, parser_pdf
+from src.core.ingestion.core.file_utils import temporary_directory
 
 PageDict = Dict[str, Any]
 

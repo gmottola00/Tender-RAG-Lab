@@ -6,9 +6,9 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
-from core.ingestion.core.file_utils import temporary_directory
-from schemas.ingestion import ParsedDocument
-from services.ingestion_service import IngestionService
+from src.core.ingestion.core.file_utils import temporary_directory
+from src.schemas.ingestion import ParsedDocument
+from src.services.ingestion_service import IngestionService
 
 
 ingestion = FastAPI(title="Tender Ingestion API")
