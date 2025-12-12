@@ -1,0 +1,141 @@
+"""Dynamic chunk builder based on heading hierarchy."""
+
+from __future__ import annotations
+
+import uuid
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Sequence
+
+
+@dataclass
+class Chunk:
+    """Structured chunk grouping a heading and its related content."""
+
+    id: str
+    title: str
+    heading_level: int
+    text: str
+    blocks: List[Dict[str, Any]]
+    page_numbers: List[int]
+
+    def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
+        """Convert chunk to a serializable dict."""
+        data = {
+            "id": self.id,
+            "title": self.title,
+            "heading_level": self.heading_level,
+            "text": self.text,
+            "page_numbers": self.page_numbers,
+        }
+        if include_blocks:
+            data["blocks"] = self.blocks
+        return data
+
+
+class DynamicChunker:
+    """Create chunks using level-1 headings as anchors."""
+
+    def __init__(self, *, include_tables: bool = True, max_heading_level: int = 6, allow_preamble: bool = False) -> None:
+        """Initialize the chunker.
+
+        Args:
+            include_tables: Whether to include table blocks.
+            max_heading_level: Maximum heading level to include within a chunk.
+            allow_preamble: If True, content before the first level-1 heading is grouped
+                into a preamble chunk; otherwise it is skipped.
+        """
+        self.include_tables = include_tables
+        self.max_heading_level = max_heading_level
+        self.allow_preamble = allow_preamble
+
+    def build_chunks(self, pages: Sequence[Dict[str, Any]]) -> List[Chunk]:
+        """Build chunks from parsed pages.
+
+        A chunk starts at a heading with level 1 and includes:
+        - all subsequent headings with level > 1 (up to max_heading_level)
+        - paragraphs/list/table blocks until the next level-1 heading (excluded).
+
+        Args:
+            pages: Parsed pages with blocks (as produced by the ingestion parser).
+
+        Returns:
+            List of chunks preserving document order.
+        """
+        chunks: List[Chunk] = []
+        current_blocks: List[Dict[str, Any]] = []
+        current_title: Optional[str] = None
+        current_level: Optional[int] = None
+
+        def finalize() -> None:
+            nonlocal current_blocks, current_title, current_level
+            if not current_blocks or current_title is None or current_level is None:
+                current_blocks = []
+                current_title = None
+                current_level = None
+                return
+            page_numbers = _collect_page_numbers(current_blocks)
+            text = "\n".join(
+                b["text"] for b in current_blocks if isinstance(b.get("text"), str)
+            ).strip()
+            chunks.append(
+                Chunk(
+                    id=str(uuid.uuid4()),
+                    title=current_title,
+                    heading_level=current_level,
+                    text=text,
+                    blocks=current_blocks,
+                    page_numbers=page_numbers,
+                )
+            )
+            current_blocks = []
+            current_title = None
+            current_level = None
+
+        for page_idx, page in enumerate(pages, start=1):
+            blocks = page.get("blocks", [])
+            for block in blocks:
+                block_type = block.get("type")
+                level = block.get("level")
+
+                is_heading = block_type == "heading" and isinstance(level, int)
+                is_table = block_type == "table_block"
+
+                if is_table and not self.include_tables:
+                    continue
+
+                if is_heading and level == 1:
+                    finalize()
+                    current_title = str(block.get("text", "")).strip()
+                    current_level = level
+                    current_blocks = [block]
+                    continue
+
+                if current_title is None:
+                    # Optionally keep preamble before first H1
+                    if self.allow_preamble:
+                        current_title = "Preamble"
+                        current_level = 0
+                        current_blocks = [block]
+                    continue
+
+                if is_heading and level is not None and 1 < level <= self.max_heading_level:
+                    current_blocks.append(block)
+                    continue
+
+                # Accept paragraphs, list items, tables, etc.
+                current_blocks.append(block)
+
+        finalize()
+        return chunks
+
+
+def _collect_page_numbers(blocks: List[Dict[str, Any]]) -> List[int]:
+    nums = []
+    for block in blocks:
+        page_number = block.get("page_number")
+        if isinstance(page_number, int):
+            nums.append(page_number)
+    return sorted(list(dict.fromkeys(nums)))
+
+
+__all__ = ["DynamicChunker", "Chunk"]

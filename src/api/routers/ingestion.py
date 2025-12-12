@@ -3,21 +3,24 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import List
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from src.core.ingestion.core.file_utils import temporary_directory
 from src.schemas.ingestion import ParsedDocument
-from core.ingestion.ingestion_service import IngestionService
+from src.core.ingestion.ingestion_service import IngestionService
+from src.core.chunking import DynamicChunker, Chunk
 
 
-ingestion = FastAPI(title="Tender Ingestion API")
+ingestion = APIRouter()
 service = IngestionService.singleton()
+chunker = DynamicChunker()
 
 
 @ingestion.post("/parse", response_model=ParsedDocument)
 async def parse_document(file: UploadFile = File(...)) -> ParsedDocument:
-    """Parse an uploaded PDF or DOCX and return a structured payload."""
+    """INTERNAL - Parse an uploaded PDF or DOCX and return a structured payload."""
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is required")
 
@@ -45,4 +48,15 @@ async def parse_document(file: UploadFile = File(...)) -> ParsedDocument:
     return ParsedDocument(**parsed)
 
 
-__all__ = ["app"]
+@ingestion.post("/parse-and-chunk")
+async def parse_and_chunk(file: UploadFile = File(...)) -> dict:
+    """Parse a document and return parsed pages plus dynamic chunks."""
+    parsed = await parse_document(file)
+    # Convert Pydantic models to dicts before chunking
+    pages = [page.model_dump() for page in parsed.pages]
+    chunks = chunker.build_chunks(pages)
+    public_chunks = [chunk.to_dict(include_blocks=False) for chunk in chunks]
+    return {"chunks": public_chunks}
+
+
+__all__ = ["ingestion"]
