@@ -12,6 +12,7 @@ from src.core.embedding import OllamaEmbeddingClient
 from src.core.index.vector.config import MilvusConfig
 from src.core.index.vector.service import MilvusService
 from src.core.index.tender_indexer import TenderMilvusIndexer
+from src.core.index.tender_searcher import TenderSearcher
 
 
 @lru_cache(maxsize=1)
@@ -50,6 +51,14 @@ def get_indexer() -> TenderMilvusIndexer:
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to initialize indexer: {exc}") from exc
+
+
+@lru_cache(maxsize=1)
+def get_searcher() -> TenderSearcher:
+    """Singleton tender searcher orchestrator."""
+    embedding_client = get_embedding_client()
+    indexer = get_indexer()
+    return TenderSearcher(indexer=indexer, embed_client=embedding_client)
 
 
 __all__ = ["get_embedding_client", "get_indexer"]

@@ -13,7 +13,7 @@ from src.core.ingestion.core.file_utils import temporary_directory
 from src.schemas.ingestion import ParsedDocument
 from src.core.ingestion.ingestion_service import IngestionService
 from src.core.chunking import DynamicChunker, TokenChunker
-from src.api.providers import get_embedding_client, get_indexer
+from src.api.providers import get_embedding_client, get_indexer, get_searcher
 
 
 ingestion = APIRouter()
@@ -121,6 +121,19 @@ async def parse_chunk_index(file: UploadFile = File(...), top_k: int = 5) -> dic
         "sample_query_chunk_id": query_chunk.id,
         "search_results": results,
     }
+
+
+@ingestion.post("/rag/vector-search")
+async def rag_vector_search(question: str, top_k: int = 3) -> dict:
+    """Answer a user question with vector search over tender chunks."""
+    log.info("rag_vector_search received question", extra={"question": question, "top_k": top_k})
+    searcher = get_searcher()
+    try:
+        results = searcher.vector_search(question, top_k=top_k)
+    except Exception as exc:  # pragma: no cover - passthrough
+        raise HTTPException(status_code=500, detail=f"Vector search failed: {exc}") from exc
+
+    return {"question": question, "results": results}
 
 
 __all__ = ["ingestion"]
