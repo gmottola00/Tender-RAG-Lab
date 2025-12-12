@@ -13,7 +13,7 @@ from src.core.ingestion.core.file_utils import temporary_directory
 from src.schemas.ingestion import ParsedDocument
 from src.core.ingestion.ingestion_service import IngestionService
 from src.core.chunking import DynamicChunker, TokenChunker
-from src.api.providers import get_embedding_client, get_indexer, get_searcher
+from src.api.providers import get_embedding_client, get_indexer, get_searcher, get_rag_pipeline
 
 
 ingestion = APIRouter()
@@ -134,6 +134,32 @@ async def rag_vector_search(question: str, top_k: int = 3) -> dict:
         raise HTTPException(status_code=500, detail=f"Vector search failed: {exc}") from exc
 
     return {"question": question, "results": results}
+
+
+@ingestion.post("/rag/pipeline")
+async def rag_pipeline(question: str, top_k: int = 5) -> dict:
+    """Run the full RAG pipeline (rewrite -> vector -> rerank -> assemble -> generate)."""
+    log.info("rag_pipeline received question", extra={"question": question, "top_k": top_k})
+    pipeline = get_rag_pipeline()
+    try:
+        response = pipeline.run(question, top_k=top_k)
+    except Exception as exc:  # pragma: no cover - passthrough
+        raise HTTPException(status_code=500, detail=f"RAG pipeline failed: {exc}") from exc
+
+    return {
+        "question": question,
+        "answer": response.answer,
+        "citations": [
+            {
+                "id": c.id,
+                "section_path": c.section_path,
+                "page_numbers": c.page_numbers,
+                "metadata": c.metadata,
+                "source_chunk_id": c.source_chunk_id,
+            }
+            for c in response.citations
+        ],
+    }
 
 
 __all__ = ["ingestion"]
