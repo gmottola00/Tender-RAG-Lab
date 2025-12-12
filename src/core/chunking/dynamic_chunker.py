@@ -74,8 +74,9 @@ class DynamicChunker:
                 current_level = None
                 return
             page_numbers = _collect_page_numbers(current_blocks)
+            text_blocks = _visible_blocks(current_blocks)
             text = "\n".join(
-                b["text"] for b in current_blocks if isinstance(b.get("text"), str)
+                b["text"] for b in text_blocks if isinstance(b.get("text"), str)
             ).strip()
             chunks.append(
                 Chunk(
@@ -94,6 +95,7 @@ class DynamicChunker:
         for page_idx, page in enumerate(pages, start=1):
             blocks = page.get("blocks", [])
             for block in blocks:
+                block.setdefault("page_number", page_idx)
                 block_type = block.get("type")
                 level = block.get("level")
 
@@ -136,6 +138,16 @@ def _collect_page_numbers(blocks: List[Dict[str, Any]]) -> List[int]:
         if isinstance(page_number, int):
             nums.append(page_number)
     return sorted(list(dict.fromkeys(nums)))
+
+
+def _visible_blocks(blocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Exclude the first level-1 heading text to avoid duplication in chunk body."""
+    filtered: List[Dict[str, Any]] = []
+    for idx, block in enumerate(blocks):
+        if idx == 0 and block.get("type") == "heading" and block.get("level") == 1:
+            continue
+        filtered.append(block)
+    return filtered
 
 
 __all__ = ["DynamicChunker", "Chunk"]

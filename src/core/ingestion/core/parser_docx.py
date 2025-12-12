@@ -66,6 +66,7 @@ def parse_docx(path: Union[str, Path]) -> Dict[str, List[BlockDict]]:
                 "level": level,
                 "text": text,
                 "style": style_name,
+                "page_number": 1,
             }
         )
 
@@ -81,6 +82,7 @@ def parse_docx(path: Union[str, Path]) -> Dict[str, List[BlockDict]]:
                 "type": "table_block",
                 "raw_cells": rows,
                 "text": "\n".join(text_rows).strip(),
+                "page_number": 1,
             }
         )
 
