@@ -59,3 +59,5 @@ Output: lista di pagine con blocchi arricchiti (`type`, `level`, `bbox`, `font_s
 - Rilevare e rimuovere header/footer con pattern personalizzabili.
 - Estrarre metadati dominio (tender_code, lot_id, ecc.) da heading/paragrafi e propagarli ai chunk.
 
+---
+[Torna al README core](../README.md)

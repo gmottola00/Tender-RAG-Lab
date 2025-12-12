@@ -61,3 +61,6 @@ tok = TokenChunker().chunk(dyn)
 - [ ] Posiziona il modello fastText se usi `lang_detect`.
 - [ ] Verifica che `page_numbers` siano popolati nei blocchi (PDF/DOCX) prima del chunking.
 - [ ] Se usi un tokenizer diverso, passa `tokenizer=` a `TokenChunker`.
+
+---
+[Torna al README core](src/core/README.md)
