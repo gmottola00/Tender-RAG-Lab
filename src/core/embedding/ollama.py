@@ -40,7 +40,8 @@ class OllamaEmbeddingClient(EmbeddingClient):
         return self._model
 
     def embed(self, text: str) -> List[float]:
-        payload: Dict[str, Any] = {"model": self._model, "input": text}
+        # Ollama embeddings API expects "prompt"; support "input" for backward compatibility.
+        payload: Dict[str, Any] = {"model": self._model, "prompt": text}
         resp = requests.post(
             f"{self.base_url}/api/embeddings",
             json=payload,
@@ -48,10 +49,36 @@ class OllamaEmbeddingClient(EmbeddingClient):
         )
         resp.raise_for_status()
         data = resp.json()
+
+        # Handle different shapes: {"embedding": [...]}, {"data": [{"embedding": [...]}]}, {"embeddings": [...]}
         vector = data.get("embedding") or data.get("vector")
-        if not isinstance(vector, list):
-            raise ValueError("Invalid embedding response from Ollama")
-        return vector
+        if vector is None and isinstance(data.get("data"), list) and data["data"]:
+            vector = data["data"][0].get("embedding")
+        if vector is None and isinstance(data.get("embeddings"), list) and data["embeddings"]:
+            vector = data["embeddings"][0]
+
+        normalized = _normalize_embedding(vector)
+        if normalized is None:
+            raise ValueError(f"Invalid embedding response from Ollama: keys={list(data.keys())}")
+        return normalized
+
+
+def _normalize_embedding(raw: Any) -> List[float] | None:
+    """Normalize embedding payload into a flat list of floats."""
+    if raw is None:
+        return None
+    if isinstance(raw, list):
+        if raw and isinstance(raw[0], list):
+            raw = raw[0]
+        else:
+            # allow empty list or flat list
+            pass
+    if isinstance(raw, (list, tuple)):
+        try:
+            return [float(x) for x in raw]
+        except (TypeError, ValueError):
+            return None
+    return None
 
 
 __all__ = ["OllamaEmbeddingClient"]

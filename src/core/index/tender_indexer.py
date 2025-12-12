@@ -64,18 +64,28 @@ class TenderMilvusIndexer:
     def _ensure_collection(self) -> None:
         """Create collection and index if missing."""
         self.connection.ensure()
-        if self._has_collection():
-            return
-
-        schema = self._build_schema()
-        self.service.collections.ensure_collection(
-            self.collection_name,
-            schema=schema,
-            consistency_level="Bounded",
-            shards_num=2,
-        )
-        index_params = self._build_index_params()
-        self._create_index(index_params)
+        if not self._has_collection():
+            schema = self._build_schema()
+            self.service.collections.ensure_collection(
+                self.collection_name,
+                schema=schema,
+                consistency_level="Bounded",
+                shards_num=2,
+            )
+            index_params = self._build_index_params()
+            self._create_index(index_params)
+        else:
+            # ensure index exists; if missing, create it
+            index_params = self._build_index_params()
+            try:
+                col = Collection(name=self.collection_name, using=self.connection.get_alias())
+                indexes = col.indexes
+                if not indexes:
+                    self._create_index(index_params)
+                else:
+                    col.load()
+            except Exception as exc:  # pragma: no cover - passthrough
+                raise CollectionError("Failed to load or create index") from exc
 
     def _has_collection(self) -> bool:
         try:

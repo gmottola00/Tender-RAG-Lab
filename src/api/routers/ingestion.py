@@ -8,20 +8,19 @@ from typing import List
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
+from configs.logger import app_logger
 from src.core.ingestion.core.file_utils import temporary_directory
 from src.schemas.ingestion import ParsedDocument
 from src.core.ingestion.ingestion_service import IngestionService
 from src.core.chunking import DynamicChunker, TokenChunker
-from src.core.index.tender_indexer import TenderMilvusIndexer
-from src.core.embedding import OllamaEmbeddingClient
+from src.api.providers import get_embedding_client, get_indexer
 
 
 ingestion = APIRouter()
+log = app_logger.get_logger(__name__, extra_prefix="ingestion")
 service = IngestionService.singleton()
 dynamic_chunker = DynamicChunker()
 token_chunker = TokenChunker()
-embedding_client: OllamaEmbeddingClient | None = None
-_indexer: TenderMilvusIndexer | None = None
 
 
 @ingestion.post("/parse", response_model=ParsedDocument)
@@ -29,6 +28,7 @@ async def parse_document(file: UploadFile = File(...)) -> ParsedDocument:
     """INTERNAL - Parse an uploaded PDF or DOCX and return a structured payload."""
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename is required")
+    log.info("parse_document received file", extra={"uploaded_filename": file.filename})
 
     suffix = Path(file.filename).suffix.lower()
     if suffix not in {".pdf", ".docx"}:
@@ -44,6 +44,7 @@ async def parse_document(file: UploadFile = File(...)) -> ParsedDocument:
 
         try:
             parsed = service.parse_document(tmp_path)
+            log.info("parse_document success", extra={"uploaded_filename": file.filename})
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except FileNotFoundError as exc:
@@ -73,51 +74,36 @@ async def parse_and_chunk(file: UploadFile = File(...)) -> dict:
         }
         for tc in token_chunks
     ]
+    log.info(
+        "parse_and_chunk completed",
+        extra={"uploaded_filename": file.filename, "dynamic_chunks": len(dyn_chunks), "token_chunks": len(token_chunks)},
+    )
     return {"dynamic_chunks": dyn_public, "token_chunks": token_public}
 
 
 @ingestion.post("/parse-chunk-index")
 async def parse_chunk_index(file: UploadFile = File(...), top_k: int = 5) -> dict:
     """Parse, chunk, embed, and insert into Milvus. Returns chunk ids and search sanity check."""
+    log.info("parse_chunk_index received file", extra={"uploaded_filename": file.filename})
     parsed = await parse_document(file)
     pages = [page.model_dump() for page in parsed.pages]
     dyn_chunks = dynamic_chunker.build_chunks(pages)
     token_chunks = token_chunker.chunk(dyn_chunks)
+    log.info(
+        "chunking completed",
+        extra={"uploaded_filename": file.filename, "dynamic_chunks": len(dyn_chunks), "token_chunks": len(token_chunks)},
+    )
 
-    # Initialize indexer once
-    global _indexer
-    global embedding_client
-    if _indexer is None:
-        if embedding_client is None:
-            try:
-                embedding_client = OllamaEmbeddingClient()
-            except Exception as exc:  # pragma: no cover - passthrough
-                raise HTTPException(status_code=500, detail=f"Failed to init embedding client: {exc}") from exc
-        try:
-            from src.core.index.vector.config import MilvusConfig
-            from src.core.index.vector.service import MilvusService
-
-            cfg = MilvusConfig(
-                uri=os.getenv("MILVUS_URI", "http://localhost:19530"),
-                alias=os.getenv("MILVUS_ALIAS", "default"),
-                user=os.getenv("MILVUS_USER"),
-                password=os.getenv("MILVUS_PASSWORD"),
-                db_name=os.getenv("MILVUS_DB_NAME", "default"),
-                secure=os.getenv("MILVUS_SECURE", "false").lower() == "true",
-            )
-            service = MilvusService(cfg)
-            embedding_dim = len(embedding_client.embed("dimension_probe"))
-            _indexer = TenderMilvusIndexer(
-                service=service,
-                embedding_dim=embedding_dim,
-                embed_fn=embedding_client.embed_batch,
-            )
-        except Exception as exc:  # pragma: no cover - passthrough
-            raise HTTPException(status_code=500, detail=f"Failed to initialize indexer: {exc}") from exc
+    # Obtain singletons via providers
+    embedding_client = get_embedding_client()
+    indexer = get_indexer()
+    log.info("embedding client initialized", extra={"model": embedding_client.model_name})
+    log.info("milvus indexer ready", extra={"collection": indexer.collection_name})
 
     # Upsert chunks
     try:
-        _indexer.upsert_token_chunks(token_chunks)
+        indexer.upsert_token_chunks(token_chunks)
+        log.info("chunks upserted", extra={"count": len(token_chunks)})
     except Exception as exc:  # pragma: no cover - passthrough
         raise HTTPException(status_code=500, detail=f"Failed to upsert chunks: {exc}") from exc
 
@@ -125,7 +111,8 @@ async def parse_chunk_index(file: UploadFile = File(...), top_k: int = 5) -> dic
     query_chunk = token_chunks[0]
     query_emb = embedding_client.embed(query_chunk.text)
     try:
-        results = _indexer.search(query_embedding=query_emb, top_k=top_k)
+        results = indexer.search(query_embedding=query_emb, top_k=top_k)
+        log.info("search completed", extra={"top_k": top_k, "returned": len(results)})
     except Exception as exc:  # pragma: no cover - passthrough
         raise HTTPException(status_code=500, detail=f"Search failed: {exc}") from exc
 
