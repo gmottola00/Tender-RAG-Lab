@@ -10,12 +10,13 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from src.core.ingestion.core.file_utils import temporary_directory
 from src.schemas.ingestion import ParsedDocument
 from src.core.ingestion.ingestion_service import IngestionService
-from src.core.chunking import DynamicChunker, Chunk
+from src.core.chunking import DynamicChunker, TokenChunker
 
 
 ingestion = APIRouter()
 service = IngestionService.singleton()
-chunker = DynamicChunker()
+dynamic_chunker = DynamicChunker()
+token_chunker = TokenChunker()
 
 
 @ingestion.post("/parse", response_model=ParsedDocument)
@@ -50,13 +51,24 @@ async def parse_document(file: UploadFile = File(...)) -> ParsedDocument:
 
 @ingestion.post("/parse-and-chunk")
 async def parse_and_chunk(file: UploadFile = File(...)) -> dict:
-    """Parse a document and return parsed pages plus dynamic chunks."""
+    """Parse a document and return parsed pages plus dynamic and token chunks."""
     parsed = await parse_document(file)
-    # Convert Pydantic models to dicts before chunking
     pages = [page.model_dump() for page in parsed.pages]
-    chunks = chunker.build_chunks(pages)
-    public_chunks = [chunk.to_dict(include_blocks=False) for chunk in chunks]
-    return {"chunks": public_chunks}
+    dyn_chunks = dynamic_chunker.build_chunks(pages)
+    dyn_public = [chunk.to_dict(include_blocks=False) for chunk in dyn_chunks]
+    token_chunks = token_chunker.chunk(dyn_chunks)
+    token_public = [
+        {
+            "id": tc.id,
+            "text": tc.text,
+            "section_path": tc.section_path,
+            "metadata": tc.metadata,
+            "page_numbers": tc.page_numbers,
+            "source_chunk_id": tc.source_chunk_id,
+        }
+        for tc in token_chunks
+    ]
+    return {"dynamic_chunks": dyn_public, "token_chunks": token_public}
 
 
 __all__ = ["ingestion"]
