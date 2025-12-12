@@ -3,39 +3,21 @@
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Sequence
 
-
-@dataclass
-class Chunk:
-    """Structured chunk grouping a heading and its related content."""
-
-    id: str
-    title: str
-    heading_level: int
-    text: str
-    blocks: List[Dict[str, Any]]
-    page_numbers: List[int]
-
-    def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
-        """Convert chunk to a serializable dict."""
-        data = {
-            "id": self.id,
-            "title": self.title,
-            "heading_level": self.heading_level,
-            "text": self.text,
-            "page_numbers": self.page_numbers,
-        }
-        if include_blocks:
-            data["blocks"] = self.blocks
-        return data
+from src.schemas.chunking import Chunk
 
 
 class DynamicChunker:
     """Create chunks using level-1 headings as anchors."""
 
-    def __init__(self, *, include_tables: bool = True, max_heading_level: int = 6, allow_preamble: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        include_tables: bool = True,
+        max_heading_level: int = 6,
+        allow_preamble: bool = False,
+    ) -> None:
         """Initialize the chunker.
 
         Args:
@@ -113,7 +95,6 @@ class DynamicChunker:
                     continue
 
                 if current_title is None:
-                    # Optionally keep preamble before first H1
                     if self.allow_preamble:
                         current_title = "Preamble"
                         current_level = 0
@@ -124,7 +105,6 @@ class DynamicChunker:
                     current_blocks.append(block)
                     continue
 
-                # Accept paragraphs, list items, tables, etc.
                 current_blocks.append(block)
 
         finalize()
@@ -150,4 +130,4 @@ def _visible_blocks(blocks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return filtered
 
 
-__all__ = ["DynamicChunker", "Chunk"]
+__all__ = ["DynamicChunker"]

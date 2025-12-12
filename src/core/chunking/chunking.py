@@ -2,27 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import re
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Sequence
+from typing import Callable, Dict, List, Sequence
 
-from src.core.chunking.dynamic_chunker import Chunk
+from src.schemas.chunking import Chunk, TokenChunk
 
-DEFAULT_MAX_TOKENS = 800
-DEFAULT_MIN_TOKENS = 400
-DEFAULT_OVERLAP = 120
-
-
-@dataclass
-class TokenChunk:
-    """Represents a token-level chunk with metadata."""
-
-    id: str
-    text: str
-    section_path: str
-    metadata: Dict[str, str]
-    page_numbers: List[int]
-    source_chunk_id: str
+DEFAULT_MAX_TOKENS = int(os.getenv("CHUNK_MAX_TOKENS", "800"))
+DEFAULT_MIN_TOKENS = int(os.getenv("CHUNK_MIN_TOKENS", "400"))
+DEFAULT_OVERLAP = int(os.getenv("CHUNK_OVERLAP_TOKENS", "120"))
 
 
 def default_tokenizer(text: str) -> List[str]:
@@ -115,7 +103,7 @@ def _derive_section_path(chunk: Chunk) -> str:
 
 
 TENDER_CODE_PATTERN = re.compile(r"\b\d{6}-\d{4}\b")
-LOT_ID_PATTERN = re.compile(r"\bLOT[-_ ]?\w+\b", re.IGNORECASE)
+LOT_ID_PATTERN = re.compile(r"\bLOT[-_\s]?\w+\b", re.IGNORECASE)
 DOC_TYPE_KEYWORDS = {
     "bando": "tender_notice",
     "avviso": "notice",
@@ -136,21 +124,17 @@ def _extract_metadata(text: str, title: str | None = None) -> Dict[str, str]:
 
     lot_match = LOT_ID_PATTERN.search(merged_text)
     if lot_match:
-        metadata["lot_id"] = lot_match.group(0)
+        metadata["lot_id"] = lot_match.group(0).lower()
 
     for keyword, doc_type in DOC_TYPE_KEYWORDS.items():
         if keyword in merged_text:
             metadata["document_type"] = doc_type
             break
 
-    # Optional clause_type: infer from heading patterns
-    clause_type = None
     if "art." in merged_text or "articolo" in merged_text:
-        clause_type = "article"
-    if clause_type:
-        metadata["clause_type"] = clause_type
+        metadata["clause_type"] = "article"
 
     return metadata
 
 
-__all__ = ["TokenChunker", "TokenChunk"]
+__all__ = ["TokenChunker"]
