@@ -3,13 +3,8 @@ load_dotenv()
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import SecretStr, Field
+from configs.logger import app_logger
 import logging
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s | %(message)s",
-)
-logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     # carica .env, ignora eventuali chiavi non dichiarate
@@ -34,3 +29,4 @@ class Settings(BaseSettings):
     )
 
 settings = Settings()
+logger = app_logger.get_logger(__name__)
