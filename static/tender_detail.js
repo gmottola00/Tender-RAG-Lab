@@ -18,9 +18,12 @@ async function fetchJSON(url, options = {}) {
 }
 
 function fillMeta(tender) {
-  document.getElementById("meta-id").textContent = tender.id;
-  document.getElementById("meta-created").textContent = tender.created_at || "";
-  document.getElementById("meta-updated").textContent = tender.updated_at || "";
+  const metaId = document.getElementById("meta-id");
+  const metaCreated = document.getElementById("meta-created");
+  const metaUpdated = document.getElementById("meta-updated");
+  if (metaId) metaId.textContent = tender.id;
+  if (metaCreated) metaCreated.textContent = tender.created_at || "";
+  if (metaUpdated) metaUpdated.textContent = tender.updated_at || "";
   const hiddenTenderId = document.getElementById("doc-tender-id");
   if (hiddenTenderId) {
     hiddenTenderId.value = tender.id;
@@ -45,11 +48,11 @@ async function loadTender() {
     return;
   }
   try {
-    const tender = await fetchJSON("${apiBase}/tenders/${id}");
+    const tender = await fetchJSON(`${apiBase}/tenders/${id}`);
     fillForm(tender);
     fillMeta(tender);
   } catch (err) {
-    document.getElementById("detail-message").textContent = "Errore: ${err.message}";
+    document.getElementById("detail-message").textContent = `Errore: ${err.message}`;
   }
 }
 
@@ -68,7 +71,7 @@ async function handleUpdate(e) {
     closing_date: form.closing_date.value || null,
   };
   try {
-    const updated = await fetchJSON("${apiBase}/tenders/${id}", {
+    const updated = await fetchJSON(`${apiBase}/tenders/${id}`, {
       method: "PUT",
       body: JSON.stringify(payload),
     });
@@ -76,7 +79,7 @@ async function handleUpdate(e) {
     fillForm(updated);
     fillMeta(updated);
   } catch (err) {
-    document.getElementById("detail-message").textContent = "Errore: ${err.message}";
+    document.getElementById("detail-message").textContent = `Errore: ${err.message}`;
   }
 }
 
@@ -88,27 +91,39 @@ async function handleCreateDocument(e) {
     document.getElementById("document-message").textContent = "ID gara mancante";
     return;
   }
-  const payload = {
-    tender_id: tenderId,
-    lot_id: form.lot_id.value || null,
-    filename: form.filename?.value || null,
-    document_type: form.document_type.value || null,
-    file_hash: form.file_hash.value || null,
-    uploaded_by: form.uploaded_by.value || null,
-  };
+  const fd = new FormData();
+  fd.append("tender_id", tenderId);
+  if (form.lot_id.value) fd.append("lot_id", form.lot_id.value);
+  fd.append("document_type", form.document_type.value || "");
+
+  const fileInput = document.getElementById("doc-file-input");
+  const file = fileInput?.files?.[0];
+  if (!file) {
+    document.getElementById("document-message").textContent = "Seleziona un file";
+    return;
+  }
+  fd.append("file", file);
+
   try {
-    const url = "${apiBase}/documents";
-    console.log("POST document ->", url, payload);
-    const data = await fetchJSON(url, {
-      method: "POST",
-      body: JSON.stringify(payload),
-    });
-    document.getElementById("document-message").textContent = "Documento registrato: ${data.id}";
+    const url = `${apiBase}/documents`;
+    console.log("POST document ->", url, fd);
+    const resp = await fetch(url, { method: "POST", body: fd });
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(text || resp.statusText);
+    }
+    const data = await resp.json();
+    document.getElementById("document-message").textContent = `Documento registrato: ${data.id}`;
     form.reset();
+    if (fileInput) fileInput.value = "";
     document.getElementById("filename-input").value = "";
-    document.getElementById("doc-dropzone")?.querySelector("p").textContent = "Trascina un file qui oppure clicca per selezionarlo";
+    const dz = document.getElementById("doc-dropzone");
+    if (dz) {
+      const p = dz.querySelector("p");
+      if (p) p.textContent = "Trascina un file qui oppure clicca per selezionarlo";
+    }
   } catch (err) {
-    document.getElementById("document-message").textContent = "Errore: ${err.message}";
+    document.getElementById("document-message").textContent = `Errore: ${err.message}`;
   }
 }
 
@@ -122,7 +137,7 @@ function setupDropzone() {
   const setFilename = (file) => {
     if (file) {
       filenameInput.value = file.name;
-      dropzone.querySelector("p").textContent = "File selezionato: ${file.name}";
+      dropzone.querySelector("p").textContent = `File selezionato: ${file.name}`;
     } else {
       filenameInput.value = "";
       dropzone.querySelector("p").textContent = "Trascina un file qui oppure clicca per selezionarlo";
@@ -164,4 +179,56 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("document-form")?.addEventListener("submit", handleCreateDocument);
   setupDropzone();
   loadTender();
+  loadDocuments();
+  const ingestAllBtn = document.getElementById("ingest-all-btn");
+  if (ingestAllBtn) {
+    ingestAllBtn.addEventListener("click", ingestAllDocuments);
+  }
 });
+
+async function loadDocuments() {
+  const listEl = document.getElementById("documents-list");
+  if (!listEl) return;
+  const tenderId = getTenderId();
+  if (!tenderId) return;
+  listEl.innerHTML = "";
+  try {
+    const docs = await fetchJSON(`${apiBase}/documents?tender_id=${tenderId}&limit=200`);
+    docs.forEach((d) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>${d.filename}</strong> — ${d.document_type || "n/d"} (${d.id})`;
+      const btn = document.createElement("button");
+      btn.textContent = "Indicizza";
+      btn.style.marginLeft = "0.5rem";
+      btn.addEventListener("click", () => ingestDocument(d.id));
+      li.appendChild(btn);
+      listEl.appendChild(li);
+    });
+  } catch (err) {
+    document.getElementById("documents-message").textContent = `Errore caricamento documenti: ${err.message}`;
+  }
+}
+
+async function ingestDocument(documentId) {
+  try {
+    const resp = await fetchJSON(`${apiBase}/documents/${documentId}/ingest`, { method: "POST" });
+    document.getElementById("documents-message").textContent = `Indicizzato documento ${documentId} (chunks: ${resp.inserted})`;
+  } catch (err) {
+    document.getElementById("documents-message").textContent = `Errore indicizzazione: ${err.message}`;
+  }
+}
+
+async function ingestAllDocuments() {
+  const tenderId = getTenderId();
+  if (!tenderId) return;
+  document.getElementById("documents-message").textContent = "Indicizzazione in corso...";
+  const docs = await fetchJSON(`${apiBase}/documents?tender_id=${tenderId}&limit=200`);
+  for (const d of docs) {
+    try {
+      await ingestDocument(d.id);
+    } catch (err) {
+      // swallow per non fermare gli altri
+      console.error("Errore indicizzazione doc", d.id, err);
+    }
+  }
+}

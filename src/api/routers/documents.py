@@ -3,20 +3,39 @@ from __future__ import annotations
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db_dep
 from src.schemas.documents import DocumentCreate, DocumentOut, DocumentUpdate
+from src.models.documents import DocumentType
 from src.services.documents import DocumentService
+from src.services.storage import get_storage_manager
+from src.api.routers.ingestion import parse_document, dynamic_chunker, token_chunker, get_embedding_client, get_indexer
 
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
 @router.post("", response_model=DocumentOut, status_code=status.HTTP_201_CREATED)
-async def create_document(payload: DocumentCreate, db: AsyncSession = Depends(get_db_dep)) -> DocumentOut:
-    obj = await DocumentService.create(db, payload)
+async def create_document(
+    tender_id: str = Form(...),
+    lot_id: str | None = Form(None),
+    document_type: DocumentType | None = Form(None),
+    uploaded_by: str | None = Form(None),
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db_dep),
+) -> DocumentOut:
+    # Build DTO manually (filename from upload)
+    payload = DocumentCreate(
+        tender_id=tender_id,
+        lot_id=lot_id,
+        filename=file.filename,
+        document_type=document_type,
+        uploaded_by=uploaded_by,
+    )
+    file_bytes = await file.read()
+    obj = await DocumentService.create_with_upload(db, payload, file_bytes, content_type=file.content_type)
     return obj
 
 
@@ -37,6 +56,61 @@ async def list_documents(
     db: AsyncSession = Depends(get_db_dep),
 ) -> List[DocumentOut]:
     return await DocumentService.list(db, tender_id=tender_id, lot_id=lot_id, limit=limit, offset=offset)
+
+
+@router.post("/{document_id}/ingest")
+async def ingest_document(document_id: UUID, db: AsyncSession = Depends(get_db_dep), top_k: int = 3) -> dict:
+    """Download a stored document, parse, chunk and index into Milvus."""
+    doc = await DocumentService.get(db, document_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if not doc.storage_bucket or not doc.storage_path:
+        raise HTTPException(status_code=400, detail="Document has no storage info")
+
+    storage = get_storage_manager()
+    if storage.bucket_name != doc.storage_bucket:
+        raise HTTPException(status_code=400, detail="Document bucket does not match configured bucket")
+
+    try:
+        file_bytes = storage.download_bytes(doc.storage_path)
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=500, detail=f"Failed to download document: {exc}") from exc
+
+    # Reuse parsing pipeline with a temporary UploadFile
+    from tempfile import SpooledTemporaryFile
+    from starlette.datastructures import UploadFile as StarletteUploadFile
+
+    tmp = SpooledTemporaryFile()
+    tmp.write(file_bytes)
+    tmp.seek(0)
+    upload = StarletteUploadFile(file=tmp, filename=doc.filename)
+
+    parsed = await parse_document(upload)
+    pages = [page.model_dump() for page in parsed.pages]
+    dyn_chunks = dynamic_chunker.build_chunks(pages)
+    token_chunks = token_chunker.chunk(dyn_chunks)
+
+    embedding_client = get_embedding_client()
+    indexer = get_indexer()
+
+    try:
+        indexer.upsert_token_chunks(token_chunks)
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=500, detail=f"Failed to upsert chunks: {exc}") from exc
+
+    query_chunk = token_chunks[0]
+    query_emb = embedding_client.embed(query_chunk.text)
+    try:
+        results = indexer.search(query_embedding=query_emb, top_k=top_k)
+    except Exception as exc:  # pragma: no cover
+        raise HTTPException(status_code=500, detail=f"Search failed: {exc}") from exc
+
+    return {
+        "inserted": len(token_chunks),
+        "document_id": str(document_id),
+        "sample_query_chunk_id": query_chunk.id,
+        "search_results": results,
+    }
 
 
 @router.put("/{document_id}", response_model=DocumentOut)

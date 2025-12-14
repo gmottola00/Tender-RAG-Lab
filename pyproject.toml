@@ -23,6 +23,7 @@ dependencies = [
     "greenlet>=3.3.0",
     "psycopg2-binary>=2.9.11",
     "asyncpg>=0.31.0",
+    "supabase>=2.25.1",
 ]
 
 [tool.uv]

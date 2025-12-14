@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: SecretStr | None = Field(
         default=None, env="SUPABASE_SERVICE_ROLE_KEY"
     )
+    STORAGE_BUCKET: str | None = Field(default=None, env="STORAGE_BUCKET")
 
 settings = Settings()
 logger = app_logger.get_logger(__name__)

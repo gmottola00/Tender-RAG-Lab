@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from typing import List, Optional
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.documents import Document
 from src.schemas.documents import DocumentCreate, DocumentUpdate
+from src.services.storage import get_storage_manager
 
 
 class DocumentService:
@@ -15,7 +16,45 @@ class DocumentService:
 
     @staticmethod
     async def create(db: AsyncSession, data: DocumentCreate) -> Document:
-        obj = Document(**data.dict())
+        storage = get_storage_manager()
+        storage.ensure_bucket()
+
+        safe_filename = data.filename
+        unique_filename = f"{uuid4().hex}_{safe_filename}"
+        storage_path = storage.build_path(str(data.tender_id), str(data.lot_id) if data.lot_id else None, unique_filename)
+
+        payload = data.dict()
+        payload["storage_bucket"] = storage.bucket_name
+        payload["storage_path"] = storage_path
+
+        obj = Document(**payload)
+        db.add(obj)
+        await db.commit()
+        await db.refresh(obj)
+        return obj
+
+    @staticmethod
+    async def create_with_upload(
+        db: AsyncSession,
+        data: DocumentCreate,
+        file_bytes: bytes,
+        content_type: Optional[str],
+    ) -> Document:
+        storage = get_storage_manager()
+        storage.ensure_bucket()
+
+        safe_filename = data.filename
+        unique_filename = f"{uuid4().hex}_{safe_filename}"
+        storage_path = storage.build_path(str(data.tender_id), str(data.lot_id) if data.lot_id else None, unique_filename)
+
+        storage.upload_bytes(storage_path, file_bytes, content_type=content_type)
+
+        payload = data.dict()
+        payload["storage_bucket"] = storage.bucket_name
+        payload["storage_path"] = storage_path
+        payload["filename"] = safe_filename
+
+        obj = Document(**payload)
         db.add(obj)
         await db.commit()
         await db.refresh(obj)

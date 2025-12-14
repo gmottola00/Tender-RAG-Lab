@@ -5,15 +5,16 @@ from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
+from src.models.documents import DocumentType
 
 
 class DocumentBase(BaseModel):
     tender_id: UUID
     lot_id: Optional[UUID] = None
     filename: str
-    document_type: Optional[str] = None
-    file_hash: Optional[str] = None
-    uploaded_by: Optional[str] = None
+    storage_bucket: str = None
+    storage_path: str = None
+    document_type: Optional[DocumentType] = None
 
 
 class DocumentCreate(DocumentBase):
@@ -23,9 +24,6 @@ class DocumentCreate(DocumentBase):
 class DocumentUpdate(BaseModel):
     lot_id: Optional[UUID] = None
     document_type: Optional[str] = None
-    file_hash: Optional[str] = None
-    uploaded_by: Optional[str] = None
-
 
 class DocumentOut(DocumentBase):
     id: UUID

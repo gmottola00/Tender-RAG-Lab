@@ -49,9 +49,21 @@
         </label>
         <div class="dropzone" id="doc-dropzone" role="button" tabindex="0" aria-label="Carica documento">
           <p>Trascina un file qui oppure clicca per selezionarlo</p>
-          <input type="file" id="doc-file-input" style="display:none">
+          <input type="file" id="doc-file-input" name="file" style="display:none">
         </div>
-        <label>Tipo documento <input type="text" name="document_type" placeholder="bando, capitolato..."></label>
+        <label>Tipo documento
+          <select name="document_type" id="document-type-select" required>
+            <option value="">Seleziona...</option>
+            <option value="bando">Bando</option>
+            <option value="capitolato">Capitolato</option>
+            <option value="disciplinare">Disciplinare</option>
+            <option value="rettifica">Rettifica</option>
+            <option value="avviso">Avviso</option>
+            <option value="chiarimenti">Chiarimenti</option>
+            <option value="qa">Q&A</option>
+            <option value="altro">Altro</option>
+          </select>
+        </label>
         <label>Hash file (opzionale) <input type="text" name="file_hash"></label>
         <label>Caricato da <input type="text" name="uploaded_by"></label>
         <button type="submit">Registra documento</button>
@@ -59,17 +71,15 @@
       <div id="document-message" class="message"></div>
     </section>
 
-    <section class="card" id="meta-card">
-      <h2>Metadati</h2>
-      <ul class="list">
-        <li><strong>ID:</strong> <span id="meta-id"></span></li>
-        <li><strong>Creato il:</strong> <span id="meta-created"></span></li>
-        <li><strong>Aggiornato il:</strong> <span id="meta-updated"></span></li>
-      </ul>
+    <section class="card" id="documents-card">
+      <h2>Documenti della gara</h2>
+      <ul class="list" id="documents-list"></ul>
+      <button id="ingest-all-btn" type="button">Indicizza tutti i documenti</button>
+      <div id="documents-message" class="message"></div>
     </section>
 
   </main>
 
-  <script src="/static/tender_detail.js?v=5"></script>
+  <script src="/static/tender_detail.js?v=6"></script>
 </body>
 </html>
