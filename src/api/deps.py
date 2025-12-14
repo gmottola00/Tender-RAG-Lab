@@ -1,4 +1,4 @@
-from app.db.session import get_db  # ora è async
+from db.session import get_db  # ora è async
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import AsyncGenerator
 

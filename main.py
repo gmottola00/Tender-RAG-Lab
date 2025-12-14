@@ -1,7 +1,13 @@
 from fastapi import FastAPI
-from src.api.routers.ingestion import ingestion
-from configs.config import settings
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from configs.config import settings
+from src.api.routers.ingestion import ingestion
+from src.api.routers.tenders import router as tenders_router
+from src.api.routers.lots import router as lots_router
+from src.api.routers.documents import router as documents_router
+from src.api.routers.ui import router as ui_router
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
@@ -24,3 +30,9 @@ app.include_router(
     prefix="/api/ingestion", 
     tags=["Pools"]
 )
+app.include_router(tenders_router, prefix="/api")
+app.include_router(lots_router, prefix="/api")
+app.include_router(documents_router, prefix="/api")
+app.include_router(ui_router, prefix="")
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
