@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tender Management Demo</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Tender Management Demo</h1>
+    <p>Creazione gara e registrazione documenti (demo front-end)</p>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Crea gara</h2>
+      <form id="tender-form">
+        <label>Codice <input type="text" name="code" required></label>
+        <label>Titolo <input type="text" name="title" required></label>
+        <label>Descrizione <textarea name="description"></textarea></label>
+        <label>Buyer <input type="text" name="buyer"></label>
+        <label>Data pubblicazione <input type="date" name="publish_date"></label>
+        <label>Data chiusura <input type="date" name="closing_date"></label>
+        <button type="submit">Crea gara</button>
+      </form>
+      <div id="tender-message" class="message"></div>
+    </section>
+
+    <section class="card">
+      <h2>Gare esistenti</h2>
+      <button id="refresh-tenders">Ricarica</button>
+      <ul id="tender-list" class="list"></ul>
+      <p class="hint">Clicca una gara per vedere il dettaglio e modificarla.</p>
+    </section>
+
+  </main>
+
+  <noscript>
+    <p class="message error">Abilita JavaScript per vedere l'elenco gare e i link al dettaglio.</p>
+  </noscript>
+  <script src="/static/app.js?v=5"></script>
+</body>
+</html>

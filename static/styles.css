@@ -1,0 +1,100 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0 1rem 2rem;
+  background: #f5f6f8;
+  color: #1e1f20;
+}
+header {
+  padding: 1rem 0;
+  border-bottom: 1px solid #e0e4ea;
+}
+h1 {
+  margin: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.card {
+  background: #fff;
+  border: 1px solid #e0e4ea;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: #444;
+}
+input, textarea, select, button {
+  padding: 0.55rem;
+  border: 1px solid #ccd1d9;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+button {
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+  border: none;
+}
+button:hover {
+  background: #1d4ed8;
+}
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.list li {
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+.message {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #0f5132;
+}
+.dropzone {
+  margin-top: 0.5rem;
+  padding: 1.25rem;
+  border: 2px dashed #6b7280;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  text-align: center;
+  color: #1f2937;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.1s;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.dropzone.dragover {
+  border-color: #2563eb;
+  background: #e8eeff;
+  transform: scale(1.01);
+}
+.dropzone p {
+  margin: 0;
+  pointer-events: none;
+  font-size: 0.95rem;
+}

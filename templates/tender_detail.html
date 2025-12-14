@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dettaglio gara</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Dettaglio gara</h1>
+    <p>Visualizza e aggiorna i dati di una gara esistente.</p>
+    <p><a href="/demo">⬅ Torna alla lista</a></p>
+  </header>
+
+  <main class="grid">
+    <section class="card">
+      <h2>Informazioni gara</h2>
+      <form id="tender-detail-form">
+        <label>Codice <input type="text" name="code"></label>
+        <label>Titolo <input type="text" name="title" required></label>
+        <label>Descrizione <textarea name="description"></textarea></label>
+        <label>Buyer <input type="text" name="buyer"></label>
+        <label>Stato
+          <select name="status" id="status-select">
+            <option value="">(nessuno)</option>
+            <option value="draft">draft</option>
+            <option value="published">published</option>
+            <option value="open">open</option>
+            <option value="closed">closed</option>
+            <option value="awarded">awarded</option>
+            <option value="cancelled">cancelled</option>
+          </select>
+        </label>
+        <label>Data pubblicazione <input type="date" name="publish_date"></label>
+        <label>Data chiusura <input type="date" name="closing_date"></label>
+        <button type="submit">Aggiorna</button>
+      </form>
+      <div id="detail-message" class="message"></div>
+    </section>
+
+    <section class="card">
+      <h2>Registra documento (metadata)</h2>
+      <form id="document-form">
+        <input type="hidden" name="tender_id" id="doc-tender-id">
+        <label>Lot (opzionale) <input type="text" name="lot_id" placeholder="UUID lotto"></label>
+        <label>Nome file selezionato
+          <input type="text" name="filename" id="filename-input" placeholder="Seleziona o trascina un file" readonly required>
+        </label>
+        <div class="dropzone" id="doc-dropzone" role="button" tabindex="0" aria-label="Carica documento">
+          <p>Trascina un file qui oppure clicca per selezionarlo</p>
+          <input type="file" id="doc-file-input" style="display:none">
+        </div>
+        <label>Tipo documento <input type="text" name="document_type" placeholder="bando, capitolato..."></label>
+        <label>Hash file (opzionale) <input type="text" name="file_hash"></label>
+        <label>Caricato da <input type="text" name="uploaded_by"></label>
+        <button type="submit">Registra documento</button>
+      </form>
+      <div id="document-message" class="message"></div>
+    </section>
+
+    <section class="card" id="meta-card">
+      <h2>Metadati</h2>
+      <ul class="list">
+        <li><strong>ID:</strong> <span id="meta-id"></span></li>
+        <li><strong>Creato il:</strong> <span id="meta-created"></span></li>
+        <li><strong>Aggiornato il:</strong> <span id="meta-updated"></span></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <script src="/static/tender_detail.js?v=5"></script>
+</body>
+</html>
