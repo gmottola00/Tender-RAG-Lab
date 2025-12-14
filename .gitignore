@@ -151,6 +151,9 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# Logs produced by DB connection test
+logs/db_test.log
+
 # Rope project settings
 .ropeproject
 

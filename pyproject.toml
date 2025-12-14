@@ -19,6 +19,10 @@ dependencies = [
     "uvicorn[standard]>=0.30.3",
     "pymilvus>=2.4.4",
     "requests>=2.32.3",
+    "sqlalchemy>=2.0.45",
+    "greenlet>=3.3.0",
+    "psycopg2-binary>=2.9.11",
+    "asyncpg>=0.31.0",
 ]
 
 [tool.uv]

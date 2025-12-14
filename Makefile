@@ -4,7 +4,7 @@ SHELL := /usr/bin/env bash
 ROOT_DIR := $(shell pwd)
 BACKEND_DIR ?= $(ROOT_DIR)
 BACKEND_PORT ?= 8000
-ENV_FILE ?= $(BACKEND_DIR)/.venv
+ENV_FILE ?= $(BACKEND_DIR)/.env
 
 .PHONY: help install api web build-web serve-web android qr kill-ports ip
 
