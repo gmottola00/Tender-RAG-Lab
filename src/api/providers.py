@@ -14,6 +14,7 @@ from src.core.index.vector.service import MilvusService
 from src.core.index.tender_indexer import TenderMilvusIndexer
 from src.core.index.tender_searcher import TenderSearcher
 from src.core.index.search.vector_searcher import VectorSearcher
+from src.core.index.vector.explorer import MilvusExplorer
 from src.core.rag.pipeline import RagPipeline
 from src.core.rag.rewriter import QueryRewriter
 from src.core.rag.assembler import ContextAssembler
@@ -57,6 +58,13 @@ def get_indexer() -> TenderMilvusIndexer:
         )
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to initialize indexer: {exc}") from exc
+
+
+@lru_cache(maxsize=1)
+def get_milvus_explorer() -> MilvusExplorer:
+    """Singleton explorer for Milvus collections."""
+    indexer = get_indexer()
+    return MilvusExplorer(indexer.connection)
 
 
 @lru_cache(maxsize=1)

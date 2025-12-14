@@ -8,6 +8,7 @@ from src.api.routers.tenders import router as tenders_router
 from src.api.routers.lots import router as lots_router
 from src.api.routers.documents import router as documents_router
 from src.api.routers.ui import router as ui_router
+from src.api.routers.milvus_route import router as milvus_router
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
@@ -33,6 +34,8 @@ app.include_router(
 app.include_router(tenders_router, prefix="/api")
 app.include_router(lots_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
+app.include_router(milvus_router, prefix="/api")
 app.include_router(ui_router, prefix="")
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static/milvus", StaticFiles(directory="static/milvus"), name="static-milvus")

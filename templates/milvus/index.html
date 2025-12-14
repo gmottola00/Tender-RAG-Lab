@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Milvus Explorer</title>
+  <link rel="stylesheet" href="/static/milvus/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Milvus Explorer</h1>
+    <p>Anteprima collection e search su tender chunks</p>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Collections</h2>
+      <button id="reload-collections">Ricarica</button>
+      <ul id="collections"></ul>
+    </section>
+
+    <section class="card">
+      <h2>Schema</h2>
+      <div id="schema"></div>
+    </section>
+
+    <section class="card">
+      <h2>Preview dati</h2>
+      <label>Collection <input type="text" id="preview-collection" placeholder="tender_chunks"></label>
+      <label>Limit <input type="number" id="preview-limit" value="20" min="1" max="200"></label>
+      <button id="btn-preview">Mostra</button>
+      <pre id="preview-output"></pre>
+    </section>
+
+    <section class="card">
+      <h2>Vector search (chunks)</h2>
+      <label>Query <input type="text" id="search-query" placeholder="es. Committente"></label>
+      <label>top_k <input type="number" id="search-topk" value="5" min="1" max="20"></label>
+      <button id="btn-search">Cerca</button>
+      <pre id="search-output"></pre>
+    </section>
+  </main>
+
+  <script src="/static/milvus/app.js"></script>
+</body>
+</html>

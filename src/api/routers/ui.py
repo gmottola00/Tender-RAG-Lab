@@ -26,4 +26,13 @@ async def serve_tender_detail() -> HTMLResponse:
     return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
 
 
+@router.get("/milvus", response_class=HTMLResponse)
+async def serve_milvus() -> HTMLResponse:
+    """Serve the Milvus explorer page."""
+    html_path = Path("templates/milvus/index.html")
+    if not html_path.exists():
+        return HTMLResponse(content="Milvus template not found", status_code=404)
+    return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+
+
 __all__ = ["router"]
