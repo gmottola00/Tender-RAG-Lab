@@ -35,4 +35,13 @@ async def serve_milvus() -> HTMLResponse:
     return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
 
 
+@router.get("/", response_class=HTMLResponse)
+async def serve_home() -> HTMLResponse:
+    """Serve the home landing page."""
+    html_path = Path("templates/home.html")
+    if not html_path.exists():
+        return HTMLResponse(content="Home template not found", status_code=404)
+    return HTMLResponse(content=html_path.read_text(encoding="utf-8"))
+
+
 __all__ = ["router"]

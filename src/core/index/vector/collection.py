@@ -2,50 +2,71 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from .connection import MilvusConnectionManager
 from .exceptions import CollectionError
 
 try:
-    from pymilvus import Collection, CollectionSchema, FieldSchema, utility
-except ImportError:  # pragma: no cover - optional dependency not installed
-    Collection = None  # type: ignore
-    CollectionSchema = None  # type: ignore
-    FieldSchema = None  # type: ignore
-    utility = None  # type: ignore
+    from pymilvus import MilvusClient
+except ImportError as exc:  # pragma: no cover
+    MilvusClient = None  # type: ignore
+    _pymilvus_import_error = exc
 
 
 class MilvusCollectionManager:
-    """Create, drop, and manage Milvus collections."""
+    """Create, drop, and manage Milvus collections using MilvusClient."""
 
     def __init__(self, connection: MilvusConnectionManager) -> None:
-        if Collection is None:
-            raise ImportError("pymilvus is required for Milvus operations")
+        if MilvusClient is None:
+            raise ImportError("pymilvus is required for Milvus operations") from _pymilvus_import_error
         self.connection = connection
+
+    @property
+    def client(self) -> MilvusClient:
+        return self.connection.client
 
     def ensure_collection(
         self,
         name: str,
-        schema: CollectionSchema,
+        schema: Any,
         *,
-        consistency_level: str = "Bounded",
+        index_params: Optional[Dict[str, Any]] = None,
+        load: bool = True,
         shards_num: int = 2,
-    ) -> Collection:
-        """Create the collection if missing and return a loaded Collection object."""
+    ) -> None:
+        """Create the collection if missing; optionally create index and load."""
         self.connection.ensure()
         try:
-            if not utility.has_collection(name):
-                Collection(
-                    name=name,
+            if not self.client.has_collection(collection_name=name):
+                self.client.create_collection(
+                    collection_name=name,
                     schema=schema,
-                    using=self.connection.get_alias(),
-                    consistency_level=consistency_level,
                     shards_num=shards_num,
                 )
-            col = Collection(name=name, using=self.connection.get_alias(), schema=schema)
-            col.load()
-            return col
+            if index_params:
+                field_name = index_params.get("field_name", "embedding")
+                existing = self.client.list_indexes(collection_name=name)
+                # list_indexes may return list[str] or list[dict]
+                has_index = any(
+                    (idx.get("field_name") if isinstance(idx, dict) else None) == field_name or idx == field_name
+                    for idx in (existing or [])
+                )
+                if not has_index:
+                    if hasattr(index_params, "to_dict"):
+                        idx_params = index_params  # assume already IndexParams
+                    else:
+                        idx = self.client.prepare_index_params()
+                        idx.add_index(
+                            field_name=field_name,
+                            index_type=index_params.get("index_type", "HNSW"),
+                            metric_type=index_params.get("metric_type", "IP"),
+                            params={k: v for k, v in index_params.items() if k not in {"field_name", "index_type", "metric_type"}},
+                        )
+                        idx_params = idx
+                    self.client.create_index(collection_name=name, index_params=idx_params)
+            if load:
+                self.client.load_collection(collection_name=name)
         except Exception as exc:  # pragma: no cover - passthrough
             raise CollectionError(f"Failed to ensure collection '{name}'") from exc
 
@@ -53,8 +74,8 @@ class MilvusCollectionManager:
         """Drop a collection if it exists."""
         self.connection.ensure()
         try:
-            if utility.has_collection(name):
-                utility.drop_collection(name)
+            if self.client.has_collection(collection_name=name):
+                self.client.drop_collection(collection_name=name)
         except Exception as exc:  # pragma: no cover - passthrough
             raise CollectionError(f"Failed to drop collection '{name}'") from exc
 
@@ -62,8 +83,7 @@ class MilvusCollectionManager:
         """Load a collection into memory."""
         self.connection.ensure()
         try:
-            col = Collection(name=name, using=self.connection.get_alias())
-            col.load()
+            self.client.load_collection(collection_name=name)
         except Exception as exc:  # pragma: no cover - passthrough
             raise CollectionError(f"Failed to load collection '{name}'") from exc
 
@@ -71,8 +91,7 @@ class MilvusCollectionManager:
         """Release a collection from memory."""
         self.connection.ensure()
         try:
-            col = Collection(name=name, using=self.connection.get_alias())
-            col.release()
+            self.client.release_collection(collection_name=name)
         except Exception as exc:  # pragma: no cover - passthrough
             raise CollectionError(f"Failed to release collection '{name}'") from exc
 
@@ -80,8 +99,7 @@ class MilvusCollectionManager:
         """Create an index on a field."""
         self.connection.ensure()
         try:
-            col = Collection(name=name, using=self.connection.get_alias())
-            col.create_index(field_name=field_name, index_params=index_params)
+            self.client.create_index(collection_name=name, field_name=field_name, index_params=index_params)
         except Exception as exc:  # pragma: no cover - passthrough
             raise CollectionError(f"Failed to create index on '{field_name}' for '{name}'") from exc
 

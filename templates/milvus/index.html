@@ -4,42 +4,99 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Milvus Explorer</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/offcanvas.css">
   <link rel="stylesheet" href="/static/milvus/styles.css">
 </head>
 <body>
-  <header>
-    <h1>Milvus Explorer</h1>
-    <p>Anteprima collection e search su tender chunks</p>
-  </header>
-  <main>
-    <section class="card">
-      <h2>Collections</h2>
-      <button id="reload-collections">Ricarica</button>
-      <ul id="collections"></ul>
-    </section>
+  <nav class="navbar navbar-light bg-light shadow-sm sticky-top">
+    <div class="container-fluid">
+      <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#global-offcanvas" aria-controls="global-offcanvas">
+        ☰
+      </button>
+      <div class="d-flex flex-column">
+        <span class="fw-bold">Milvus Explorer</span>
+        <small class="text-muted">Anteprima collection, schema e search su tender chunks</small>
+      </div>
+    </div>
+  </nav>
 
-    <section class="card">
-      <h2>Schema</h2>
-      <div id="schema"></div>
-    </section>
+  <div class="container py-4">
 
-    <section class="card">
-      <h2>Preview dati</h2>
-      <label>Collection <input type="text" id="preview-collection" placeholder="tender_chunks"></label>
-      <label>Limit <input type="number" id="preview-limit" value="20" min="1" max="200"></label>
-      <button id="btn-preview">Mostra</button>
-      <pre id="preview-output"></pre>
-    </section>
+    <div class="row g-3">
+      <div class="col-lg-4">
+        <section class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5">Collections</h2>
+            <p class="text-muted small mb-2">Clicca una collection per vedere schema e dati</p>
+            <button id="reload-collections" class="btn btn-primary btn-sm mb-2 w-100">Ricarica</button>
+            <ul id="collections" class="list-unstyled small mb-0"></ul>
+          </div>
+        </section>
+      </div>
 
-    <section class="card">
-      <h2>Vector search (chunks)</h2>
-      <label>Query <input type="text" id="search-query" placeholder="es. Committente"></label>
-      <label>top_k <input type="number" id="search-topk" value="5" min="1" max="20"></label>
-      <button id="btn-search">Cerca</button>
-      <pre id="search-output"></pre>
-    </section>
-  </main>
+      <div class="col-lg-4">
+        <section class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5">Schema</h2>
+            <pre id="schema" class="small bg-dark text-light p-2 rounded d-none" style="min-height: 200px;">Seleziona una collection per vedere lo schema</pre>
+          </div>
+        </section>
+      </div>
+    </div>
 
+    <div class="row g-3 mt-1">
+      <div class="col-12">
+        <section class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5">Preview dati</h2>
+            <div class="row g-2 align-items-end">
+              <div class="col-md-4">
+                <label class="form-label">Collection</label>
+                <input type="text" id="preview-collection" class="form-control form-control-sm" placeholder="tender_chunks">
+              </div>
+              <div class="col-md-2">
+                <label class="form-label">Limit</label>
+                <input type="number" id="preview-limit" class="form-control form-control-sm" value="20" min="1" max="200">
+              </div>
+              <div class="col-md-2">
+                <button id="btn-preview" class="btn btn-primary btn-sm w-100">Mostra</button>
+              </div>
+            </div>
+            <div id="preview-table" class="table-wrapper mt-3"></div>
+            <pre id="preview-output" class="small bg-dark text-light p-2 rounded mt-2" style="display:none"></pre>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-12">
+        <section class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="h5">Vector search (chunks)</h2>
+            <div class="chat-box">
+              <div class="mb-2">
+                <label class="form-label">Query</label>
+                <input type="text" id="search-query" class="form-control form-control-sm" placeholder="es. Committente, lotto, valore...">
+              </div>
+              <div class="mb-2 d-flex align-items-center gap-2">
+                <div class="flex-grow-0" style="width: 120px;">
+                  <label class="form-label mb-1">top_k</label>
+                  <input type="number" id="search-topk" class="form-control form-control-sm" value="5" min="1" max="20">
+                </div>
+                <button id="btn-search" class="btn btn-primary btn-sm align-self-end">Cerca</button>
+              </div>
+              <pre id="search-output" class="small bg-dark text-light p-2 rounded mt-2" style="min-height: 120px;">Esegui una ricerca per vedere i risultati</pre>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/offcanvas.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="/static/milvus/app.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-"""Data operations (insert/search/query) for Milvus collections."""
+"""Data operations (insert/search/query) for Milvus collections using MilvusClient."""
 
 from __future__ import annotations
 
@@ -7,57 +7,62 @@ from typing import Any, Dict, List, Optional, Sequence
 from .connection import MilvusConnectionManager
 from .exceptions import DataOperationError
 
-try:
-    from pymilvus import Collection
-except ImportError:  # pragma: no cover - optional dependency not installed
-    Collection = None  # type: ignore
-
 
 class MilvusDataManager:
     """Perform data-level operations on Milvus collections."""
 
     def __init__(self, connection: MilvusConnectionManager) -> None:
-        if Collection is None:
-            raise ImportError("pymilvus is required for Milvus operations")
         self.connection = connection
 
-    def _collection(self, name: str) -> Collection:
-        self.connection.ensure()
-        try:
-            return Collection(name=name, using=self.connection.get_alias())
-        except Exception as exc:  # pragma: no cover - passthrough
-            raise DataOperationError(f"Failed to open collection '{name}'") from exc
+    @property
+    def client(self):
+        return self.connection.client
 
     def insert(
         self,
         collection_name: str,
-        data: Sequence[Sequence[Any]] | Dict[str, Sequence[Any]],
+        data: Sequence[Sequence[Any]] | Dict[str, Sequence[Any]] | Dict[str, List[Any]],
         *,
         partition_name: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> Any:
         """Insert entities into a collection."""
-        col = self._collection(collection_name)
+        self.connection.ensure()
         try:
-            return col.insert(data=data, partition_name=partition_name, timeout=timeout)
-        except Exception as exc:  # pragma: no cover - passthrough
+            return self.client.insert(
+                collection_name=collection_name,
+                data=data,
+                partition_name=partition_name,
+                timeout=timeout,
+            )
+        except Exception as exc:  # pragma: no cover
             raise DataOperationError(f"Insert failed for collection '{collection_name}'") from exc
 
     def upsert(
         self,
         collection_name: str,
-        data: Sequence[Sequence[Any]] | Dict[str, Sequence[Any]],
+        data: Sequence[Sequence[Any]] | Dict[str, Sequence[Any]] | Dict[str, List[Any]],
         *,
         partition_name: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> Any:
         """Upsert entities if supported; fallback to insert."""
-        col = self._collection(collection_name)
+        self.connection.ensure()
         try:
-            if hasattr(col, "upsert"):
-                return col.upsert(data=data, partition_name=partition_name, timeout=timeout)  # type: ignore[attr-defined]
-            return col.insert(data=data, partition_name=partition_name, timeout=timeout)
-        except Exception as exc:  # pragma: no cover - passthrough
+            if hasattr(self.client, "upsert"):
+                return self.client.upsert(
+                    collection_name=collection_name,
+                    data=data,
+                    partition_name=partition_name,
+                    timeout=timeout,
+                )
+            return self.client.insert(
+                collection_name=collection_name,
+                data=data,
+                partition_name=partition_name,
+                timeout=timeout,
+            )
+        except Exception as exc:  # pragma: no cover
             raise DataOperationError(f"Upsert failed for collection '{collection_name}'") from exc
 
     def delete(
@@ -65,14 +70,13 @@ class MilvusDataManager:
         collection_name: str,
         expr: str,
         *,
-        partition_name: Optional[str] = None,
         timeout: Optional[float] = None,
     ) -> Any:
         """Delete entities matching an expression."""
-        col = self._collection(collection_name)
+        self.connection.ensure()
         try:
-            return col.delete(expr=expr, partition_name=partition_name, timeout=timeout)
-        except Exception as exc:  # pragma: no cover - passthrough
+            return self.client.delete(collection_name=collection_name, filter=expr, timeout=timeout)
+        except Exception as exc:  # pragma: no cover
             raise DataOperationError(f"Delete failed for collection '{collection_name}'") from exc
 
     def search(
@@ -90,21 +94,21 @@ class MilvusDataManager:
         consistency_level: Optional[str] = None,
     ) -> Any:
         """Perform a vector search."""
-        col = self._collection(collection_name)
+        self.connection.ensure()
         try:
-            col.load()
-            return col.search(
+            return self.client.search(
+                collection_name=collection_name,
                 data=data,
                 anns_field=anns_field,
-                param=param,
+                search_params=param,
                 limit=limit,
-                expr=expr,
+                filter=expr,
                 output_fields=output_fields,
                 partition_names=partition_names,
                 timeout=timeout,
                 consistency_level=consistency_level,
             )
-        except Exception as exc:  # pragma: no cover - passthrough
+        except Exception as exc:  # pragma: no cover
             raise DataOperationError(f"Search failed for collection '{collection_name}'") from exc
 
     def query(
@@ -119,25 +123,24 @@ class MilvusDataManager:
         consistency_level: Optional[str] = None,
     ) -> Any:
         """Run a scalar query on a collection."""
-        col = self._collection(collection_name)
+        self.connection.ensure()
         try:
-            col.load()
-            return col.query(
-                expr=expr,
+            return self.client.query(
+                collection_name=collection_name,
+                filter=expr,
                 output_fields=output_fields,
                 limit=limit,
                 offset=offset,
                 timeout=timeout,
                 consistency_level=consistency_level,
             )
-        except Exception as exc:  # pragma: no cover - passthrough
+        except Exception as exc:  # pragma: no cover
             raise DataOperationError(f"Query failed for collection '{collection_name}'") from exc
 
     def flush(self, collection_name: str) -> None:
         """Flush pending data to storage."""
-        col = self._collection(collection_name)
+        self.connection.ensure()
         try:
-            col.flush()
-        except Exception as exc:  # pragma: no cover - passthrough
+            self.client.flush(collection_name=collection_name)
+        except Exception as exc:  # pragma: no cover
             raise DataOperationError(f"Flush failed for collection '{collection_name}'") from exc
-

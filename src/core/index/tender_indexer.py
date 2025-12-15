@@ -12,19 +12,9 @@ from src.core.index.vector.service import MilvusService
 from src.schemas.chunking import TokenChunk
 
 try:
-    from pymilvus import (
-        Collection,
-        CollectionSchema,
-        DataType,
-        FieldSchema,
-        MilvusException,
-    )
-except ImportError as exc:  # pragma: no cover - optional dependency
-    Collection = None  # type: ignore
-    CollectionSchema = None  # type: ignore
+    from pymilvus import DataType
+except ImportError as exc:  # pragma: no cover
     DataType = None  # type: ignore
-    FieldSchema = None  # type: ignore
-    MilvusException = None  # type: ignore
     _pymilvus_import_error = exc
 
 
@@ -48,7 +38,7 @@ class TenderMilvusIndexer:
         metric_type: str = DEFAULT_METRIC,
         index_type: str = DEFAULT_INDEX_TYPE,
     ) -> None:
-        if Collection is None or CollectionSchema is None:
+        if DataType is None:
             raise ImportError("pymilvus is required for Milvus operations") from _pymilvus_import_error
         if embedding_dim <= 0:
             raise ValueError("embedding_dim must be positive")
@@ -64,64 +54,38 @@ class TenderMilvusIndexer:
     def _ensure_collection(self) -> None:
         """Create collection and index if missing."""
         self.connection.ensure()
-        if not self._has_collection():
-            schema = self._build_schema()
+        schema = self._build_schema()
+        index_params = self._build_index_params()
+        try:
             self.service.collections.ensure_collection(
-                self.collection_name,
+                name=self.collection_name,
                 schema=schema,
-                consistency_level="Bounded",
+                index_params={"field_name": "embedding", **index_params},
+                load=True,
                 shards_num=2,
             )
-            index_params = self._build_index_params()
-            self._create_index(index_params)
-        else:
-            # ensure index exists; if missing, create it
-            index_params = self._build_index_params()
-            try:
-                col = Collection(name=self.collection_name, using=self.connection.get_alias())
-                indexes = col.indexes
-                if not indexes:
-                    self._create_index(index_params)
-                else:
-                    col.load()
-            except Exception as exc:  # pragma: no cover - passthrough
-                raise CollectionError("Failed to load or create index") from exc
+        except Exception as exc:  # pragma: no cover
+            raise CollectionError("Failed to ensure collection") from exc
 
-    def _has_collection(self) -> bool:
+    def _build_schema(self):
+        client = self.connection.client
         try:
-            from pymilvus import utility
-
-            return utility.has_collection(self.collection_name, using=self.connection.get_alias())
-        except Exception as exc:  # pragma: no cover - passthrough
-            raise CollectionError("Failed to check collection existence") from exc
-
-    def _build_schema(self) -> CollectionSchema:
-        try:
-            fields = [
-                FieldSchema(name="id", dtype=DataType.VARCHAR, is_primary=True, max_length=64),
-                FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=65535),
-                FieldSchema(name="section_path", dtype=DataType.VARCHAR, max_length=2048),
-                FieldSchema(name="metadata", dtype=DataType.JSON),
-                FieldSchema(name="page_numbers", dtype=DataType.JSON),
-                FieldSchema(name="source_chunk_id", dtype=DataType.VARCHAR, max_length=64),
-                FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=self.embedding_dim),
-            ]
-            return CollectionSchema(fields=fields, description="Tender token chunks")
-        except MilvusException as exc:  # pragma: no cover - passthrough
+            schema = client.create_schema(auto_id=False, enable_dynamic_field=False)
+            schema.add_field(field_name="id", datatype=DataType.VARCHAR, is_primary=True, max_length=64)
+            schema.add_field(field_name="text", datatype=DataType.VARCHAR, max_length=65535)
+            schema.add_field(field_name="section_path", datatype=DataType.VARCHAR, max_length=2048)
+            schema.add_field(field_name="metadata", datatype=DataType.JSON)
+            schema.add_field(field_name="page_numbers", datatype=DataType.JSON)
+            schema.add_field(field_name="source_chunk_id", datatype=DataType.VARCHAR, max_length=64)
+            schema.add_field(field_name="embedding", datatype=DataType.FLOAT_VECTOR, dim=self.embedding_dim)
+            return schema
+        except Exception as exc:  # pragma: no cover
             raise CollectionError("Failed to build schema") from exc
 
     def _build_index_params(self) -> Dict[str, object]:
         if self.index_type.upper() == "HNSW":
-            return {"index_type": "HNSW", "metric_type": self.metric_type, "params": {"M": DEFAULT_HNSW_M, "efConstruction": DEFAULT_HNSW_EF}}
-        return {"index_type": self.index_type, "metric_type": self.metric_type, "params": {}}
-
-    def _create_index(self, index_params: Dict[str, object]) -> None:
-        try:
-            col = Collection(name=self.collection_name, using=self.connection.get_alias())
-            col.create_index(field_name="embedding", index_params=index_params)
-            col.load()
-        except Exception as exc:  # pragma: no cover - passthrough
-            raise CollectionError("Failed to create/load index") from exc
+            return {"index_type": "HNSW", "metric_type": self.metric_type, "M": DEFAULT_HNSW_M, "efConstruction": DEFAULT_HNSW_EF}
+        return {"index_type": self.index_type, "metric_type": self.metric_type}
 
     def upsert_token_chunks(self, chunks: Sequence[TokenChunk]) -> None:
         """Embed and insert token chunks into Milvus."""
@@ -149,9 +113,8 @@ class TenderMilvusIndexer:
                 }
             )
         try:
-            col = Collection(name=self.collection_name, using=self.connection.get_alias())
-            col.insert(rows)
-            col.flush()
+            self.service.data.upsert(self.collection_name, rows)
+            self.service.data.flush(self.collection_name)
         except Exception as exc:  # pragma: no cover - passthrough
             raise DataOperationError("Insert/upsert failed") from exc
 
@@ -169,9 +132,8 @@ class TenderMilvusIndexer:
 
         params = search_params or {"metric_type": self.metric_type, "params": {"ef": DEFAULT_HNSW_EF if self.index_type.upper() == "HNSW" else 64}}
         try:
-            col = Collection(name=self.collection_name, using=self.connection.get_alias())
-            col.load()
-            results = col.search(
+            results = self.service.data.search(
+                collection_name=self.collection_name,
                 data=[query_embedding],
                 anns_field="embedding",
                 param=params,
@@ -183,15 +145,16 @@ class TenderMilvusIndexer:
 
         hits: List[Dict[str, object]] = []
         for hit in results[0]:
+            entity = hit.get("entity", hit) if isinstance(hit, dict) else hit
             hits.append(
                 {
-                    "score": hit.distance,
-                    "text": hit.entity.get("text"),
-                    "section_path": hit.entity.get("section_path"),
-                    "metadata": hit.entity.get("metadata"),
-                    "page_numbers": hit.entity.get("page_numbers"),
-                    "source_chunk_id": hit.entity.get("source_chunk_id"),
-                    "id": hit.id,
+                    "score": hit.get("distance") if isinstance(hit, dict) else hit.distance,
+                    "text": entity.get("text"),
+                    "section_path": entity.get("section_path"),
+                    "metadata": entity.get("metadata"),
+                    "page_numbers": entity.get("page_numbers"),
+                    "source_chunk_id": entity.get("source_chunk_id"),
+                    "id": entity.get("id", getattr(hit, "id", None)),
                 }
             )
         return hits

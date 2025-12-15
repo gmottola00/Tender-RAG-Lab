@@ -4,6 +4,12 @@ body {
   padding: 1rem;
   background: #f5f6f8;
 }
+.offcanvas-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1050;
+}
 header {
   margin-bottom: 1rem;
 }
@@ -24,7 +30,6 @@ label {
   margin-bottom: 0.5rem;
 }
 input, button {
-  width: 100%;
   padding: 0.5rem;
   margin-top: 0.25rem;
   box-sizing: border-box;
@@ -47,3 +52,40 @@ pre {
   font-size: 0.85rem;
 }
 ul { padding-left: 1rem; }
+
+.table-wrapper {
+  overflow: auto;
+  max-height: 360px;
+  border: 1px solid #e0e4ea;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th, td {
+  border: 1px solid #e5e7eb;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+}
+th {
+  background: #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.collection-item {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 0.35rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.collection-item:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}

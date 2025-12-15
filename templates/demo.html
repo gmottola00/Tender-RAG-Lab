@@ -4,41 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tender Management Demo</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/offcanvas.css">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-  <header>
-    <h1>Tender Management Demo</h1>
-    <p>Creazione gara e registrazione documenti (demo front-end)</p>
-  </header>
+  <nav class="navbar navbar-light bg-light shadow-sm sticky-top">
+    <div class="container-fluid">
+      <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#global-offcanvas" aria-controls="global-offcanvas">
+        ☰
+      </button>
+      <div class="d-flex flex-column">
+        <span class="fw-bold">Tender Management Demo</span>
+        <small class="text-muted">Crea gare e registra documenti</small>
+      </div>
+    </div>
+  </nav>
 
-  <main class="grid">
-    <section class="card">
-      <h2>Crea gara</h2>
-      <form id="tender-form">
-        <label>Codice <input type="text" name="code" required></label>
-        <label>Titolo <input type="text" name="title" required></label>
-        <label>Descrizione <textarea name="description"></textarea></label>
-        <label>Buyer <input type="text" name="buyer"></label>
-        <label>Data pubblicazione <input type="date" name="publish_date"></label>
-        <label>Data chiusura <input type="date" name="closing_date"></label>
-        <button type="submit">Crea gara</button>
-      </form>
-      <div id="tender-message" class="message"></div>
-    </section>
+  <div class="container py-3">
+    <header>
+      <h1>Tender Management Demo</h1>
+      <p>Creazione gara e registrazione documenti (demo front-end)</p>
+    </header>
 
-    <section class="card">
-      <h2>Gare esistenti</h2>
-      <button id="refresh-tenders">Ricarica</button>
-      <ul id="tender-list" class="list"></ul>
-      <p class="hint">Clicca una gara per vedere il dettaglio e modificarla.</p>
-    </section>
+    <main class="grid">
+      <section class="card">
+        <h2>Crea gara</h2>
+        <form id="tender-form">
+          <label>Codice <input type="text" name="code" required></label>
+          <label>Titolo <input type="text" name="title" required></label>
+          <label>Descrizione <textarea name="description"></textarea></label>
+          <label>Buyer <input type="text" name="buyer"></label>
+          <label>Data pubblicazione <input type="date" name="publish_date"></label>
+          <label>Data chiusura <input type="date" name="closing_date"></label>
+          <button type="submit">Crea gara</button>
+        </form>
+        <div id="tender-message" class="message"></div>
+      </section>
 
-  </main>
+      <section class="card">
+        <h2>Gare esistenti</h2>
+        <button id="refresh-tenders">Ricarica</button>
+        <ul id="tender-list" class="list"></ul>
+        <p class="hint">Clicca una gara per vedere il dettaglio e modificarla.</p>
+      </section>
+    </main>
+  </div>
 
   <noscript>
     <p class="message error">Abilita JavaScript per vedere l'elenco gare e i link al dettaglio.</p>
   </noscript>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/offcanvas.js"></script>
   <script src="/static/app.js?v=5"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ from .config import MilvusConfig
 from .connection import MilvusConnectionManager
 from .data import MilvusDataManager
 from .database import MilvusDatabaseManager
+from .explorer import MilvusExplorer
 
 
 class MilvusService:
@@ -19,6 +20,7 @@ class MilvusService:
         self.databases = MilvusDatabaseManager(self.connection)
         self.collections = MilvusCollectionManager(self.connection)
         self.data = MilvusDataManager(self.connection)
+        self.explorer = MilvusExplorer(self.connection)
 
     # Convenience wrappers
     def ensure_database(self, name: str) -> None:

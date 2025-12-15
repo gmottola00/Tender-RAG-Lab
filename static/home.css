@@ -1,0 +1,26 @@
+body {
+  background: radial-gradient(circle at 20% 20%, #eef2ff 0, #eef2ff 18%, #f8fafc 18%, #f8fafc 100%);
+  min-height: 100vh;
+}
+.link-card {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.link-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
+.img-col {
+  min-height: 180px;
+  background-size: cover;
+  background-position: center;
+}
+.tender-img {
+  background-image: linear-gradient(120deg, rgba(37,99,235,0.8), rgba(59,130,246,0.5)), url('https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=800&q=60');
+}
+.milvus-img {
+  background-image: linear-gradient(120deg, rgba(16,185,129,0.8), rgba(52,211,153,0.5)), url('https://images.unsplash.com/photo-1473181488821-2d23949a045a?auto=format&fit=crop&w=800&q=60');
+}
