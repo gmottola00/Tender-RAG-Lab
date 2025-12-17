@@ -19,12 +19,15 @@ Guida rapida per usare la pipeline di parsing, chunking dinamico e chunking per 
 ## Uso in codice
 
 ```python
-from src.core.ingestion.ingestion_service import IngestionService
+from src.infra.parsers import create_ingestion_service
 from src.core.chunking import DynamicChunker, TokenChunker
 
-service = IngestionService.singleton()
-pages = service.parse_document("file.pdf")["pages"]
+# Crea servizio con factory (dependency injection)
+service = create_ingestion_service(enable_ocr=True, detect_headings=True)
+result = service.parse_document("file.pdf")
+pages = result["pages"]
 
+# Chunking
 dyn = DynamicChunker().build_chunks(pages)
 tok = TokenChunker().chunk(dyn)
 ```

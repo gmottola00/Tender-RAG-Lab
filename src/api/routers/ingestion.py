@@ -9,16 +9,16 @@ from typing import List
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from configs.logger import app_logger
-from src.core.ingestion.core.file_utils import temporary_directory
+from src.core.utils.file_utils import temporary_directory
 from src.schemas.ingestion import ParsedDocument
-from src.core.ingestion.ingestion_service import IngestionService
+from src.infra.parsers.factory import create_ingestion_service
 from src.core.chunking import DynamicChunker, TokenChunker
 from src.api.providers import get_embedding_client, get_indexer, get_searcher, get_rag_pipeline
 
 
 ingestion = APIRouter()
 log = app_logger.get_logger(__name__, extra_prefix="ingestion")
-service = IngestionService.singleton()
+service = create_ingestion_service()  # Use factory instead of singleton
 dynamic_chunker = DynamicChunker()
 token_chunker = TokenChunker()
 
