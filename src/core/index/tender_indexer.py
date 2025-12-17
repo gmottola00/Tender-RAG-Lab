@@ -74,6 +74,7 @@ class TenderMilvusIndexer:
             schema.add_field(field_name="id", datatype=DataType.VARCHAR, is_primary=True, max_length=64)
             schema.add_field(field_name="text", datatype=DataType.VARCHAR, max_length=65535)
             schema.add_field(field_name="section_path", datatype=DataType.VARCHAR, max_length=2048)
+            schema.add_field(field_name="tender_id", datatype=DataType.VARCHAR, max_length=2048)
             schema.add_field(field_name="metadata", datatype=DataType.JSON)
             schema.add_field(field_name="page_numbers", datatype=DataType.JSON)
             schema.add_field(field_name="source_chunk_id", datatype=DataType.VARCHAR, max_length=64)

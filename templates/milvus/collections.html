@@ -68,7 +68,15 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Crea Nuova Collection</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="showImportSchemaModal()">
+                            <i class="bi bi-upload"></i> Importa Schema
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="exportSchema()">
+                            <i class="bi bi-download"></i> Esporta Schema
+                        </button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
                 </div>
                 <div class="modal-body">
                     <form id="create-collection-form">
@@ -92,10 +100,21 @@
                                 <div class="col-md-3">
                                     <select class="form-select" required>
                                         <option value="">Tipo di Dato</option>
-                                        <option value="FLOAT_VECTOR">Float Vector</option>
+                                        <option value="BOOL">Bool</option>
+                                        <option value="INT8">Int8</option>
+                                        <option value="INT16">Int16</option>
+                                        <option value="INT32">Int32</option>
                                         <option value="INT64">Int64</option>
                                         <option value="FLOAT">Float</option>
-                                        <option value="VARCHAR">String</option>
+                                        <option value="DOUBLE">Double</option>
+                                        <option value="VARCHAR">VarChar</option>
+                                        <option value="JSON">JSON</option>
+                                        <option value="ARRAY">Array</option>
+                                        <option value="FLOAT_VECTOR">Float Vector</option>
+                                        <option value="BINARY_VECTOR">Binary Vector</option>
+                                        <option value="FLOAT16_VECTOR">Float16 Vector</option>
+                                        <option value="BFLOAT16_VECTOR">BFloat16 Vector</option>
+                                        <option value="SPARSE_FLOAT_VECTOR">Sparse Float Vector</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
@@ -148,6 +167,64 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
                     <button type="button" class="btn btn-primary" id="create-collection-btn">Crea Collection</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Schema Modal -->
+    <div class="modal fade" id="importSchemaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-upload"></i> Importa Schema
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Formato JSON:</strong> Incolla il JSON esportato o un schema valido con campi e parametri di indice.
+                    </div>
+                    <textarea id="schemaImportText" class="form-control font-monospace" rows="15" 
+                              placeholder='{"schema": [...], "index_params": {...}, "shards_num": 2}'></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-primary" onclick="importSchema()">
+                        <i class="bi bi-check-lg"></i> Importa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Schema Modal -->
+    <div class="modal fade" id="exportSchemaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-download"></i> Esporta Schema
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i>
+                        <strong>Schema Pronto:</strong> Copia il JSON qui sotto o scaricalo come file.
+                    </div>
+                    <textarea id="schemaExportText" class="form-control font-monospace" rows="15" readonly></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="copyExportedSchema()">
+                        <i class="bi bi-clipboard"></i> Copia
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="downloadSchema()">
+                        <i class="bi bi-download"></i> Scarica JSON
+                    </button>
                 </div>
             </div>
         </div>
