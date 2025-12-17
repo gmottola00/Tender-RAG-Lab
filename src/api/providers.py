@@ -103,4 +103,17 @@ def get_rag_pipeline() -> RagPipeline:
     )
 
 
+def get_milvus_service() -> MilvusService:
+    """Provide an instance of MilvusService."""
+    cfg = MilvusConfig(
+        uri=os.getenv("MILVUS_URI", "http://localhost:19530"),
+        alias=os.getenv("MILVUS_ALIAS", "default"),
+        user=os.getenv("MILVUS_USER"),
+        password=os.getenv("MILVUS_PASSWORD"),
+        db_name=os.getenv("MILVUS_DB_NAME", "default"),
+        secure=os.getenv("MILVUS_SECURE", "false").lower() == "true",
+    )
+    return MilvusService(cfg)
+
+
 __all__ = ["get_embedding_client", "get_indexer"]
