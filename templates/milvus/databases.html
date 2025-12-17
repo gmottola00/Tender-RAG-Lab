@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Database</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-light bg-light shadow-sm sticky-top">
+        <div class="container-fluid">
+            <a href="/milvus" class="btn btn-outline-dark btn-sm">&larr; Milvus Explorer</a>
+            <span class="navbar-brand mb-0 h1">Gestione Database</span>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <h1 class="text-center mb-4">Gestione Database</h1>
+
+        <div class="mb-4">
+            <h2 class="h5">Crea un nuovo Database</h2>
+            <form id="create-database-form" class="row g-3">
+                <div class="col-md-6">
+                    <label for="database-name" class="form-label">Nome Database</label>
+                    <input type="text" class="form-control" id="database-name" placeholder="Inserisci il nome del database" required>
+                </div>
+                <div class="col-md-6 align-self-end">
+                    <button type="submit" class="btn btn-primary">Crea Database</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="mb-4">
+            <h2 class="h5">Elenco Database</h2>
+            <ul id="database-list" class="list-group">
+                <!-- I database verranno caricati dinamicamente -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const databaseList = document.getElementById("database-list");
+            const createDatabaseForm = document.getElementById("create-database-form");
+
+            // Funzione per caricare i database
+            const loadDatabases = async () => {
+                try {
+                    const response = await fetch("/api/milvus/databases");
+                    const databases = await response.json();
+
+                    databaseList.innerHTML = "";
+                    databases.forEach(db => {
+                        const li = document.createElement("li");
+                        li.className = "list-group-item d-flex justify-content-between align-items-center";
+                        li.textContent = db.name;
+
+                        const deleteButton = document.createElement("button");
+                        deleteButton.className = "btn btn-danger btn-sm";
+                        deleteButton.textContent = "Elimina";
+                        deleteButton.addEventListener("click", async () => {
+                            if (confirm(`Sei sicuro di voler eliminare il database '${db.name}'?`)) {
+                                await fetch(`/api/milvus/databases/${db.name}`, { method: "DELETE" });
+                                loadDatabases();
+                            }
+                        });
+
+                        li.appendChild(deleteButton);
+                        databaseList.appendChild(li);
+                    });
+                } catch (error) {
+                    console.error("Errore durante il caricamento dei database:", error);
+                }
+            };
+
+            // Carica i database al caricamento della pagina
+            loadDatabases();
+
+            // Gestione della creazione di un nuovo database
+            createDatabaseForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const databaseName = document.getElementById("database-name").value;
+                try {
+                    await fetch("/api/milvus/databases", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: databaseName })
+                    });
+                    createDatabaseForm.reset();
+                    loadDatabases();
+                } catch (error) {
+                    console.error("Errore durante la creazione del database:", error);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

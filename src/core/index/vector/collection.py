@@ -8,7 +8,7 @@ from .connection import MilvusConnectionManager
 from .exceptions import CollectionError
 
 try:
-    from pymilvus import MilvusClient
+    from pymilvus import MilvusClient, CollectionSchema, FieldSchema, DataType
 except ImportError as exc:  # pragma: no cover
     MilvusClient = None  # type: ignore
     _pymilvus_import_error = exc
@@ -38,12 +38,35 @@ class MilvusCollectionManager:
         """Create the collection if missing; optionally create index and load."""
         self.connection.ensure()
         try:
+            if isinstance(schema, dict):
+                # Convert schema dict to CollectionSchema
+                fields = []
+                vector_field_name = None
+                for key, value in schema.items():
+                    dtype_value = value.get("dtype", "FLOAT_VECTOR")
+                    
+                    # Convert string dtype to DataType enum
+                    if isinstance(dtype_value, str):
+                        dtype = getattr(DataType, dtype_value, DataType.FLOAT_VECTOR)
+                    else:
+                        dtype = dtype_value
+                    
+                    # Track vector field for default index
+                    if dtype_value == "FLOAT_VECTOR":
+                        vector_field_name = key
+                    
+                    field_kwargs = {k: v for k, v in value.items() if k != "dtype"}
+                    fields.append(FieldSchema(name=key, dtype=dtype, **field_kwargs))
+                schema = CollectionSchema(fields=fields)
+
             if not self.client.has_collection(collection_name=name):
                 self.client.create_collection(
                     collection_name=name,
                     schema=schema,
                     shards_num=shards_num,
                 )
+            
+            # Create index if specified or create default index for vector field
             if index_params:
                 field_name = index_params.get("field_name", "embedding")
                 existing = self.client.list_indexes(collection_name=name)
@@ -65,6 +88,22 @@ class MilvusCollectionManager:
                         )
                         idx_params = idx
                     self.client.create_index(collection_name=name, index_params=idx_params)
+            elif vector_field_name:
+                # Create default index for vector field if no index params provided
+                existing = self.client.list_indexes(collection_name=name)
+                has_index = any(
+                    (idx.get("field_name") if isinstance(idx, dict) else None) == vector_field_name or idx == vector_field_name
+                    for idx in (existing or [])
+                )
+                if not has_index:
+                    idx = self.client.prepare_index_params()
+                    idx.add_index(
+                        field_name=vector_field_name,
+                        index_type="HNSW",
+                        metric_type="IP",
+                    )
+                    self.client.create_index(collection_name=name, index_params=idx)
+            
             if load:
                 self.client.load_collection(collection_name=name)
         except Exception as exc:  # pragma: no cover - passthrough

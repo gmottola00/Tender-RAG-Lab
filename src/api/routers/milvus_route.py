@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 
-from src.api.providers import get_milvus_explorer
+from src.api.providers import get_milvus_explorer, get_milvus_service
 from src.api.providers import get_indexer, get_embedding_client
 from src.core.index.vector.exceptions import CollectionError
+
+
+class CreateCollectionRequest(BaseModel):
+    name: str
+    shards_num: int = 2
+    schema: list[dict]
+    index_params: Optional[dict] = None
 
 
 router = APIRouter(prefix="/milvus", tags=["milvus"])
@@ -48,6 +57,39 @@ async def collection_preview(
         return {"collection": name, "count": len(rows), "rows": rows}
     except CollectionError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@router.post("/collections")
+async def create_collection(request: CreateCollectionRequest) -> dict:
+    service = get_milvus_service()
+    try:
+        # Converti lo schema da lista di dict al formato atteso
+        schema_dict = {}
+        for field in request.schema:
+            field_name = field.get("name")
+            if field_name:
+                field_data = {k: v for k, v in field.items() if k != "name"}
+                schema_dict[field_name] = field_data
+        
+        service.ensure_collection(
+            name=request.name, 
+            schema=schema_dict,
+            shards_num=request.shards_num,
+            index_params=request.index_params
+        )
+        return {"message": f"Collection '{request.name}' created successfully."}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to create collection: {exc}") from exc
+
+
+@router.delete("/collections/{name}")
+async def delete_collection(name: str) -> dict:
+    service = get_milvus_service()
+    try:
+        service.drop_collection(name=name)
+        return {"message": f"Collection '{name}' deleted successfully."}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to delete collection: {exc}") from exc
 
 
 @router.get("/chunks/vector-search")
