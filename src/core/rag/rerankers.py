@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from src.core.index.search.reranker import Reranker
+from src.core.index.base import Reranker
 from src.core.llm import LLMClient
 
 

@@ -12,7 +12,8 @@ from typing import Callable, List
 from fastapi import HTTPException
 
 from src.core.embedding import OllamaEmbeddingClient
-from src.core.index.search.vector_searcher import VectorSearcher
+from src.core.index.service import IndexService
+from src.core.index.search_strategies import VectorSearch
 from src.core.rag.pipeline import RagPipeline
 from src.core.rag.rewriter import QueryRewriter
 from src.core.rag.assembler import ContextAssembler
@@ -26,8 +27,8 @@ from src.infra.vectorstores.factory import (
 )
 from src.infra.vectorstores.milvus.service import MilvusService
 from src.infra.vectorstores.milvus.explorer import MilvusExplorer
-from src.core.index.tender_indexer_v2 import TenderMilvusIndexer
-from src.core.index.tender_searcher_v2 import TenderSearcher
+from src.domain.tender.indexing.indexer import TenderMilvusIndexer
+from src.domain.tender.search.searcher import TenderSearcher
 
 
 @lru_cache(maxsize=1)
@@ -61,6 +62,16 @@ def get_indexer() -> TenderMilvusIndexer:
         return indexer
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to initialize indexer: {exc}") from exc
+
+
+@lru_cache(maxsize=1)
+def get_index_service() -> IndexService:
+    """Get generic IndexService for use in RAG pipeline.
+    
+    Returns the underlying IndexService without tender-specific wrappers.
+    """
+    indexer = get_indexer()
+    return indexer.service
 
 
 @lru_cache(maxsize=1)
@@ -129,18 +140,18 @@ def get_llm() -> LLMClient:
 
 @lru_cache(maxsize=1)
 def get_rag_pipeline() -> RagPipeline:
-    """Singleton RAG pipeline (vector-only for now).
+    """Singleton RAG pipeline using protocol-based search.
     
-    UPDATED: Now uses refactored searcher.
+    UPDATED: Now uses generic VectorSearch strategy with IndexService.
     """
     embedding_client = get_embedding_client()
-    indexer = get_indexer()
+    index_service = get_index_service()
     llm = get_llm()
     
-    # VectorSearcher still uses indexer (backward compatible)
-    vector_searcher = VectorSearcher(
-        indexer=indexer, 
-        embed_client=embedding_client
+    # Use protocol-based VectorSearch with generic IndexService
+    vector_search = VectorSearch(
+        index_service=index_service,
+        embed_fn=lambda query: embedding_client.embed(query)
     )
     
     rewriter = QueryRewriter(llm)
@@ -148,7 +159,7 @@ def get_rag_pipeline() -> RagPipeline:
     assembler = ContextAssembler(max_tokens=2000)
     
     return RagPipeline(
-        vector_searcher=vector_searcher,
+        vector_searcher=vector_search,
         rewriter=rewriter,
         reranker=reranker,
         assembler=assembler,
@@ -159,6 +170,7 @@ def get_rag_pipeline() -> RagPipeline:
 __all__ = [
     "get_embedding_client",
     "get_indexer",
+    "get_index_service",
     "get_milvus_service",
     "get_milvus_explorer",
     "get_searcher",

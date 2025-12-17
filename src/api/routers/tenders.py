@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db_dep
-from src.schemas.tenders import TenderCreate, TenderOut, TenderUpdate
-from src.services.tenders import TenderService
+from src.domain.tender.schemas.tenders import TenderCreate, TenderOut, TenderUpdate
+from src.domain.tender.services.tenders import TenderService
 
 
 router = APIRouter(prefix="/tenders", tags=["tenders"])

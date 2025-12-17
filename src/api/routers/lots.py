@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db_dep
-from src.schemas.lots import LotCreate, LotOut, LotUpdate
-from src.services.lots import LotService
+from src.domain.tender.schemas.lots import LotCreate, LotOut, LotUpdate
+from src.domain.tender.services.lots import LotService
 
 
 router = APIRouter(prefix="/lots", tags=["lots"])

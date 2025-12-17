@@ -6,7 +6,7 @@ import os
 import re
 from typing import Callable, Dict, List, Sequence
 
-from src.schemas.chunking import Chunk, TokenChunk
+from src.core.chunking.types import Chunk, TokenChunk
 
 DEFAULT_MAX_TOKENS = int(os.getenv("CHUNK_MAX_TOKENS", "800"))
 DEFAULT_MIN_TOKENS = int(os.getenv("CHUNK_MIN_TOKENS", "400"))

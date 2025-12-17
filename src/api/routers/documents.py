@@ -7,9 +7,9 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, s
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db_dep
-from src.schemas.documents import DocumentCreate, DocumentOut, DocumentUpdate
-from src.models.documents import DocumentType
-from src.services.documents import DocumentService
+from src.domain.tender.schemas.documents import DocumentCreate, DocumentOut, DocumentUpdate
+from src.domain.tender.entities.documents import DocumentType
+from src.domain.tender.services.documents import DocumentService
 from src.services.storage import get_storage_manager
 from src.api.routers.ingestion import parse_document, dynamic_chunker, token_chunker, get_embedding_client, get_indexer
 

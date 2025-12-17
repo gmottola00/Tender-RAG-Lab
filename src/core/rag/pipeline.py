@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from src.core.index.search.vector_searcher import VectorSearcher
+from src.core.index.base import SearchStrategy
 from src.core.rag.assembler import ContextAssembler
 from src.core.rag.models import RagResponse, RetrievedChunk
 from src.core.rag.rewriter import QueryRewriter
@@ -18,7 +18,7 @@ class RagPipeline:
     def __init__(
         self,
         *,
-        vector_searcher: VectorSearcher,
+        vector_searcher: SearchStrategy,
         rewriter: QueryRewriter,
         reranker: LLMReranker,
         assembler: ContextAssembler,

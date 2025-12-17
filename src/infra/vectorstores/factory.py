@@ -11,8 +11,8 @@ from typing import Callable, List, Optional
 
 from src.core.embedding import EmbeddingClient
 from src.core.index.service import IndexService
-from src.core.index.tender_indexer_v2 import TenderMilvusIndexer
-from src.core.index.tender_searcher_v2 import TenderSearcher
+from src.domain.tender.indexing.indexer import TenderMilvusIndexer
+from src.domain.tender.search.searcher import TenderSearcher
 from src.infra.vectorstores.milvus.config import MilvusConfig
 from src.infra.vectorstores.milvus.service import MilvusService
 

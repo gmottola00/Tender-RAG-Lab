@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Any, Dict, List, Optional, Sequence
 
-from src.schemas.chunking import Chunk
+from src.core.chunking.types import Chunk
 
 
 class DynamicChunker:
