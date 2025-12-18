@@ -1,0 +1,109 @@
+Domain Layer API
+================
+
+The domain layer contains business logic for tender management.
+
+Models
+------
+
+Tenders
+^^^^^^^
+
+.. automodule:: src.models.tenders
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Lots
+^^^^
+
+.. automodule:: src.models.lots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Documents
+^^^^^^^^^
+
+.. automodule:: src.models.documents
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Schemas
+-------
+
+Tenders Schema
+^^^^^^^^^^^^^^
+
+.. automodule:: src.schemas.tenders
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Lots Schema
+^^^^^^^^^^^
+
+.. automodule:: src.schemas.lots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Documents Schema
+^^^^^^^^^^^^^^^^
+
+.. automodule:: src.schemas.documents
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Ingestion Schema
+^^^^^^^^^^^^^^^^
+
+.. automodule:: src.schemas.ingestion
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Chunking Schema
+^^^^^^^^^^^^^^^
+
+.. automodule:: src.schemas.chunking
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Services
+--------
+
+Tenders Service
+^^^^^^^^^^^^^^^
+
+.. automodule:: src.services.tenders
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Lots Service
+^^^^^^^^^^^^
+
+.. automodule:: src.services.lots
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Documents Service
+^^^^^^^^^^^^^^^^^
+
+.. automodule:: src.services.documents
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Storage Service
+^^^^^^^^^^^^^^^
+
+.. automodule:: src.services.storage
+   :members:
+   :undoc-members:
+   :show-inheritance:

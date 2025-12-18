@@ -1,0 +1,21 @@
+# Sphinx build artifacts
+build/
+_build/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Sphinx inventory
+*.inv
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
