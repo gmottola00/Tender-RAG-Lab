@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from src.core.chunking.types import Chunk, TokenChunk
+from src.domain.tender.schemas.chunking import TenderChunk, TenderTokenChunk
 
 
 class TestChunk:
-    """Test Chunk dataclass."""
+    """Test TenderChunk implementation of ChunkLike Protocol."""
     
     def test_chunk_creation(self):
         """Test creating a basic chunk."""
-        chunk = Chunk(
+        chunk = TenderChunk(
             id="chunk_1",
             title="Test Section",
             heading_level=2,
@@ -28,7 +28,7 @@ class TestChunk:
     
     def test_chunk_to_dict(self):
         """Test chunk serialization to dict."""
-        chunk = Chunk(
+        chunk = TenderChunk(
             id="chunk_1",
             title="Test",
             heading_level=1,
@@ -44,7 +44,7 @@ class TestChunk:
     
     def test_chunk_to_dict_without_blocks(self):
         """Test chunk serialization without blocks."""
-        chunk = Chunk(
+        chunk = TenderChunk(
             id="chunk_1",
             title="Test",
             heading_level=1,
@@ -59,11 +59,11 @@ class TestChunk:
 
 
 class TestTokenChunk:
-    """Test TokenChunk dataclass."""
+    """Test TenderTokenChunk implementation of TokenChunkLike Protocol."""
     
     def test_token_chunk_creation(self):
         """Test creating a token chunk."""
-        chunk = TokenChunk(
+        chunk = TenderTokenChunk(
             id="token_1",
             text="This is a test token chunk.",
             section_path="doc/section1",
@@ -79,7 +79,7 @@ class TestTokenChunk:
     
     def test_token_chunk_fields(self):
         """Test token chunk has correct fields."""
-        chunk = TokenChunk(
+        chunk = TenderTokenChunk(
             id="token_1",
             text="Test",
             section_path="root",
@@ -95,13 +95,13 @@ class TestTokenChunk:
     
     def test_token_chunk_with_empty_metadata(self):
         """Test token chunk with empty metadata."""
-        chunk = TokenChunk(
+        chunk = TenderTokenChunk(
             id="token_1",
             text="Test",
             section_path="",
             page_numbers=[],
             metadata={},
-            source_chunk_id=None
+            source_chunk_id=""
         )
         
         assert chunk.metadata == {}

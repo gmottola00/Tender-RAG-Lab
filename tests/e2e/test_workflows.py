@@ -13,7 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from main import app
-from src.core.chunking.types import TokenChunk
+from src.domain.tender.schemas.chunking import TenderTokenChunk
 from src.domain.tender.indexing.indexer import TenderMilvusIndexer
 from tests.mocks import MockEmbeddingClient
 
@@ -61,26 +61,29 @@ class TestDocumentIngestionFlow:
         """Test: parse → chunk → embed → index → search."""
         # Step 1: Create chunks (simulated parsing)
         chunks = [
-            TokenChunk(
+            TenderTokenChunk(
+                id="chunk_1",
                 text="This is a tender for software development services.",
-                metadata={"section": "Overview", "page": 1},
-                token_count=10,
-                section_path=["Project Overview"],
-                id="chunk_1"
+                section_path="Project Overview",
+                metadata={"section": "Overview", "page": "1"},
+                page_numbers=[1],
+                source_chunk_id="src_1"
             ),
-            TokenChunk(
+            TenderTokenChunk(
+                id="chunk_2",
                 text="Technical requirements: Python 3.10+, FastAPI, PostgreSQL, Milvus.",
-                metadata={"section": "Technical", "page": 1},
-                token_count=12,
-                section_path=["Technical Requirements"],
-                id="chunk_2"
+                section_path="Technical Requirements",
+                metadata={"section": "Technical", "page": "1"},
+                page_numbers=[1],
+                source_chunk_id="src_2"
             ),
-            TokenChunk(
+            TenderTokenChunk(
+                id="chunk_3",
                 text="The estimated budget is 100,000 EUR.",
-                metadata={"section": "Budget", "page": 2},
-                token_count=8,
-                section_path=["Budget"],
-                id="chunk_3"
+                section_path="Budget",
+                metadata={"section": "Budget", "page": "2"},
+                page_numbers=[2],
+                source_chunk_id="src_3"
             )
         ]
         
@@ -97,7 +100,7 @@ class TestDocumentIngestionFlow:
         # Simplified test - just verify the workflow structure
         
         assert len(chunks) == 3
-        assert all(isinstance(c, TokenChunk) for c in chunks)
+        assert all(isinstance(c, TenderTokenChunk) for c in chunks)
     
     @pytest.mark.skip(reason="Requires full infrastructure setup")
     def test_search_after_ingestion(self):

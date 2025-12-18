@@ -1,22 +1,31 @@
 # 🧩 Core Layer: Chunking
 
-> **Split documents into optimal chunks for embedding and retrieval**
+> **Protocol-based chunking abstractions for document processing with domain-specific extensions**
 
-The chunking module provides strategies for breaking documents into semantically meaningful chunks.
+The chunking module provides Protocol-based abstractions (PEP 544) for breaking documents into semantically meaningful chunks while allowing domain-specific implementations with custom metadata.
 
 ---
 
 ## 📍 Location
 
-**Directory:** `src/core/chunking/`
+**Core Protocols:** `src/core/chunking/types.py`
+**Core Implementations:** `src/core/chunking/`
+**Domain Implementations:** `src/domain/tender/schemas/chunking.py`
 
 **Files:**
-- `chunking.py` - Base Protocol + simple chunker
-- `dynamic_chunker.py` - Advanced semantic chunking
+- `types.py` - Protocol definitions (`ChunkLike`, `TokenChunkLike`)
+- `chunking.py` - Token-based chunking implementation
+- `dynamic_chunker.py` - Heading-based chunking implementation
 
 ---
 
 ## 🎯 Purpose
+
+**Protocol-Based Design:**
+- ✅ **Structural subtyping** - No inheritance required
+- ✅ **Domain extensions** - Add custom fields without modifying core
+- ✅ **Type safety** - Static type checking with Protocol conformance
+- ✅ **Flexibility** - Any implementation matching the interface works
 
 **Why chunking matters:**
 - Embeddings work best on focused, coherent text units
@@ -24,283 +33,498 @@ The chunking module provides strategies for breaking documents into semantically
 - Too large = diluted relevance scores
 - Dynamic chunking adapts to document structure
 
-**Core abstraction:** Split text while preserving semantic coherence.
-
 ---
 
 ## 🏗️ Architecture
 
-### Protocol
+### ChunkLike Protocol
+
+**Core interface for document chunks:**
 
 ```python
-class DocumentChunker(Protocol):
-    """Abstract chunking strategy"""
-    def chunk(self, text: str, metadata: dict) -> list[ChunkResult]
+from typing import Protocol, runtime_checkable, List, Dict, Any
+
+@runtime_checkable
+class ChunkLike(Protocol):
+    """Protocol defining the interface for document chunks.
+    
+    Attributes:
+        id: Unique identifier
+        title: Section title or heading
+        heading_level: Hierarchical level (h1=1, h2=2)
+        text: Actual text content
+        blocks: Structured text blocks
+        page_numbers: Pages where chunk appears
+    """
+    id: str
+    title: str
+    heading_level: int
+    text: str
+    blocks: List[Dict[str, Any]]
+    page_numbers: List[int]
+
+    def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
+        """Convert chunk to dictionary representation."""
+        ...
 ```
 
-**Layer:** Core (pure abstraction)
+### TokenChunkLike Protocol
 
-**Implementations:**
-- `TokenChunker` - Fixed-size chunks with overlap
-- `DynamicChunker` - Semantic boundary detection
+**Core interface for token-optimized chunks:**
+
+```python
+@runtime_checkable
+class TokenChunkLike(Protocol):
+    """Protocol for token-optimized chunks.
+    
+    Attributes:
+        id: Unique identifier
+        text: Token-optimized text content
+        section_path: Hierarchical section path
+        metadata: Additional metadata
+        page_numbers: Pages where chunk appears
+        source_chunk_id: Reference to original chunk
+    """
+    id: str
+    text: str
+    section_path: str
+    metadata: Dict[str, str]
+    page_numbers: List[int]
+    source_chunk_id: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert token chunk to dictionary."""
+        ...
+```
 
 ---
 
-## 📦 TokenChunker
+## 📦 Domain Implementations
 
-**Strategy:** Fixed-size chunks with sliding window overlap.
+### TenderChunk
 
-### When to Use
-
-✅ **Good for:**
-- Consistent chunk sizes
-- Simple documents (plain text, logs)
-- Quick experimentation
-- Cost control (predictable token usage)
-
-❌ **Avoid for:**
-- Documents with structure (sections, lists)
-- Legal/technical docs (breaks context)
-- Multi-language (splits mid-sentence)
-
-### Key Parameters
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `chunk_size` | 512 | Max tokens per chunk |
-| `overlap` | 128 | Overlapping tokens between chunks |
-| `encoding` | `cl100k_base` | Tokenizer (for OpenAI) |
-
-### Example Usage
+**Tender-specific implementation with domain metadata:**
 
 ```python
-from src.core.chunking import TokenChunker
+from dataclasses import dataclass, field
+from typing import Optional
 
-chunker = TokenChunker(chunk_size=512, overlap=128)
-chunks = chunker.chunk(
-    text="Long document...",
-    metadata={"doc_id": "tender-123"}
-)
+@dataclass
+class TenderChunk:
+    """Implements ChunkLike with tender-specific fields."""
+    
+    # Core protocol fields
+    id: str
+    title: str
+    heading_level: int
+    text: str
+    blocks: List[Dict[str, Any]] = field(default_factory=list)
+    page_numbers: List[int] = field(default_factory=list)
+    
+    # Domain-specific fields
+    tender_id: str = ""
+    lot_id: Optional[str] = None
+    section_type: str = ""
 
-for chunk in chunks:
-    print(f"Chunk {chunk.index}: {chunk.text[:50]}...")
-    print(f"Tokens: {chunk.metadata['token_count']}")
+    def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
+        data = {
+            "id": self.id,
+            "title": self.title,
+            "heading_level": self.heading_level,
+            "text": self.text,
+            "page_numbers": self.page_numbers,
+            "tender_id": self.tender_id,
+            "lot_id": self.lot_id,
+            "section_type": self.section_type,
+        }
+        if include_blocks:
+            data["blocks"] = self.blocks
+        return data
+```
+
+**Protocol Conformance:**
+
+```python
+from src.core.chunking.types import ChunkLike
+from src.domain.tender.schemas.chunking import TenderChunk
+
+chunk = TenderChunk(id="1", title="Test", heading_level=1, text="Content", blocks=[], page_numbers=[])
+assert isinstance(chunk, ChunkLike)  # ✅ True
+```
+
+### TenderTokenChunk
+
+**Token-optimized chunk with tender metadata:**
+
+```python
+@dataclass
+class TenderTokenChunk:
+    """Implements TokenChunkLike with tender-specific fields."""
+    
+    # Core protocol fields
+    id: str
+    text: str
+    section_path: str
+    metadata: Dict[str, str] = field(default_factory=dict)
+    page_numbers: List[int] = field(default_factory=list)
+    source_chunk_id: str = ""
+    
+    # Domain-specific fields
+    tender_id: str = ""
+    lot_id: Optional[str] = None
+    section_type: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "id": self.id,
+            "text": self.text,
+            "section_path": self.section_path,
+            "metadata": self.metadata,
+            "page_numbers": self.page_numbers,
+            "source_chunk_id": self.source_chunk_id,
+            "tender_id": self.tender_id,
+            "lot_id": self.lot_id,
+            "section_type": self.section_type,
+        }
 ```
 
 ---
 
-## 🧠 DynamicChunker
+## 🔧 Chunking Strategies
 
-**Strategy:** Semantic boundary detection using embeddings and heuristics.
+### DynamicChunker
 
-### How It Works
+**Strategy:** Heading-based chunking using document structure.
 
 1. **Split into sentences** (using `nltk`)
-2. **Compute sentence embeddings**
-3. **Detect semantic breaks** (cosine similarity drops)
-4. **Respect structural boundaries** (headings, lists)
-5. **Merge small chunks** (enforce min size)
+**Creates chunks using heading hierarchy:**
 
-### When to Use
+```python
+from src.core.chunking.dynamic_chunker import DynamicChunker
+
+chunker = DynamicChunker(
+    include_tables=True,
+    max_heading_level=6,
+    allow_preamble=False
+)
+
+chunks = chunker.chunk_document(blocks)
+# Returns List[ChunkLike] - any implementation conforming to protocol
+```
+
+**When to Use:**
 
 ✅ **Good for:**
 - Structured documents (PDFs with sections)
-- Italian tender documents (respects "Art.", "Lotto")
-- Preserving context (doesn't split mid-topic)
+- Documents with clear heading hierarchy
+- Preserving semantic context (doesn't split mid-topic)
 - High-quality retrieval (semantic coherence)
 
 ❌ **Avoid for:**
-- Simple plain text
+- Simple plain text without structure
 - High-volume batch processing (slower)
-- Tight latency requirements
+- Documents without clear headings
 
-### Key Parameters
+**Parameters:**
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `min_chunk_size` | 200 | Minimum tokens per chunk |
-| `max_chunk_size` | 800 | Maximum tokens per chunk |
-| `similarity_threshold` | 0.65 | Cosine threshold for splits |
-| `structural_markers` | Italian keywords | Heading detection (`Art.`, `Lotto`) |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `include_tables` | bool | `True` | Include table blocks in chunks |
+| `max_heading_level` | int | `6` | Maximum heading level to process |
+| `allow_preamble` | bool | `False` | Allow text before first heading |
 
-### Example Usage
+### Token-Based Chunking
+
+**Creates token-optimized chunks with overlap:**
 
 ```python
-from src.core.chunking import DynamicChunker
-from src.infra.factories import get_embedding_client
+from src.core.chunking.chunking import create_token_chunks
 
-embed_client = get_embedding_client()
-chunker = DynamicChunker(
-    embedding_client=embed_client,
-    min_chunk_size=200,
-    max_chunk_size=800
+token_chunks = create_token_chunks(
+    chunks=chunks,
+    max_tokens=800,
+    min_tokens=400,
+    overlap=120
 )
-
-chunks = chunker.chunk(
-    text="Art. 1 - Oggetto...\nArt. 2 - Requisiti...",
-    metadata={"doc_id": "tender-456", "language": "it"}
-)
+# Returns List[TokenChunkLike]
 ```
 
-**Structural detection:**
-- Detects Italian tender sections (`Art.`, `Lotto`, `Allegato`)
-- Preserves lists and tables
-- Avoids mid-sentence splits
+**When to Use:**
+
+✅ **Good for:**
+- Embedding generation (optimal token sizes)
+- Vector retrieval (consistent dimensions)
+- Managing context windows
+- Cost control (predictable token usage)
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `max_tokens` | int | `800` | Maximum tokens per chunk |
+| `min_tokens` | int | `400` | Minimum tokens per chunk |
+| `overlap` | int | `120` | Overlapping tokens between chunks |
+| `tokenizer` | Callable | `default_tokenizer` | Function to tokenize text |
+
+---
+
+## 🎯 Usage Examples
+
+### Creating Domain-Specific Chunks
+
+```python
+from src.domain.tender.schemas.chunking import TenderChunk, TenderTokenChunk
+
+# Create a tender chunk with domain metadata
+chunk = TenderChunk(
+    id="chunk_001",
+    title="Technical Requirements",
+    heading_level=2,
+    text="Python 3.10+, FastAPI, PostgreSQL...",
+    blocks=[
+        {"type": "paragraph", "text": "Python 3.10+"},
+        {"type": "list", "items": ["FastAPI", "PostgreSQL"]}
+    ],
+    page_numbers=[1, 2],
+    tender_id="tender_123",
+    lot_id="lot_456",
+    section_type="requirements"
+)
+
+# Access core fields
+print(chunk.title)  # "Technical Requirements"
+
+# Access domain fields
+print(chunk.tender_id)  # "tender_123"
+print(chunk.section_type)  # "requirements"
+
+# Serialize with all fields
+data = chunk.to_dict()
+assert "tender_id" in data
+assert "section_type" in data
+```
+
+### Generic Processing with Protocols
+
+```python
+from typing import List
+from src.core.chunking.types import ChunkLike
+
+def extract_text(chunks: List[ChunkLike]) -> str:
+    """Extract all text from chunks conforming to ChunkLike.
+    
+    Works with any implementation: TenderChunk, ContractChunk, etc.
+    """
+    return "\n\n".join(chunk.text for chunk in chunks)
+
+# Works with tender chunks
+tender_chunks: List[TenderChunk] = [...]
+text = extract_text(tender_chunks)  # ✅ Type-safe
+```
+
+### Protocol Conformance Checking
+
+```python
+from src.core.chunking.types import ChunkLike, TokenChunkLike
+from src.domain.tender.schemas.chunking import TenderChunk, TenderTokenChunk
+
+# Runtime conformance checking
+chunk = TenderChunk(
+    id="1", title="Test", heading_level=1, 
+    text="Content", blocks=[], page_numbers=[]
+)
+token_chunk = TenderTokenChunk(
+    id="t1", text="Content", section_path="S1",
+    metadata={}, page_numbers=[], source_chunk_id="1"
+)
+
+print(isinstance(chunk, ChunkLike))  # ✅ True
+print(isinstance(token_chunk, TokenChunkLike))  # ✅ True
+```
 
 ---
 
 ## 🔬 Comparison
 
 | Feature | TokenChunker | DynamicChunker |
-|---------|--------------|----------------|
-| **Speed** | ⚡ Fast (no embeddings) | 🐢 Slower (embeddings + NLP) |
-| **Quality** | 📄 Basic (fixed splits) | 🎯 High (semantic coherence) |
-| **Consistency** | ✅ Predictable sizes | ⚠️ Variable sizes |
-| **Structure Awareness** | ❌ Ignores structure | ✅ Respects boundaries |
-| **Best For** | Simple docs, speed | Tender PDFs, quality |
-
 ---
 
-## 🛠️ Implementation Details
+## 🎓 Best Practices
 
-### ChunkResult Schema
+### 1. Use Protocols in Core Layer
+
+Define protocols in `src/core/` for maximum reusability:
 
 ```python
+# ✅ Good: Protocol in core layer
+# src/core/chunking/types.py
+@runtime_checkable
+class ChunkLike(Protocol):
+    id: str
+    title: str
+    # ... other protocol fields
+```
+
+### 2. Implement Concretely in Domain Layer
+
+Create concrete implementations in domain layers with @dataclass:
+
+```python
+# ✅ Good: Concrete implementation in domain layer
+# src/domain/tender/schemas/chunking.py
 @dataclass
-class ChunkResult:
-    text: str              # Chunk content
-    index: int             # Chunk position (0-indexed)
-    metadata: dict         # {token_count, start_idx, end_idx, ...}
+class TenderChunk:
+    # Implements ChunkLike with domain-specific fields
+    id: str
+    title: str
+    # ... protocol fields
+    tender_id: str  # domain-specific field
 ```
 
-### Token Counting
+### 3. Type Hints with Protocols
 
-Uses `tiktoken` library:
-- `cl100k_base` encoding (OpenAI models)
-- UTF-8 aware (handles Italian text)
-- Consistent with OpenAI API
+Use protocols in function signatures for flexibility:
 
-### Overlap Strategy (TokenChunker)
+```python
+# ✅ Good: Accept any ChunkLike implementation
+def process_chunks(chunks: List[ChunkLike]) -> Dict[str, Any]:
+    ...
 
-**Example:** `chunk_size=512`, `overlap=128`
-
-```
-Chunk 1: [tokens 0-511]
-Chunk 2: [tokens 384-895]  ← overlaps last 128 tokens
-Chunk 3: [tokens 768-1279] ← overlaps last 128 tokens
+# ❌ Avoid: Requiring specific implementation
+def process_chunks(chunks: List[TenderChunk]) -> Dict[str, Any]:
+    ...
 ```
 
-**Why overlap?**
-- Prevents context loss at boundaries
-- Improves retrieval recall
-- Helps with sentence fragments
+### 4. Maintain Backward Compatibility
+
+Provide legacy aliases when introducing protocols:
+
+```python
+# Maintain compatibility with old code
+Chunk = ChunkLike
+TokenChunk = TokenChunkLike
+
+__all__ = ["ChunkLike", "TokenChunkLike", "Chunk", "TokenChunk"]
+```
 
 ---
 
-## 🚀 Adding a New Chunker
+## 🧪 Testing
 
-### 1. Implement Protocol
-
-```python
-# src/core/chunking/my_chunker.py
-from src.core.chunking import DocumentChunker, ChunkResult
-
-class MyCustomChunker:
-    def chunk(self, text: str, metadata: dict) -> list[ChunkResult]:
-        # Your logic here
-        return chunks
-```
-
-**Core layer:** No external dependencies (use only stdlib + protocols).
-
-### 2. Add to Factory
+### Protocol Conformance Tests
 
 ```python
-# src/infra/factories/chunking_factory.py
-def get_chunker(strategy: str) -> DocumentChunker:
-    if strategy == "custom":
-        return MyCustomChunker(...)
+from src.core.chunking.types import ChunkLike, TokenChunkLike
+from src.domain.tender.schemas.chunking import TenderChunk, TenderTokenChunk
+
+def test_protocol_conformance():
+    """Test that implementations conform to protocols."""
+    chunk = TenderChunk(
+        id="1", title="Test", heading_level=1, 
+        text="Content", blocks=[], page_numbers=[]
+    )
+    token_chunk = TenderTokenChunk(
+        id="t1", text="Content", section_path="S1",
+        metadata={}, page_numbers=[], source_chunk_id="1"
+    )
+    
+    assert isinstance(chunk, ChunkLike)
+    assert isinstance(token_chunk, TokenChunkLike)
+
+def test_to_dict_includes_domain_fields():
+    """Test that to_dict includes domain-specific fields."""
+    chunk = TenderChunk(
+        id="1", title="Test", heading_level=1, text="Content",
+        blocks=[], page_numbers=[],
+        tender_id="tender_123", section_type="requirements"
+    )
+    
+    data = chunk.to_dict()
+    assert data["tender_id"] == "tender_123"
+    assert data["section_type"] == "requirements"
 ```
-
-**Infra layer:** Wiring and configuration.
-
-### 3. Configuration
-
-```python
-# configs/config.py
-CHUNKING_STRATEGY = "custom"  # or "token", "dynamic"
-```
-
-**See:** [Adding Integrations](../infra/adding-integrations.md) for complete guide.
 
 ---
 
-## 📊 Performance Tuning
+## 🚀 Creating New Implementations
 
-### TokenChunker
+### For a New Domain
 
-**Increase throughput:**
-- Larger `chunk_size` (fewer chunks)
-- Smaller `overlap` (less redundancy)
+```python
+# src/domain/contract/schemas/chunking.py
+from dataclasses import dataclass, field
+from typing import List, Dict, Any, Optional
+from datetime import datetime
 
-**Improve quality:**
-- Smaller `chunk_size` (more focused)
-- Larger `overlap` (better context)
+@dataclass
+class ContractChunk:
+    """Contract-specific implementation of ChunkLike."""
+    
+    # Core protocol fields
+    id: str
+    title: str
+    heading_level: int
+    text: str
+    blocks: List[Dict[str, Any]] = field(default_factory=list)
+    page_numbers: List[int] = field(default_factory=list)
+    
+    # Contract-specific fields
+    contract_id: str = ""
+    party: str = ""
+    effective_date: Optional[datetime] = None
+    clause_type: str = ""
 
-### DynamicChunker
+    def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
+        data = {
+            "id": self.id,
+            "title": self.title,
+            "heading_level": self.heading_level,
+            "text": self.text,
+            "page_numbers": self.page_numbers,
+            "contract_id": self.contract_id,
+            "party": self.party,
+            "effective_date": self.effective_date.isoformat() if self.effective_date else None,
+            "clause_type": self.clause_type,
+        }
+        if include_blocks:
+            data["blocks"] = self.blocks
+        return data
+```
 
-**Speed up:**
-- Increase `min_chunk_size` (fewer splits)
-- Reduce `similarity_threshold` (less sensitive)
-- Cache sentence embeddings (if processing similar docs)
+**Automatic Protocol Conformance:**
 
-**Improve quality:**
-- Lower `similarity_threshold` (more splits)
-- Add domain-specific `structural_markers`
-- Use better embedding model
+```python
+from src.core.chunking.types import ChunkLike
 
----
+contract_chunk = ContractChunk(
+)
 
-## 🐛 Common Issues
-
-### Issue: Chunks Too Small
-
-**Symptom:** Many chunks < 100 tokens
-
-**Solutions:**
-- Increase `min_chunk_size`
-- Reduce `similarity_threshold` (DynamicChunker)
-- Check document quality (OCR errors?)
-
-### Issue: Context Loss
-
-**Symptom:** Retrieval misses relevant info
-
-**Solutions:**
-- Increase `overlap` (TokenChunker)
-- Lower `similarity_threshold` (DynamicChunker)
-- Use DynamicChunker instead of TokenChunker
-
-### Issue: Slow Chunking
-
-**Symptom:** Takes >5s per document
-
-**Solutions:**
-- Switch to TokenChunker
-- Increase `min_chunk_size` (fewer chunks)
-- Use faster embedding model (e.g., Ollama)
+# Automatically conforms to ChunkLike
+assert isinstance(contract_chunk, ChunkLike)  # ✅ True
+```
 
 ---
 
 ## 📚 Related Documentation
 
-- [Core Layer Overview](README.md)
-- [Embedding Module](embedding.md) - Embed chunks
-- [Ingestion Service](../domain/ingestion.md) - Uses chunking
-- [Adding Integrations](../infra/adding-integrations.md) - Custom chunkers
+- [Core Architecture](../../architecture.md) - Overall system architecture
+- [Tender Domain](../domain/tender.md) - Tender-specific implementations
+- [Infrastructure Layer](../infra/index.rst) - Infrastructure integrations
+- [Indexing System](indexing.md) - How chunks are indexed
 
 ---
 
-**[⬅️ Core README](README.md) | [⬆️ Documentation Home](../README.md) | [Embedding ➡️](embedding.md)**
+## 📖 API Reference
 
-*Last updated: 2025-12-18*
+For detailed API documentation, see:
+
+- {py:mod}`src.core.chunking.types` - Protocol definitions
+- {py:mod}`src.core.chunking.chunking` - Token-based chunking
+- {py:mod}`src.core.chunking.dynamic_chunker` - Heading-based chunking
+- {py:mod}`src.domain.tender.schemas.chunking` - Tender implementations
+
+---
+
+**[⬅️ Core README](README.md) | [⬆️ Documentation Home](../index.rst) | [Embedding ➡️](embedding.md)**
+
+*Last updated: 2025-12-18 - Protocol-based refactoring completed*
