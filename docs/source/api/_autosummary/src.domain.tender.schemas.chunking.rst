@@ -1,4 +1,4 @@
-src.domain.tender.schemas.chunking
+﻿src.domain.tender.schemas.chunking
 ==================================
 
 .. automodule:: src.domain.tender.schemas.chunking
@@ -9,5 +9,7 @@ src.domain.tender.schemas.chunking
    .. autosummary::
    
       Chunk
+      TenderChunk
+      TenderTokenChunk
       TokenChunk
    

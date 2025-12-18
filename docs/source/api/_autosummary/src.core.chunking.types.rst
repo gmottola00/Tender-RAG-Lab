@@ -1,4 +1,4 @@
-src.core.chunking.types
+﻿src.core.chunking.types
 =======================
 
 .. automodule:: src.core.chunking.types
@@ -9,5 +9,7 @@ src.core.chunking.types
    .. autosummary::
    
       Chunk
+      ChunkLike
       TokenChunk
+      TokenChunkLike
    

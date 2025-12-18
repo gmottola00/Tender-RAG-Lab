@@ -39,21 +39,28 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'  # Use stable version (3.14 may not be available yet)
       
       - name: Install uv
         uses: astral-sh/setup-uv@v4
         with:
           version: "latest"
       
-      - name: Install dependencies
+      - name: Install dependencies and package
         run: |
-          uv sync
+          uv sync --group dev
           uv pip install -e .
+      
+      - name: Verify package installation
+        run: |
+          uv run python -c "import src; print(f'✅ Package installed: {src.__version__}')"
+          uv run python -c "from src.domain.tender.entities import Tender; print('✅ Entities import works')"
+          uv run python -c "from src.core.chunking.types import ChunkLike; print('✅ Core types import works')"
       
       - name: Build Sphinx documentation
         run: |
-          uv run sphinx-build -b html docs/source docs/build/html --keep-going
+          cd docs
+          uv run make html
         env:
           SPHINXOPTS: "--keep-going"
       
