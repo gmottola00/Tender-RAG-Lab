@@ -180,7 +180,7 @@ url = await service.get_download_url(document.id)
 
 **Example:**
 ```python
-from src.services.storage import StorageService
+from src.infra.storage import get_storage_client, SupabaseStorageClient
 
 storage = StorageService(supabase_client)
 

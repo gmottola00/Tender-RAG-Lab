@@ -92,10 +92,40 @@ Exceptions
    :undoc-members:
    :show-inheritance:
 
-Supabase Client
----------------
+Database Infrastructure
+-----------------------
 
-.. automodule:: src.clients.supabase
+Database Base
+^^^^^^^^^^^^^
+
+.. automodule:: src.infra.database.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Database Session
+^^^^^^^^^^^^^^^^
+
+.. automodule:: src.infra.database.session
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Storage Infrastructure
+----------------------
+
+Storage Base
+^^^^^^^^^^^^
+
+.. automodule:: src.infra.storage.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Supabase Storage Client
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: src.infra.storage.supabase
    :members:
    :undoc-members:
    :show-inheritance:

@@ -95,6 +95,8 @@ Concrete implementations of core protocols (vendors, frameworks).
    :caption: Infrastructure
 
    ../infra/README
+   ../infra/database
+   ../infra/storage
    ../infra/embeddings
    ../infra/llm
    ../infra/milvus

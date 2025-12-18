@@ -7,7 +7,7 @@ from enum import Enum as PyEnum
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
 
-from db.base import Base
+from src.infra.database import Base
 
 
 class DocumentType(str, PyEnum):

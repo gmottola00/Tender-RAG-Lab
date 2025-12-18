@@ -100,7 +100,7 @@ async def test_db_engine() -> AsyncGenerator[AsyncEngine, None]:
     )
     
     # Create tables
-    from db.base import Base
+    from src.infra.database import Base
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     

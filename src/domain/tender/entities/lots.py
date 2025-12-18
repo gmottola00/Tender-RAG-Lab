@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlalchemy import Column, DateTime, ForeignKey, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 
-from db.base import Base
+from src.infra.database import Base
 
 
 class Lot(Base):

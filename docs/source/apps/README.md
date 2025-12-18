@@ -100,7 +100,7 @@ async def create_tender(
 ```python
 # src/api/deps.py
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.db.session import async_session
+from src.infra.database import async_session
 from src.services.tenders import TenderService
 
 async def get_session() -> AsyncSession:

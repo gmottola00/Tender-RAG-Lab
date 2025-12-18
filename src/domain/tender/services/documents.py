@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.tender.entities.documents import Document
 from src.domain.tender.schemas.documents import DocumentCreate, DocumentUpdate
-from src.services.storage import get_storage_manager
+from src.infra.storage import get_storage_client
 
 
 class DocumentService:
@@ -16,7 +16,7 @@ class DocumentService:
 
     @staticmethod
     async def create(db: AsyncSession, data: DocumentCreate) -> Document:
-        storage = get_storage_manager()
+        storage = get_storage_client()
         storage.ensure_bucket()
 
         safe_filename = data.filename
@@ -40,7 +40,7 @@ class DocumentService:
         file_bytes: bytes,
         content_type: Optional[str],
     ) -> Document:
-        storage = get_storage_manager()
+        storage = get_storage_client()
         storage.ensure_bucket()
 
         safe_filename = data.filename

@@ -7,7 +7,7 @@ from enum import Enum as PyEnum
 from sqlalchemy import Column, Date, DateTime, String, Enum
 from sqlalchemy.dialects.postgresql import UUID
 
-from db.base import Base
+from src.infra.database import Base
 
 
 class TenderStatus(str, PyEnum):

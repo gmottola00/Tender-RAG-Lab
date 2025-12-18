@@ -10,7 +10,7 @@ from src.api.deps import get_db_dep
 from src.domain.tender.schemas.documents import DocumentCreate, DocumentOut, DocumentUpdate
 from src.domain.tender.entities.documents import DocumentType
 from src.domain.tender.services.documents import DocumentService
-from src.services.storage import get_storage_manager
+from src.infra.storage import get_storage_client
 from src.api.routers.ingestion import parse_document, dynamic_chunker, token_chunker, get_embedding_client, get_indexer
 
 
@@ -67,7 +67,7 @@ async def ingest_document(document_id: UUID, db: AsyncSession = Depends(get_db_d
     if not doc.storage_bucket or not doc.storage_path:
         raise HTTPException(status_code=400, detail="Document has no storage info")
 
-    storage = get_storage_manager()
+    storage = get_storage_client()
     if storage.bucket_name != doc.storage_bucket:
         raise HTTPException(status_code=400, detail="Document bucket does not match configured bucket")
 
