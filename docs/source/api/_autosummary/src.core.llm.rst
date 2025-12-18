@@ -1,4 +1,4 @@
-src.core.llm
+﻿src.core.llm
 ============
 
 .. automodule:: src.core.llm
@@ -11,5 +11,3 @@ src.core.llm
    :recursive:
 
    base
-   ollama
-   openai_llm

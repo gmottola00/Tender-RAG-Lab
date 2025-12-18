@@ -14,56 +14,32 @@ Chunking Module
 Embedding Module
 ----------------
 
-Base Protocol
-^^^^^^^^^^^^^
+Protocol Definition
+^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: src.core.embedding.base
    :members:
    :undoc-members:
    :show-inheritance:
 
-Ollama Implementation
-^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: src.core.embedding.ollama
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-OpenAI Implementation
-^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: src.core.embedding.openai_embedding
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. note::
+   Concrete implementations (Ollama, OpenAI) are in the Infrastructure Layer.
+   See :doc:`infra` for details.
 
 LLM Module
 ----------
 
-Base Protocol
-^^^^^^^^^^^^^
+Protocol Definition
+^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: src.core.llm.base
    :members:
    :undoc-members:
    :show-inheritance:
 
-Ollama Implementation
-^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: src.core.llm.ollama
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-OpenAI Implementation
-^^^^^^^^^^^^^^^^^^^^^
-
-.. automodule:: src.core.llm.openai_llm
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. note::
+   Concrete implementations (Ollama, OpenAI) are in the Infrastructure Layer.
+   See :doc:`infra` for details.
 
 Indexing Module
 ---------------

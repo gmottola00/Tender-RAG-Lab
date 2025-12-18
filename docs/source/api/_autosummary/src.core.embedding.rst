@@ -1,4 +1,4 @@
-src.core.embedding
+﻿src.core.embedding
 ==================
 
 .. automodule:: src.core.embedding
@@ -11,5 +11,3 @@ src.core.embedding
    :recursive:
 
    base
-   ollama
-   openai_embedding

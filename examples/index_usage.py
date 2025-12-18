@@ -4,7 +4,7 @@ This module demonstrates how to use the new clean architecture
 for vector indexing and search operations.
 """
 
-from src.core.embedding.openai_embedding import OpenAIEmbedding
+from src.infra.embedding.openai import OpenAIEmbeddingClient as OpenAIEmbedding
 from src.infra.vectorstores.factory import (
     create_index_service,
     create_milvus_service,

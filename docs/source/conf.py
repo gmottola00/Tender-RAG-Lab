@@ -123,6 +123,24 @@ html_theme_options = {
     "titles_only": False,
 }
 
+# Enable right sidebar with page-level table of contents
+html_sidebars = {
+    '**': [
+        'globaltoc.html',
+        'relations.html',
+        'sourcelink.html',
+        'searchbox.html',
+    ]
+}
+
+# Show table of contents in the right sidebar
+html_theme_options['canonical_url'] = ''
+html_theme_options['analytics_id'] = ''
+html_theme_options['logo_only'] = False
+html_theme_options['display_version'] = True
+html_theme_options['prev_next_buttons_location'] = 'bottom'
+html_theme_options['style_external_links'] = True
+
 html_context = {
     "display_github": True,
     "github_user": "gmottola00",

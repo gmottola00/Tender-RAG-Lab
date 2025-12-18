@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from typing import Any, Iterable
 
-from .base import LLMClient
+from src.core.llm.base import LLMClient
 
 try:
     import openai

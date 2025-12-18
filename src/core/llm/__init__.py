@@ -1,7 +1,5 @@
-"""LLM clients."""
+"""LLM clients - Core abstractions only (Protocol)."""
 
 from .base import LLMClient
-from .ollama import OllamaLLMClient
-from .openai_llm import OpenAILLMClient
 
-__all__ = ["LLMClient", "OllamaLLMClient", "OpenAILLMClient"]
+__all__ = ["LLMClient"]

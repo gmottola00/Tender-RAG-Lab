@@ -11,14 +11,15 @@ from typing import Callable, List
 
 from fastapi import HTTPException
 
-from src.core.embedding import OllamaEmbeddingClient
+from src.infra.embedding import OllamaEmbeddingClient
 from src.core.index.service import IndexService
 from src.core.index.search_strategies import VectorSearch
 from src.core.rag.pipeline import RagPipeline
 from src.core.rag.rewriter import QueryRewriter
 from src.core.rag.assembler import ContextAssembler
 from src.core.rag.rerankers import LLMReranker
-from src.core.llm import OllamaLLMClient, LLMClient
+from src.infra.llm import OllamaLLMClient
+from src.core.llm import LLMClient
 
 # NEW: Import from refactored modules
 from src.infra.vectorstores.factory import (

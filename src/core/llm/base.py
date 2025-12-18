@@ -1,29 +1,48 @@
-"""Base interfaces for LLM clients."""
+"""Base Protocol for LLM clients."""
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Protocol
 
 
-class LLMClient(ABC):
-    """Abstract interface for Large Language Model clients."""
+class LLMClient(Protocol):
+    """Protocol for Large Language Model clients.
+    
+    Uses Protocol instead of ABC for more flexible duck typing.
+    Any class implementing these methods can be used as an LLMClient.
+    """
 
-    @abstractmethod
     def generate(self, prompt: str, **kwargs: Any) -> str:
-        """Generate a completion from a prompt."""
-        raise NotImplementedError
+        """Generate a completion from a prompt.
+        
+        Args:
+            prompt: The input prompt
+            **kwargs: Additional parameters (temperature, max_tokens, etc.)
+            
+        Returns:
+            Generated text completion
+        """
+        ...
 
     def generate_batch(self, prompts: Iterable[str], **kwargs: Any) -> Iterable[str]:
-        """Optional batch generation; default iterates generate."""
-        for prompt in prompts:
-            yield self.generate(prompt, **kwargs)
+        """Optional batch generation.
+        
+        Default implementation iterates generate() for each prompt.
+        Implementations can override for batch optimization.
+        
+        Args:
+            prompts: Iterable of input prompts
+            **kwargs: Additional parameters
+            
+        Yields:
+            Generated text completions
+        """
+        ...
 
     @property
-    @abstractmethod
     def model_name(self) -> str:
         """Return the underlying model name."""
-        raise NotImplementedError
+        ...
 
 
 class ChatMessage(Dict[str, str]):

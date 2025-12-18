@@ -145,7 +145,7 @@ def create_tender_stack(
     Example:
         ```python
         from src.infra.vectorstores.factory import create_tender_stack
-        from src.core.embedding.openai_embedding import OpenAIEmbedding
+        from src.infra.embedding.openai import OpenAIEmbeddingClient as OpenAIEmbedding
         
         # Create embedding client
         embed_client = OpenAIEmbedding(model="text-embedding-3-small")
