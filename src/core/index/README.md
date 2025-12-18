@@ -1,128 +1,99 @@
 # Index Layer Overview
 
-Infrastruttura vettoriale per ingestire e interrogare chunk vettoriali con architettura pulita e riusabile.
+Generic vector indexing infrastructure following Clean Architecture principles.
 
-## 🏗️ Nuova Architettura (Refactored)
+## 🏗️ Architecture
 
-Il sistema index è stato refactorato seguendo i principi di clean architecture:
+This layer contains **generic, reusable abstractions** for vector indexing and search:
 
-- **`base.py`**: Protocol definitions (astrazioni pure, zero dipendenze)
-- **`service.py`**: `IndexService` generico con dependency injection
-- **`search_strategies.py`**: Search generiche (VectorSearch, KeywordSearch, HybridSearch)
-- **`tender_indexer_v2.py`**: Wrapper backward-compatible per tender chunks
-- **`tender_searcher_v2.py`**: Orchestratore tender usando le nuove strategie
-- **`../../infra/vectorstores/`**: Implementazioni concrete (Milvus isolato)
-- **`../../infra/vectorstores/factory.py`**: Factory per creare servizi configurati
+- **`base.py`**: Protocol definitions (pure abstractions, zero dependencies)
+- **`service.py`**: `IndexService` generic implementation with dependency injection
+- **`search_strategies.py`**: Generic search strategies (VectorSearch, KeywordSearch, HybridSearch)
+- **`vector/`**: Milvus-specific implementations (connection, service, data operations)
 
-### Vecchia Architettura (Ancora Funzionante)
+### Tender-Specific Components (Moved to Domain Layer)
 
-- `vector/`: Implementazioni Milvus originali (PRESERVATE per compatibilità)
-- `tender_indexer.py`: Indicizzatore originale (PRESERVATO)
-- `search/`: Searcher originali (PRESERVATI)
-- `tender_searcher.py`: Orchestratore originale (PRESERVATO)
+Tender-specific indexing and search have been moved to:
+- **`src/domain/tender/indexing/`**: TenderMilvusIndexer (domain-specific indexer)
+- **`src/domain/tender/search/`**: VectorSearcher, KeywordSearcher, HybridSearcher (domain-specific search)
 
-## 🚀 Utilizzo Rapido (Consigliato)
+## 🚀 Quick Usage
 
-### Opzione 1: Factory Pattern (Nuovo - Raccomandato)
+### Generic IndexService (Recommended)
 
 ```python
-from src.infra.vectorstores.factory import create_tender_stack
-from src.core.embedding import OllamaEmbeddingClient
+from src.core.index.service import IndexService
+from src.core.index.search_strategies import VectorSearch, HybridSearch
+from src.core.embedding import EmbeddingClient
 
-# 1. Crea embedding client
-embed_client = OllamaEmbeddingClient()
-embedding_dim = len(embed_client.embed("probe"))
-
-# 2. Crea stack completo con una chiamata
-indexer, searcher = create_tender_stack(
-    embed_client=embed_client,
-    embedding_dim=embedding_dim,
+# Create index service
+index_service = IndexService(
+    collection_name="my_collection",
+    milvus_uri="http://localhost:19530"
 )
 
-# 3. Indicizza
-indexer.upsert_token_chunks(token_chunks)
-
-# 4. Cerca (vector, keyword, o hybrid)
-vector_results = searcher.vector_search("query text", top_k=5)
-keyword_results = searcher.keyword_search("exact terms", top_k=5)
-hybrid_results = searcher.hybrid_search("query text", top_k=5)
-```
-
-### Opzione 2: Codice Originale (Ancora Funziona)
-
-```python
-from src.core.index.vector.config import MilvusConfig
-from src.core.index.vector.service import MilvusService
-from src.core.index.tender_indexer import TenderMilvusIndexer
-from src.core.embedding import OllamaEmbeddingClient
-
-cfg = MilvusConfig(uri="http://localhost:19530")
-service = MilvusService(cfg)
-emb = OllamaEmbeddingClient()
-indexer = TenderMilvusIndexer(
-    service=service, 
-    embedding_dim=len(emb.embed("probe")), 
-    embed_fn=emb.embed_batch
-)
-indexer.upsert_token_chunks(token_chunks)
-```
-
-## 🔍 Ricerca
-
-### Vector Search (Semantica)
-
-```python
-# Usa il searcher tender (nuovo modo)
-results = searcher.vector_search("Qual è il valore del lotto?", top_k=5)
-
-# O manualmente con strategie
-from src.core.index.search_strategies import VectorSearch
+# Vector search
 vector_search = VectorSearch(index_service, embed_fn=embed_client.embed)
 hits = vector_search.search("query", top_k=5)
 ```
 
-### Keyword Search
+### Tender-Specific Usage
+
+For tender document indexing, use the domain layer:
 
 ```python
-# Usa il searcher tender
-results = searcher.keyword_search("energia elettrica", top_k=5)
+from src.domain.tender.indexing import TenderMilvusIndexer
+from src.domain.tender.search import TenderSearcher
+from src.core.embedding import EmbeddingClient
 
-# O manualmente
-from src.core.index.search_strategies import KeywordSearch
-keyword_search = KeywordSearch(index_service)
-hits = keyword_search.search("energia elettrica", top_k=5)
+# Setup
+indexer = TenderMilvusIndexer(...)
+searcher = TenderSearcher(indexer, embed_client)
+
+# Search
+vector_results = searcher.vector_search("query", top_k=5)
+keyword_results = searcher.keyword_search("keywords", top_k=5)
+hybrid_results = searcher.hybrid_search("query", top_k=5)
 ```
 
-### Hybrid Search (Vector + Keyword)
+### Generic Search Strategies
+
+For reusable search patterns across any domain:
 
 ```python
-# Usa il searcher tender (configurato con alpha=0.7)
-results = searcher.hybrid_search("energia elettrica", top_k=5)
+from src.core.index.search_strategies import VectorSearch, KeywordSearch, HybridSearch
+from src.core.index.service import IndexService
 
-# O manualmente con custom alpha
-from src.core.index.search_strategies import HybridSearch
+# Vector Search
+vector_search = VectorSearch(index_service, embed_fn=embed_client.embed)
+hits = vector_search.search("query", top_k=5)
+
+# Keyword Search
+keyword_search = KeywordSearch(index_service)
+hits = keyword_search.search("keywords", top_k=5)
+
+# Hybrid Search (70% vector + 30% keyword)
 hybrid = HybridSearch(
     vector_search=vector_search,
     keyword_search=keyword_search,
-    alpha=0.7  # 70% vector, 30% keyword
+    alpha=0.7
 )
 hits = hybrid.search("query", top_k=5)
 ```
 
-## 🎯 Vantaggi della Nuova Architettura
+## 🎯 Architecture Benefits
 
-1. **🎯 Più Semplice**: Una factory call invece di 3-4 setup manuali
-2. **🧪 Testabile**: Mock dei Protocol invece delle classi concrete
-3. **🔄 Swappable**: Cambia da Milvus a Pinecone modificando solo la factory
-4. **📦 Backward Compatible**: Tutto il codice vecchio continua a funzionare
-5. **🌍 Env-Aware**: Configurazione automatica da variabili d'ambiente
-6. **📚 Library-Ready**: Core abstractions pronte per estrazione
+1. **🎯 Clean Separation**: Generic abstractions in core, domain logic in domain layer
+2. **🧪 Testable**: Protocol-based design allows easy mocking
+3. **🔄 Swappable**: Change vector stores without touching domain code
+4. **📦 Reusable**: Core strategies work for any domain
+5. **📚 Maintainable**: Clear boundaries between layers
 
-## 📚 Documentazione Completa
+## 📚 Related Documentation
 
-- **Guida Migrazione**: `../../MIGRATION_INDEX.md`
-- **Esempi Completi**: `../../examples/index_usage.py`
-- **Summary Refactor**: `../../REFACTOR_INDEX_SUMMARY.md`
+- **Core Layer**: See `../README.md` for core abstractions overview
+- **Domain Layer**: See `../../domain/tender/` for tender-specific implementations
+- **Examples**: See `../../examples/index_usage.py` for complete usage examples
 
 ## Schema Tender Chunks
 
@@ -158,16 +129,16 @@ MILVUS_HNSW_EF=200
 
 ## Design Rationale
 
-### Nuova Architettura
-- **Core**: Protocol-based abstractions (nessuna dipendenza da vendor)
-- **Infra**: Implementazioni concrete isolate (Milvus, Pinecone, etc.)
-- **Factory**: Produzione con sensible defaults + env vars
-- **DI**: Dependency injection per massima testabilità
+### Clean Architecture
+- **Core (`src/core/index/`)**: Protocol-based abstractions, no vendor dependencies
+- **Domain (`src/domain/tender/`)**: Tender-specific indexing and search logic
+- **Infra (`src/infra/`)**: Concrete vendor implementations (Milvus, etc.)
 
-### Backward Compatibility
-- Tutti i file originali preservati in `vector/`, `search/`
-- Import vecchi continuano a funzionare
-- Migrazione graduale e opzionale
+### Key Principles
+- **Protocol-Based**: Use Python Protocols instead of ABC for loose coupling
+- **Dependency Injection**: All dependencies injected, making code testable
+- **Layer Separation**: Clear boundaries between core, domain, and infra
+- **Swappable Implementations**: Change vendors without touching domain code
 
 ---
 [Torna al README core](../README.md)

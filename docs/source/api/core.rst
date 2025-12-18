@@ -60,29 +60,6 @@ Tender Searcher
    :undoc-members:
    :show-inheritance:
 
-Search Components
-^^^^^^^^^^^^^^^^^
-
-.. automodule:: src.core.index.search.hybrid_searcher
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.core.index.search.vector_searcher
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.core.index.search.keyword_searcher
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: src.core.index.search.reranker
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Vector Store
 ^^^^^^^^^^^^
 

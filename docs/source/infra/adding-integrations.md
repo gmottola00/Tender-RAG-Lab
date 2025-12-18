@@ -288,7 +288,7 @@ pip install pinecone-client
 """Pinecone vector store implementation"""
 import pinecone
 from src.core.index.vector.database import VectorStore
-from src.core.index.search.models import SearchResult
+from src.core.index.base import SearchResult
 
 
 class PineconeVectorStore:

@@ -173,7 +173,7 @@ class IndexService:
 
 **Example:**
 ```python
-from src.core.index.search import VectorSearchStrategy
+from src.core.index.search_strategies import VectorSearch
 
 strategy = VectorSearchStrategy(
     vector_store=vector_store,
@@ -207,7 +207,7 @@ results = await strategy.search(
 
 **Example:**
 ```python
-from src.core.index.search import KeywordSearchStrategy
+from src.core.index.search_strategies import KeywordSearch
 
 strategy = KeywordSearchStrategy(vector_store=vector_store)
 
@@ -238,7 +238,7 @@ results = await strategy.search(
 
 **Example:**
 ```python
-from src.core.index.search import HybridSearchStrategy
+from src.core.index.search_strategies import HybridSearch
 
 strategy = HybridSearchStrategy(
     vector_store=vector_store,
@@ -576,7 +576,7 @@ for i in tqdm(range(0, len(chunks), BATCH_SIZE)):
 
 ```python
 # src/core/index/search/graph_searcher.py
-from src.core.index.search import SearchStrategy
+from src.core.index.base import SearchStrategy
 
 class GraphSearchStrategy:
     """Graph-based search with node relationships"""

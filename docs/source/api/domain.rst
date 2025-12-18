@@ -107,3 +107,46 @@ Storage Service
    :members:
    :undoc-members:
    :show-inheritance:
+
+Tender Search
+-------------
+
+Vector Searcher
+^^^^^^^^^^^^^^^
+
+.. automodule:: src.domain.tender.search.vector_searcher
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Keyword Searcher
+^^^^^^^^^^^^^^^^
+
+.. automodule:: src.domain.tender.search.keyword_searcher
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Hybrid Searcher
+^^^^^^^^^^^^^^^
+
+.. automodule:: src.domain.tender.search.hybrid_searcher
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Reranker
+^^^^^^^^
+
+.. automodule:: src.domain.tender.search.reranker
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Tender Searcher
+^^^^^^^^^^^^^^^
+
+.. automodule:: src.domain.tender.search.searcher
+   :members:
+   :undoc-members:
+   :show-inheritance:

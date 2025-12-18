@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Dict, List
 
 from src.core.index.vector.connection import MilvusConnectionManager
-from src.domain.tender.indexing.indexer import TenderMilvusIndexer
+from src.domain.tender.indexing import TenderMilvusIndexer
 from src.core.index.vector.exceptions import DataOperationError
 
 

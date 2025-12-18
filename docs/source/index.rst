@@ -95,6 +95,8 @@ Concrete implementations of core protocols (vendors, frameworks).
    :caption: Infrastructure
 
    ../infra/README
+   ../infra/embeddings
+   ../infra/llm
    ../infra/milvus
    ../infra/adding-integrations
 
@@ -109,6 +111,7 @@ Business logic for tender management.
 
    ../domain/README
    ../domain/services
+   ../domain/tender-search
 
 Apps Layer
 ----------
