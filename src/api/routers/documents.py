@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_db_dep
+from src.api.deps import get_db_session
 from src.domain.tender.schemas.documents import DocumentCreate, DocumentOut, DocumentUpdate
 from src.domain.tender.entities.documents import DocumentType
 from src.domain.tender.services.documents import DocumentService
@@ -24,7 +24,7 @@ async def create_document(
     document_type: DocumentType | None = Form(None),
     uploaded_by: str | None = Form(None),
     file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db_dep),
+    db: AsyncSession = Depends(get_db_session),
 ) -> DocumentOut:
     # Build DTO manually (filename from upload)
     payload = DocumentCreate(
@@ -40,7 +40,7 @@ async def create_document(
 
 
 @router.get("/{document_id}", response_model=DocumentOut)
-async def get_document(document_id: UUID, db: AsyncSession = Depends(get_db_dep)) -> DocumentOut:
+async def get_document(document_id: UUID, db: AsyncSession = Depends(get_db_session)) -> DocumentOut:
     obj = await DocumentService.get(db, document_id)
     if obj is None:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -53,13 +53,13 @@ async def list_documents(
     lot_id: UUID | None = None,
     limit: int = 100,
     offset: int = 0,
-    db: AsyncSession = Depends(get_db_dep),
+    db: AsyncSession = Depends(get_db_session),
 ) -> List[DocumentOut]:
     return await DocumentService.list(db, tender_id=tender_id, lot_id=lot_id, limit=limit, offset=offset)
 
 
 @router.post("/{document_id}/ingest")
-async def ingest_document(document_id: UUID, db: AsyncSession = Depends(get_db_dep), top_k: int = 3) -> dict:
+async def ingest_document(document_id: UUID, db: AsyncSession = Depends(get_db_session), top_k: int = 3) -> dict:
     """Download a stored document, parse, chunk and index into Milvus."""
     doc = await DocumentService.get(db, document_id)
     if doc is None:
@@ -114,7 +114,7 @@ async def ingest_document(document_id: UUID, db: AsyncSession = Depends(get_db_d
 
 
 @router.put("/{document_id}", response_model=DocumentOut)
-async def update_document(document_id: UUID, payload: DocumentUpdate, db: AsyncSession = Depends(get_db_dep)) -> DocumentOut:
+async def update_document(document_id: UUID, payload: DocumentUpdate, db: AsyncSession = Depends(get_db_session)) -> DocumentOut:
     obj = await DocumentService.update(db, document_id, payload)
     if obj is None:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -122,7 +122,7 @@ async def update_document(document_id: UUID, payload: DocumentUpdate, db: AsyncS
 
 
 @router.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_document(document_id: UUID, db: AsyncSession = Depends(get_db_dep)) -> None:
+async def delete_document(document_id: UUID, db: AsyncSession = Depends(get_db_session)) -> None:
     ok = await DocumentService.delete(db, document_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Document not found")

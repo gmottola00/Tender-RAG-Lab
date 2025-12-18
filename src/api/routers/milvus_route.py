@@ -4,8 +4,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from src.api.providers import get_milvus_explorer, get_milvus_service
-from src.api.providers import get_indexer, get_embedding_client
+from src.api.deps import get_milvus_explorer, get_milvus_service
+from src.api.deps import get_indexer, get_embedding_client
 from src.core.index.vector.exceptions import CollectionError
 
 
