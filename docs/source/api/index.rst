@@ -30,4 +30,5 @@ Module Index
    :recursive:
 
    src.core
-   src.services
+   src.infra
+   src.domain

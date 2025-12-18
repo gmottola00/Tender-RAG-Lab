@@ -3,13 +3,13 @@ Domain Layer API
 
 The domain layer contains business logic for tender management.
 
-Models
-------
+Entities (ORM Models)
+---------------------
 
 Tenders
 ^^^^^^^
 
-.. automodule:: src.models.tenders
+.. automodule:: src.domain.tender.entities.tenders
    :members:
    :undoc-members:
    :show-inheritance:
@@ -17,7 +17,7 @@ Tenders
 Lots
 ^^^^
 
-.. automodule:: src.models.lots
+.. automodule:: src.domain.tender.entities.lots
    :members:
    :undoc-members:
    :show-inheritance:
@@ -25,18 +25,18 @@ Lots
 Documents
 ^^^^^^^^^
 
-.. automodule:: src.models.documents
+.. automodule:: src.domain.tender.entities.documents
    :members:
    :undoc-members:
    :show-inheritance:
 
-Schemas
--------
+Schemas (Pydantic)
+------------------
 
 Tenders Schema
 ^^^^^^^^^^^^^^
 
-.. automodule:: src.schemas.tenders
+.. automodule:: src.domain.tender.schemas.tenders
    :members:
    :undoc-members:
    :show-inheritance:
@@ -44,7 +44,7 @@ Tenders Schema
 Lots Schema
 ^^^^^^^^^^^
 
-.. automodule:: src.schemas.lots
+.. automodule:: src.domain.tender.schemas.lots
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,7 +52,7 @@ Lots Schema
 Documents Schema
 ^^^^^^^^^^^^^^^^
 
-.. automodule:: src.schemas.documents
+.. automodule:: src.domain.tender.schemas.documents
    :members:
    :undoc-members:
    :show-inheritance:
@@ -60,7 +60,7 @@ Documents Schema
 Ingestion Schema
 ^^^^^^^^^^^^^^^^
 
-.. automodule:: src.schemas.ingestion
+.. automodule:: src.domain.tender.schemas.ingestion
    :members:
    :undoc-members:
    :show-inheritance:
@@ -68,7 +68,7 @@ Ingestion Schema
 Chunking Schema
 ^^^^^^^^^^^^^^^
 
-.. automodule:: src.schemas.chunking
+.. automodule:: src.domain.tender.schemas.chunking
    :members:
    :undoc-members:
    :show-inheritance:
@@ -79,7 +79,7 @@ Services
 Tenders Service
 ^^^^^^^^^^^^^^^
 
-.. automodule:: src.services.tenders
+.. automodule:: src.domain.tender.services.tenders
    :members:
    :undoc-members:
    :show-inheritance:
@@ -87,7 +87,7 @@ Tenders Service
 Lots Service
 ^^^^^^^^^^^^
 
-.. automodule:: src.services.lots
+.. automodule:: src.domain.tender.services.lots
    :members:
    :undoc-members:
    :show-inheritance:
@@ -95,15 +95,18 @@ Lots Service
 Documents Service
 ^^^^^^^^^^^^^^^^^
 
-.. automodule:: src.services.documents
+.. automodule:: src.domain.tender.services.documents
    :members:
    :undoc-members:
    :show-inheritance:
 
-Storage Service
-^^^^^^^^^^^^^^^
+Indexing
+--------
 
-.. automodule:: src.services.storage
+Tender Milvus Indexer
+^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: src.domain.tender.indexing.indexer
    :members:
    :undoc-members:
    :show-inheritance:

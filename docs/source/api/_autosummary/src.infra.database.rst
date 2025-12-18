@@ -1,7 +1,7 @@
-src.core.embedding
+src.infra.database
 ==================
 
-.. automodule:: src.core.embedding
+.. automodule:: src.infra.database
 
    
 .. rubric:: Modules
@@ -11,3 +11,4 @@ src.core.embedding
    :recursive:
 
    base
+   session

@@ -1,7 +1,7 @@
-src.core.llm.ollama
-===================
+src.infra.llm.ollama
+====================
 
-.. automodule:: src.core.llm.ollama
+.. automodule:: src.infra.llm.ollama
 
    
    .. rubric:: Classes

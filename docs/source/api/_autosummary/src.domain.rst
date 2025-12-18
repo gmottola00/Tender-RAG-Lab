@@ -1,7 +1,7 @@
-src.core.llm
-============
+﻿src.domain
+==========
 
-.. automodule:: src.core.llm
+.. automodule:: src.domain
 
    
 .. rubric:: Modules
@@ -10,4 +10,4 @@ src.core.llm
    :toctree:
    :recursive:
 
-   base
+   tender

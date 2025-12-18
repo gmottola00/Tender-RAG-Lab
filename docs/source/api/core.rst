@@ -41,24 +41,12 @@ Protocol Definition
    Concrete implementations (Ollama, OpenAI) are in the Infrastructure Layer.
    See :doc:`infra` for details.
 
+.. note::
+   Tender-specific indexing and search are in the Domain Layer.
+   See :doc:`domain` for TenderMilvusIndexer and TenderSearcher.
+
 Indexing Module
 ---------------
-
-Tender Indexer
-^^^^^^^^^^^^^^
-
-.. automodule:: src.core.index.tender_indexer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Tender Searcher
-^^^^^^^^^^^^^^^
-
-.. automodule:: src.core.index.tender_searcher
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Vector Store
 ^^^^^^^^^^^^

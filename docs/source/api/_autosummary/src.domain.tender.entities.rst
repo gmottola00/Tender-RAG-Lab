@@ -1,7 +1,7 @@
-﻿src.services
-============
+src.domain.tender.entities
+==========================
 
-.. automodule:: src.services
+.. automodule:: src.domain.tender.entities
 
    
 .. rubric:: Modules
@@ -12,5 +12,4 @@
 
    documents
    lots
-   storage
    tenders
