@@ -9,7 +9,6 @@ from typing import List
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from configs.logger import app_logger
-from rag_toolkit.core.utils.file_utils import temporary_directory
 from src.domain.tender.schemas.ingestion import ParsedDocument
 from rag_toolkit.infra.parsers.factory import create_ingestion_service
 from rag_toolkit.core.chunking import DynamicChunker, TokenChunker

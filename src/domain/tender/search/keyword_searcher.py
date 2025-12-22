@@ -6,7 +6,7 @@ from typing import Dict, List
 
 from rag_toolkit.infra.vectorstores.milvus.connection import MilvusConnectionManager
 from src.domain.tender.indexing import TenderMilvusIndexer
-from rag_toolkit.core.index.vector.exceptions import DataOperationError
+from rag_toolkit.infra.vectorstores.milvus.exceptions import DataOperationError
 
 
 class KeywordSearcher:

@@ -17,13 +17,11 @@ from src.infra.database import get_db
 from rag_toolkit.infra.embedding import OllamaEmbeddingClient
 from rag_toolkit.infra.llm import OllamaLLMClient
 from rag_toolkit.core.llm import LLMClient
-from rag_toolkit.core.index.service import IndexService
-from rag_toolkit.core.index.search_strategies import VectorSearch
+from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
 from rag_toolkit.rag import RagPipeline
 from rag_toolkit.rag.rewriter import QueryRewriter
 from rag_toolkit.rag.assembler import ContextAssembler
 from rag_toolkit.rag.rerankers import LLMReranker
-from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_tender_stack
 from rag_toolkit.infra.vectorstores.milvus.service import MilvusService
 from rag_toolkit.infra.vectorstores.milvus.explorer import MilvusExplorer
 from src.domain.tender.indexing.indexer import TenderMilvusIndexer

@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from typing import Callable, Dict, List, Optional, Sequence
 
-from rag_toolkit.core.index.base import IndexService
+from rag_toolkit.core.index.service import IndexService
 from rag_toolkit.core.chunking.types import TokenChunkLike
 
 try:
