@@ -10,7 +10,8 @@ import os
 from typing import Tuple
 
 from rag_toolkit.core.embedding import EmbeddingClient
-from rag_toolkit.infra.vectorstores.factory import create_milvus_service
+from rag_toolkit.core.index.service import IndexService
+from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
 
 from src.domain.tender.indexing.indexer import TenderMilvusIndexer
 from src.domain.tender.search.searcher import TenderSearcher
@@ -43,12 +44,24 @@ def create_tender_stack(
         >>> embedding_dim = len(embed_client.embed("test"))
         >>> indexer, searcher = create_tender_stack(embed_client, embedding_dim)
     """
-    # Create Milvus service using rag-toolkit factory
+    # Create embedding function for multiple texts
+    def embed_fn(texts: list[str]) -> list[list[float]]:
+        """Embed multiple texts using the embedding client."""
+        return [embed_client.embed(t) for t in texts]
+    
+    # Create services using rag-toolkit factories
     milvus_service = create_milvus_service()
+    index_service = create_index_service(
+        embedding_dim=embedding_dim,
+        embed_fn=embed_fn,
+        collection_name=collection_name,
+        vector_store=milvus_service,
+    )
     
     # Create tender-specific indexer
     indexer = TenderMilvusIndexer(
-        embed_fn=lambda texts: [embed_client.embed(t) for t in texts] if isinstance(texts, list) else embed_client.embed(texts),
+        index_service=index_service,
+        embed_fn=embed_fn,
         embedding_dim=embedding_dim,
         collection_name=collection_name,
     )
