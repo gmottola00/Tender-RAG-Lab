@@ -12,7 +12,7 @@ from configs.logger import app_logger
 from src.core.utils.file_utils import temporary_directory
 from src.domain.tender.schemas.ingestion import ParsedDocument
 from src.infra.parsers.factory import create_ingestion_service
-from src.core.chunking import DynamicChunker, TokenChunker
+from rag_toolkit.core.chunking import DynamicChunker, TokenChunker
 from src.api.deps import get_embedding_client, get_indexer, get_searcher, get_rag_pipeline
 
 

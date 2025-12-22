@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, Iterable, Optional
 
-from src.core.llm.base import LLMClient
+from rag_toolkit.core.llm import LLMClient
 
 try:
     import requests

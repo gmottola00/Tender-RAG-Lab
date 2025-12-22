@@ -2,7 +2,7 @@
 
 This module provides domain-specific implementations of the core chunking
 protocols, adding tender-related metadata while maintaining compatibility
-with the generic chunking interfaces defined in src.core.chunking.types.
+with the generic chunking interfaces defined in rag_toolkit.core.chunking.types.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from src.core.chunking.types import ChunkLike, TokenChunkLike
+from rag_toolkit.core.chunking.types import ChunkLike, TokenChunkLike
 
 
 @dataclass
@@ -20,7 +20,7 @@ class TenderChunk:
     Extends the core chunk interface with tender-specific metadata,
     allowing tracking of which tender, lot, and section type each chunk belongs to.
 
-    This implementation conforms to the ChunkLike Protocol from src.core.chunking.types
+    This implementation conforms to the ChunkLike Protocol from rag_toolkit.core.chunking.types
     and can be used anywhere a ChunkLike is expected.
 
     Attributes:
@@ -78,7 +78,7 @@ class TenderTokenChunk:
     Extends the core token chunk interface with tender-specific metadata,
     optimized for embedding and retrieval operations with tender context.
 
-    This implementation conforms to the TokenChunkLike Protocol from src.core.chunking.types
+    This implementation conforms to the TokenChunkLike Protocol from rag_toolkit.core.chunking.types
     and can be used anywhere a TokenChunkLike is expected.
 
     Attributes:

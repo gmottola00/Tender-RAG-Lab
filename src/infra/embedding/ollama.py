@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List
 
-from src.core.embedding.base import EmbeddingClient
+from rag_toolkit.core.embedding import EmbeddingClient
 
 try:
     import requests

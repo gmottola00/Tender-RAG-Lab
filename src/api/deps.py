@@ -16,13 +16,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.infra.database import get_db
 from src.infra.embedding import OllamaEmbeddingClient
 from src.infra.llm import OllamaLLMClient
-from src.core.llm import LLMClient
+from rag_toolkit.core.llm import LLMClient
 from src.core.index.service import IndexService
 from src.core.index.search_strategies import VectorSearch
-from src.core.rag.pipeline import RagPipeline
-from src.core.rag.rewriter import QueryRewriter
-from src.core.rag.assembler import ContextAssembler
-from src.core.rag.rerankers import LLMReranker
+from rag_toolkit.rag import RagPipeline
+from rag_toolkit.rag.rewriter import QueryRewriter
+from rag_toolkit.rag.assembler import ContextAssembler
+from rag_toolkit.rag.rerankers import LLMReranker
 from src.infra.vectorstores.factory import create_milvus_service, create_tender_stack
 from src.infra.vectorstores.milvus.service import MilvusService
 from src.infra.vectorstores.milvus.explorer import MilvusExplorer
