@@ -100,9 +100,22 @@ async def preview_vector_search(query: str, top_k: int = 5) -> dict:
     query_vec = embed_client.embed(query)
     try:
         results = indexer.search(query_embedding=query_vec, top_k=top_k)
+        # Serialize results to ensure JSON compatibility
+        serialized_results = []
+        for result in results:
+            serialized = {}
+            for key, value in result.items():
+                # Convert non-serializable types
+                if hasattr(value, '__dict__'):
+                    serialized[key] = str(value)
+                elif callable(value):
+                    continue  # Skip methods
+                else:
+                    serialized[key] = value
+            serialized_results.append(serialized)
     except Exception as exc:  # pragma: no cover
         raise HTTPException(status_code=500, detail=f"Search failed: {exc}") from exc
-    return {"query": query, "top_k": top_k, "results": results}
+    return {"query": query, "top_k": top_k, "results": serialized_results}
 
 
 __all__ = ["router"]
