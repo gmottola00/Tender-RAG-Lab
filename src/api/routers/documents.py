@@ -10,7 +10,7 @@ from src.api.deps import get_db_session
 from src.domain.tender.schemas.documents import DocumentCreate, DocumentOut, DocumentUpdate
 from src.domain.tender.entities.documents import DocumentType
 from src.domain.tender.services.documents import DocumentService
-from src.infra.storage import get_storage_client
+from rag_toolkit.infra.storage import get_storage_client
 from src.api.routers.ingestion import parse_document, dynamic_chunker, token_chunker, get_embedding_client, get_indexer
 
 

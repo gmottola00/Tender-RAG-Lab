@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Sequence
 
-from src.core.embedding import EmbeddingClient
+from rag_toolkit.core.embedding import EmbeddingClient
 from src.domain.tender.indexing import TenderMilvusIndexer
 
 
