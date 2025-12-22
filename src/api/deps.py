@@ -14,10 +14,12 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infra.database import get_db
+from src.infra.factory import create_tender_stack
 from rag_toolkit.infra.embedding import OllamaEmbeddingClient
 from rag_toolkit.infra.llm import OllamaLLMClient
 from rag_toolkit.core.llm import LLMClient
 from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
+from rag_toolkit.core.index.search_strategies import VectorSearch
 from rag_toolkit.rag import RagPipeline
 from rag_toolkit.rag.rewriter import QueryRewriter
 from rag_toolkit.rag.assembler import ContextAssembler
@@ -98,6 +100,7 @@ def get_llm_client() -> LLMClient:
 
 _milvus_service: MilvusService | None = None
 _milvus_explorer: MilvusExplorer | None = None
+_index_service = None
 
 
 def get_milvus_service() -> MilvusService:
@@ -137,14 +140,29 @@ def get_milvus_explorer() -> MilvusExplorer:
     return _milvus_explorer
 
 
+def get_index_service():
+    """Provide IndexService using rag-toolkit factory.
+    
+    Singleton for managing index operations.
+    """
+    global _index_service
+    if _index_service is None:
+        try:
+            _index_service = create_index_service()
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to create index service: {exc}"
+            ) from exc
+    return _index_service
+
+
 # ============================================================================
 # Domain Service Dependencies (Tender-specific)
 # ============================================================================
 
 _tender_indexer: TenderMilvusIndexer | None = None
 _tender_searcher: TenderSearcher | None = None
-_index_service: IndexService | None = None
-
 
 def get_indexer() -> TenderMilvusIndexer:
     """Provide TenderMilvusIndexer with embedding client.
@@ -171,18 +189,6 @@ def get_indexer() -> TenderMilvusIndexer:
                 detail=f"Failed to initialize indexer: {exc}"
             ) from exc
     return _tender_indexer
-
-
-def get_index_service() -> IndexService:
-    """Get generic IndexService from TenderMilvusIndexer.
-    
-    Returns the underlying IndexService for RAG pipeline.
-    """
-    global _index_service
-    if _index_service is None:
-        indexer = get_indexer()
-        _index_service = indexer.service
-    return _index_service
 
 
 def get_searcher() -> TenderSearcher:
