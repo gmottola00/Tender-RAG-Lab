@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from src.core.index.vector.connection import MilvusConnectionManager
+from rag_toolkit.infra.vectorstores.milvus.connection import MilvusConnectionManager
 from src.domain.tender.indexing import TenderMilvusIndexer
-from src.core.index.vector.exceptions import DataOperationError
+from rag_toolkit.infra.vectorstores.milvus.exceptions import DataOperationError
 
 
 class KeywordSearcher:

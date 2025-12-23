@@ -23,19 +23,16 @@ Welcome to Tender-RAG-Lab's comprehensive documentation! This project implements
 Retrieval-Augmented Generation (RAG) system specifically designed for Italian public procurement 
 tender documents, following clean architecture principles.
 
-.. contents:: Quick Navigation
-   :local:
-   :depth: 2
-
 ----
 
 🚀 Quick Links
 ==============
 
-* :doc:`Quick Start Guide <../guides/quickstart>` - Get running in 10 minutes
-* :doc:`Architecture Overview <../architecture/overview>` - Understand the system design
-* :doc:`Where to Put Code? <../architecture/where-to-put-code>` - Decision guide for developers
-* :doc:`API Reference <api/index>` - Complete code documentation
+* :doc:`guides/quickstart` - Get running in 10 minutes
+* :doc:`rag_toolkit/index` - rag_toolkit integration guide
+* :doc:`guides/integration-walkthrough` - End-to-end document flow
+* :doc:`architecture/overview` - Understand the system design
+* :doc:`api/index` - Complete API reference
 
 ----
 
@@ -51,8 +48,23 @@ Essential guides to get you up and running quickly.
    :maxdepth: 2
    :caption: Getting Started
 
-   ../guides/quickstart
-   ../guides/environment-setup
+   guides/quickstart
+   guides/environment-setup
+   guides/integration-walkthrough
+
+rag_toolkit Integration
+-----------------------
+
+Complete guide to using rag_toolkit in the Tender-RAG-Lab project.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: rag_toolkit Integration
+
+   rag_toolkit/index
+   rag_toolkit/pipeline
+   rag_toolkit/search
+   rag_toolkit/extending
 
 Architecture
 ------------
@@ -63,10 +75,10 @@ Learn about the clean architecture design and key decisions.
    :maxdepth: 2
    :caption: Architecture
 
-   ../architecture/overview
-   ../architecture/where-to-put-code
-   ../architecture/decisions
-   ../README
+   architecture/overview
+   architecture/where-to-put-code
+   architecture/decisions
+   README
 
 Core Layer
 ----------
@@ -77,13 +89,13 @@ Reusable, framework-agnostic abstractions (Protocols).
    :maxdepth: 2
    :caption: Core Layer
 
-   ../core/README
-   ../core/chunking
-   ../core/embedding
-   ../core/llm
-   ../core/indexing
-   ../core/ingestion
-   ../core/rag
+   core/README
+   core/chunking
+   core/embedding
+   core/llm
+   core/indexing
+   core/ingestion
+   core/rag
 
 Infrastructure Layer
 --------------------
@@ -94,13 +106,13 @@ Concrete implementations of core protocols (vendors, frameworks).
    :maxdepth: 2
    :caption: Infrastructure
 
-   ../infra/README
-   ../infra/database
-   ../infra/storage
-   ../infra/embeddings
-   ../infra/llm
-   ../infra/milvus
-   ../infra/adding-integrations
+   infra/README
+   infra/database
+   infra/storage
+   infra/embeddings
+   infra/llm
+   infra/milvus
+   infra/adding-integrations
 
 Domain Layer
 ------------
@@ -111,9 +123,9 @@ Business logic for tender management.
    :maxdepth: 2
    :caption: Domain Layer
 
-   ../domain/README
-   ../domain/services
-   ../domain/tender-search
+   domain/README
+   domain/services
+   domain/tender-search
 
 Apps Layer
 ----------
@@ -124,7 +136,7 @@ HTTP API layer with FastAPI.
    :maxdepth: 2
    :caption: Apps Layer
 
-   ../apps/README
+   apps/README
 
 API Reference
 -------------
@@ -136,9 +148,6 @@ Auto-generated documentation from code.
    :caption: API Reference
 
    api/index
-   api/core
-   api/infra
-   api/domain
 
 Migration History
 -----------------
@@ -149,7 +158,7 @@ Historical documentation of major refactoring efforts.
    :maxdepth: 1
    :caption: Migrations
 
-   ../migrations/README
+   migrations/README
 
 ----
 
@@ -170,7 +179,7 @@ Historical documentation of major refactoring efforts.
 🏗️ Architecture Overview
 =========================
 
-Tender-RAG-Lab follows clean architecture principles with strict layer dependencies:
+Tender-RAG-Lab integrates the **rag_toolkit** library following clean architecture principles:
 
 .. code-block:: text
 
@@ -190,13 +199,13 @@ Tender-RAG-Lab follows clean architecture principles with strict layer dependenc
    └────────────────┬────────────────────────────┘
                     │
    ┌────────────────▼────────────────────────────┐
-   │         Core Layer (Protocols)              │
-   │    Abstract interfaces, zero dependencies   │
+   │         rag_toolkit (Generic RAG)           │
+   │    Protocols, chunking, vector search       │
    └─────────────────────────────────────────────┘
 
 **Dependency Rule:** Outer layers depend on inner layers, never the reverse.
 
-Read more: :doc:`Architecture Overview <../architecture/overview>`
+Read more: :doc:`rag_toolkit/index` | :doc:`architecture/overview`
 
 ----
 
@@ -207,29 +216,29 @@ Choose your path based on your role:
 
 **For New Developers** (30 min)
 
-1. :doc:`Quick Start <../guides/quickstart>` - Get system running
-2. :doc:`Architecture Overview <../architecture/overview>` - Understand design
-3. :doc:`Where to Put Code <../architecture/where-to-put-code>` - Decision guide
-4. Explore one layer: :doc:`Core <../core/README>` or :doc:`Domain <../domain/README>`
+1. :doc:`guides/quickstart` - Get system running
+2. :doc:`rag_toolkit/index` - Understand rag_toolkit integration
+3. :doc:`guides/integration-walkthrough` - See document flow
+4. :doc:`architecture/overview` - System design
 
-**For Contributing to Core** (45 min)
+**For Extending rag_toolkit** (45 min)
 
-1. :doc:`Architecture Decisions <../architecture/decisions>` - Why we made these choices
-2. :doc:`Core Layer <../core/README>` - Protocol-based design
-3. :doc:`Adding Integrations <../infra/adding-integrations>` - Add new vendors
-4. Study examples: :doc:`Embedding <../core/embedding>`, :doc:`LLM <../core/llm>`
+1. :doc:`rag_toolkit/extending` - Protocol implementation guide
+2. :doc:`rag_toolkit/pipeline` - RAG pipeline details
+3. :doc:`rag_toolkit/search` - Search strategies
+4. :doc:`api/index` - API reference
 
 **For Adding Features** (30 min)
 
-1. :doc:`Domain Services <../domain/services>` - Business logic patterns
-2. :doc:`Apps Layer <../apps/README>` - API implementation
-3. :doc:`Where to Put Code <../architecture/where-to-put-code>` - Decision tree
+1. :doc:`domain/services` - Business logic patterns
+2. :doc:`apps/README` - API implementation
+3. :doc:`architecture/where-to-put-code` - Decision tree
 
 **For Production Deployment** (60 min)
 
-1. :doc:`Environment Setup <../guides/environment-setup>` - Complete configuration
-2. :doc:`Milvus Setup <../infra/milvus>` - Vector database
-3. Review security, monitoring, scaling considerations
+1. :doc:`guides/environment-setup` - Complete configuration
+2. :doc:`infra/milvus` - Vector database setup
+3. Review scaling and monitoring considerations
 
 ----
 

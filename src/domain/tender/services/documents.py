@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.domain.tender.entities.documents import Document
 from src.domain.tender.schemas.documents import DocumentCreate, DocumentUpdate
-from src.infra.storage import get_storage_client
+from rag_toolkit.infra.storage import get_storage_client
 
 
 class DocumentService:

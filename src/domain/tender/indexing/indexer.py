@@ -9,8 +9,8 @@ from __future__ import annotations
 import os
 from typing import Callable, Dict, List, Optional, Sequence
 
-from src.core.index.service import IndexService
-from src.core.chunking.types import TokenChunk
+from rag_toolkit.core.index.service import IndexService
+from rag_toolkit.core.chunking.types import TokenChunkLike
 
 try:
     from pymilvus import DataType
@@ -106,11 +106,11 @@ class TenderMilvusIndexer:
             }
         return {"index_type": self.index_type, "metric_type": self.metric_type}
 
-    def upsert_token_chunks(self, chunks: Sequence[TokenChunk]) -> None:
+    def upsert_token_chunks(self, chunks: Sequence[TokenChunkLike]) -> None:
         """Embed and insert token chunks into Milvus.
         
         Args:
-            chunks: Sequence of TokenChunk objects to index.
+            chunks: Sequence of TokenChunkLike objects to index.
         """
         if not chunks:
             return
