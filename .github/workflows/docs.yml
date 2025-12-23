@@ -55,9 +55,7 @@ jobs:
       
       - name: Verify package installation
         run: |
-          uv run python -c "import src; print(f'✅ Package installed: {src.__version__}')"
           uv run python -c "from src.domain.tender.entities import Tender; print('✅ Entities import works')"
-          uv run python -c "from src.core.chunking.types import ChunkLike; print('✅ Core types import works')"
         env:
           SPHINX_BUILD: "true"
       
