@@ -27,7 +27,6 @@ extensions = [
     "sphinx.ext.intersphinx",       # Link to other project docs
     "sphinx.ext.todo",              # Support for TODOs
     "sphinx.ext.coverage",          # Coverage checker
-    "sphinx.ext.autosummary",       # Generate autodoc summaries
     
     # Third-party extensions
     "myst_parser",                  # Markdown support
@@ -108,54 +107,41 @@ source_suffix = {
 master_doc = "index"
 
 # -- Options for HTML output -------------------------------------------------
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 html_static_path = ["_static"]
 
 html_theme_options = {
-    "logo_only": False,
-    "display_version": True,
-    "prev_next_buttons_location": "bottom",
-    "style_external_links": True,
-    "collapse_navigation": False,
-    "sticky_navigation": True,
-    "navigation_depth": 4,
-    "includehidden": True,
-    "titles_only": False,
+    "source_repository": "https://github.com/gmottola00/Tender-RAG-Lab",
+    "source_branch": "main",
+    "source_directory": "docs/source/",
+    "navigation_with_keys": True,
+    "top_of_page_button": "edit",
+    "light_css_variables": {
+        "color-brand-primary": "#2962ff",
+        "color-brand-content": "#2962ff",
+    },
+    "dark_css_variables": {
+        "color-brand-primary": "#82b1ff",
+        "color-brand-content": "#82b1ff",
+    },
 }
-
-# Enable right sidebar with page-level table of contents
-html_sidebars = {
-    '**': [
-        'globaltoc.html',
-        'relations.html',
-        'sourcelink.html',
-        'searchbox.html',
-    ]
-}
-
-# Show table of contents in the right sidebar
-html_theme_options['canonical_url'] = ''
-html_theme_options['analytics_id'] = ''
-html_theme_options['logo_only'] = False
-html_theme_options['display_version'] = True
-html_theme_options['prev_next_buttons_location'] = 'bottom'
-html_theme_options['style_external_links'] = True
 
 html_context = {
     "display_github": True,
     "github_user": "gmottola00",
     "github_repo": "Tender-RAG-Lab",
-    "github_version": "main",
+    "github_version": "migration/rag-toolkit-integration",
     "conf_py_path": "/docs/source/",
 }
 
 html_title = f"{project} v{release}"
 html_short_title = project
-html_favicon = None  # Add favicon.ico to _static/ if you have one
-html_logo = None     # Add logo.png to _static/ if you have one
+html_favicon = None
+html_logo = None
 
-# Show "Edit on GitHub" links
+# Furo-specific configuration
 html_show_sourcelink = True
+html_copy_source = False
 
 # -- Options for manual page output ------------------------------------------
 man_pages = [
@@ -184,10 +170,6 @@ copybutton_remove_prompts = True
 
 # TODO extension
 todo_include_todos = True
-
-# Autosummary
-autosummary_generate = True
-autosummary_imported_members = False
 
 # -- Custom CSS/JS (optional) ------------------------------------------------
 def setup(app):

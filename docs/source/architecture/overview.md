@@ -1,8 +1,8 @@
 # 🏗️ Architecture Overview
 
-> **Clean Architecture for Production RAG Systems**
+> **Clean Architecture for Production RAG Systems with rag_toolkit Integration**
 
-Tender-RAG-Lab follows **Clean Architecture** principles to ensure maximum reusability, clear separation of concerns, zero vendor lock-in, and easy migration between use cases.
+Tender-RAG-Lab integrates the **rag_toolkit** library following **Clean Architecture** principles to ensure maximum reusability, clear separation of concerns, zero vendor lock-in, and easy migration between use cases.
 
 ---
 
@@ -10,10 +10,10 @@ Tender-RAG-Lab follows **Clean Architecture** principles to ensure maximum reusa
 
 This architecture is built on **four core principles**:
 
-1. **🔄 Maximum Reusability** — Core RAG logic can be extracted and reused across projects
-2. **🎭 Clear Separation** — Generic logic lives separate from domain-specific code  
+1. **🔄 Maximum Reusability** — Generic RAG logic lives in rag_toolkit library
+2. **🎭 Clear Separation** — Generic logic (rag_toolkit) separate from domain-specific code  
 3. **📦 Zero Lock-in** — Easy migration between use cases without painful refactors
-4. **🚀 Copy-Paste Friendly** — Domain code can be moved between projects seamlessly
+4. **🚀 Protocol-Based** — Duck typing with type safety via Python Protocols
 
 > ⚠️ **This structure is intentional.** Violating these rules leads to tight coupling, vendor lock-in, and technical debt.
 
@@ -23,26 +23,26 @@ This architecture is built on **four core principles**:
 
 ```
 src/
-├── core/      # 🧠 Generic RAG engine (reusable everywhere)
-├── infra/     # 🔌 Concrete integrations (Milvus, parsers, storage)
 ├── domain/    # 💼 Business logic (tender-specific)
-└── api/       # 🌐 Application layer (API, UI)
+├── infra/     # 🔌 Concrete integrations (Milvus, database, factories)
+├── api/       # 🌐 Application layer (FastAPI, UI)
+└── (rag_toolkit library) # 🧠 Generic RAG engine (external package)
 ```
 
 ### Dependency Rules
 
 ```mermaid
-flowchart LR
-    Apps[🌐 apps/api] --> Domain[💼 domain/tender]
-    Domain --> Infra[🔌 infra]
-    Domain --> Core[🧠 core]
-    Infra --> Core
+flowchart TB
+    Apps[🌐 api/] --> Domain[💼 domain/]
+    Domain --> Infra[🔌 infra/]
+    Infra --> RAG[🧠 rag_toolkit]
+    Domain --> RAG
     
-    Core -.x Apps
-    Core -.x Domain
-    Core -.x Infra
+    RAG -.x Apps
+    RAG -.x Domain
+    RAG -.x Infra
     
-    style Core fill:#e1f5e1
+    style RAG fill:#e1f5e1
     style Infra fill:#e1e5f5
     style Domain fill:#f5e1e1
     style Apps fill:#f5f5e1
@@ -51,53 +51,45 @@ flowchart LR
 ### ✅ Allowed Dependencies
 
 ```
-apps    →  domain, core, infra
-domain  →  core, infra (interfaces only)
-infra   →  core
-core    →  NOTHING ⛔
+api     →  domain, infra, rag_toolkit
+domain  →  infra, rag_toolkit (protocols)
+infra   →  rag_toolkit
+rag_toolkit → NOTHING ⛔ (external library)
 ```
 
 ### ❌ Forbidden Dependencies
 
-- `core` importing from `domain`, `infra`, or `apps`
+- `rag_toolkit` importing from `domain`, `infra`, or `api` (it's external)
 - `domain` knowing about FastAPI or HTTP protocols
 - `infra` containing business logic
-- `apps` accessing database models directly
+- `api` accessing database models directly
 
 ---
 
-## 🧠 Layer 1: `core/` — RAG Engine
+## 🧠 rag_toolkit Library — Generic RAG Engine
 
-**Purpose:** Generic, reusable RAG logic. Zero domain knowledge. Zero vendor dependencies.
+**Purpose:** Generic, reusable RAG components. Zero domain knowledge. Zero vendor lock-in.
 
-### What Belongs Here
+### What rag_toolkit Provides
 
-- **RAG Pipeline** — retrieve → rerank → answer orchestration
-- **Abstract Interfaces** — `VectorStore`, `EmbeddingClient`, `Chunker`, `LLMClient` Protocols
-- **Query Engine** — Pipeline coordination, query rewriting
-- **Evaluation** — Citation builder, scoring, metrics (planned)
-- **Domain-agnostic utilities** — File helpers, text processing
+- **Protocols** — `EmbeddingClient`, `LLMClient`, `ChunkLike`, `TokenChunkLike`
+- **Chunking** — `DynamicChunker`, `TokenChunker` for document processing
+- **Vector Stores** — Milvus integration via factories
+- **RAG Pipeline** — `RagPipeline` with rewriting, search, reranking, generation
+- **Search Strategies** — `VectorSearch`, `KeywordSearch`, `HybridSearch`
+- **Storage** — Supabase integration
+- **Parsers** — PDF/DOCX parsing with OCR support
 
-### What Does NOT Belong
+### Integration in Tender-RAG-Lab
 
-- Concrete Milvus/Pinecone clients
-- PDF parsing implementations
-- FastAPI dependencies
-- Database models
-- Business rules
-- Tender-specific logic
+The project **extends** rag_toolkit with domain-specific customizations:
 
-### Structure
+- `TenderChunk` / `TenderTokenChunk` — Implement rag_toolkit protocols
+- `TenderMilvusIndexer` — Wraps generic `IndexService` with tender schema
+- `TenderSearcher` — Facade for search strategies
+- Factory functions — Create complete stacks with configuration
 
-```
-core/
-├── chunking/        # Document chunking strategies
-├── embedding/       # Embedding abstractions
-├── llm/             # LLM abstractions
-├── index/           # Vector store abstractions
-├── ingestion/       # Document parsing abstractions
-├── rag/             # RAG pipeline orchestration
-├── eval/            # Evaluation framework (planned)
+See: [rag_toolkit Integration Guide](../rag_toolkit/index.rst)
 └── utils/           # Generic utilities
 ```
 
