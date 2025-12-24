@@ -28,6 +28,7 @@ tender documents, following clean architecture principles.
 🚀 Quick Links
 ==============
 
+* :doc:`roadmap` - **🗺️ Complete project roadmap (2025-2026)**
 * :doc:`guides/quickstart` - Get running in 10 minutes
 * :doc:`rag_toolkit/index` - rag_toolkit integration guide
 * :doc:`guides/integration-walkthrough` - End-to-end document flow
@@ -38,6 +39,17 @@ tender documents, following clean architecture principles.
 
 📚 Documentation Sections
 =========================
+
+Project Planning
+----------------
+
+Strategic roadmap and implementation plan.
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Planning
+
+   roadmap
 
 Getting Started
 ---------------
@@ -167,19 +179,24 @@ Historical documentation of major refactoring efforts.
 
 * ✅ **Clean Architecture** - 4-layer design (Core → Infra → Domain → Apps)
 * ✅ **Protocol-Based Design** - No inheritance, easy testing, flexible implementations
-* ✅ **Hybrid Search** - Vector similarity + BM25 keyword search
+* ✅ **Classic RAG** - Vector similarity + BM25 keyword search with Milvus
+* 🚧 **Graph RAG (In Progress)** - Neo4j Knowledge Graph for structured queries
 * ✅ **Multi-Language Support** - Italian and English tender documents
 * ✅ **Document Processing** - PDF, DOCX, TXT parsing with OCR support
 * ✅ **RAG Pipeline** - Query rewriting, context assembly, answer generation
-* ✅ **Vendor Agnostic** - Swap Ollama ↔ OpenAI, Milvus ↔ Pinecone without code changes
+* 🚧 **External Integrations** - ANAC & TED auto-ingestion (planned)
+* 🚧 **Business Workflows** - Compliance checking, Bid/No-Bid assistant (planned)
+* ✅ **Vendor Agnostic** - Swap Ollama ↔ OpenAI, Milvus ↔ Qdrant without code changes
 * ✅ **Async First** - Non-blocking I/O for high performance
+
+**📅 Roadmap Status:** See :doc:`roadmap` for complete 2025-2026 implementation plan
 
 ----
 
 🏗️ Architecture Overview
 =========================
 
-Tender-RAG-Lab integrates the **rag_toolkit** library following clean architecture principles:
+Tender-RAG-Lab is a **hybrid RAG system** combining classic vector search with graph-based reasoning:
 
 .. code-block:: text
 
@@ -190,12 +207,12 @@ Tender-RAG-Lab integrates the **rag_toolkit** library following clean architectu
                     │
    ┌────────────────▼────────────────────────────┐
    │         Domain Layer                        │
-   │    Business logic, tender management        │
+   │    Tender management, workflows             │
    └────────────────┬────────────────────────────┘
                     │
    ┌────────────────▼────────────────────────────┐
    │         Infrastructure Layer                │
-   │    Concrete implementations (Milvus, etc.)  │
+   │    Milvus, Neo4j, Postgres, Storage         │
    └────────────────┬────────────────────────────┘
                     │
    ┌────────────────▼────────────────────────────┐
@@ -203,9 +220,17 @@ Tender-RAG-Lab integrates the **rag_toolkit** library following clean architectu
    │    Protocols, chunking, vector search       │
    └─────────────────────────────────────────────┘
 
+**System Components:**
+
+- **Classic RAG (✅ Operational):** Milvus vector store + reranking
+- **Graph RAG (🚧 In Development):** Neo4j for structured tender entities
+- **Hybrid Retrieval:** Intelligent routing between vector/graph strategies
+- **External Data:** ANAC & TED integration for auto-ingestion
+- **Business Logic:** Compliance checking, Bid/No-Bid analysis
+
 **Dependency Rule:** Outer layers depend on inner layers, never the reverse.
 
-Read more: :doc:`rag_toolkit/index` | :doc:`architecture/overview`
+Read more: :doc:`roadmap` | :doc:`rag_toolkit/index` | :doc:`architecture/overview`
 
 ----
 
@@ -214,6 +239,12 @@ Read more: :doc:`rag_toolkit/index` | :doc:`architecture/overview`
 
 Choose your path based on your role:
 
+**For Project Stakeholders** (15 min)
+
+1. :doc:`roadmap` - Strategic plan & timeline
+2. Current system capabilities & future features
+3. Expected business impact & ROI
+
 **For New Developers** (30 min)
 
 1. :doc:`guides/quickstart` - Get system running
@@ -221,12 +252,19 @@ Choose your path based on your role:
 3. :doc:`guides/integration-walkthrough` - See document flow
 4. :doc:`architecture/overview` - System design
 
-**For Extending rag_toolkit** (45 min)
+**For Implementing Graph RAG** (60 min)
 
-1. :doc:`rag_toolkit/extending` - Protocol implementation guide
-2. :doc:`rag_toolkit/pipeline` - RAG pipeline details
-3. :doc:`rag_toolkit/search` - Search strategies
-4. :doc:`api/index` - API reference
+1. :doc:`roadmap` - Phase 1 implementation details (Week 1-8)
+2. Neo4j schema design & entity extraction
+3. Hybrid retrieval strategies
+4. Testing & evaluation approach
+
+**For External Integrations** (45 min)
+
+1. :doc:`roadmap` - Phase 2 ANAC/TED integration
+2. Auto-ingestion workflow design
+3. Fine-tuning pipeline overview
+4. API contracts & data formats
 
 **For Adding Features** (30 min)
 
@@ -236,9 +274,10 @@ Choose your path based on your role:
 
 **For Production Deployment** (60 min)
 
-1. :doc:`guides/environment-setup` - Complete configuration
-2. :doc:`infra/milvus` - Vector database setup
-3. Review scaling and monitoring considerations
+1. :doc:`roadmap` - Phase 4 infrastructure requirements
+2. :doc:`guides/environment-setup` - Complete configuration
+3. :doc:`infra/milvus` - Vector database setup
+4. Multi-tenancy & security considerations
 
 ----
 
@@ -263,7 +302,14 @@ Indices and Tables
 .. note::
    **Documentation Version:** |version| (|release|)
    
+   **📅 Project Status (Dec 2025):**
+   
+   - ✅ **Classic RAG:** Operational with Milvus + reranking
+   - 🚧 **Graph RAG:** Neo4j integration in progress (see :doc:`roadmap`)
+   - 📋 **External Integrations:** ANAC/TED planned for Q2 2025
+   - 📋 **Business Workflows:** Compliance & Bid/No-Bid planned for Q3 2025
+   
    This documentation is auto-generated from Markdown source files using Sphinx + MyST-Parser.
    To contribute, edit the ``.md`` files in the ``docs/`` directory.
 
-*Last updated: 18 December 2025*
+*Last updated: 24 December 2025*
