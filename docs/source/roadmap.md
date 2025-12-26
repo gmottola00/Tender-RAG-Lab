@@ -1,32 +1,456 @@
 # Project Roadmap
 
-**2025-2026 Development Plan for Tender-RAG-Lab**
-
-> **Status:** Classic RAG ✅ Complete | Graph RAG 🚧 In Progress | Enterprise Features 📋 Planned
+**Production-Ready RAG System for Italian Public Procurement Analysis**
 
 ---
 
-## Executive Summary
+## Current Status: v0.3.0 (December 2025)
 
-Tender-RAG-Lab è un sistema avanzato di analisi gare di appalto pubbliche italiane che combina:
+✅ **Foundation Complete**
+- Classic RAG with Milvus vector store
+- Ollama/OpenAI embedding + LLM support
+- PDF/DOCX/TXT parsing with OCR
+- Document chunking (512 tokens, 50 overlap)
+- Semantic search with BM25 fallback
+- FastAPI REST endpoints
+- PostgreSQL for structured data
+- Docker Compose development setup
 
-- **Classic RAG** (Milvus + Reranking) — ✅ **COMPLETATO**
-- **Graph RAG** (Neo4j Knowledge Graph) — 🚧 **IN SVILUPPO**
-- **Business Workflows** — Compliance, Bid/No-Bid, Change Detection
-- **External Integrations** — ANAC, TED, Fine-tuning pipeline
-- **Production Deployment** — Multi-tenancy, monitoring, scalability
+🚧 **In Progress**
+- Neo4j Knowledge Graph schema
+- NER for tender entities (Lot, Requirement, Deadline)
+- Graph-based retrieval strategies
 
-**Target Users:** Aziende che partecipano a gare pubbliche (PMI, grandi imprese, consorzi)
-
-**Key Metrics:**
-- Riduzione 60% tempo analisi documentale
-- Accuracy > 90% su requisiti obbligatori
-- Response time < 3s (p95)
-- Supporto 100K+ documenti/client
+📋 **Planned**
+- External integrations (ANAC, TED)
+- Business workflows (Compliance, Bid/No-Bid)
+- Multi-tenancy and production hardening
 
 ---
 
-## Strategic Goals (2025-2026)
+## Q1 2025: Graph RAG Foundation
+
+**Goal**: Enable structured queries and multi-hop reasoning with Knowledge Graphs
+
+**Status**: 60% Complete | Target: March 31, 2025
+
+### Core Features
+
+**Graph Infrastructure** ✅ 80% Complete
+- [X] Neo4j cluster setup (Docker dev, Aura prod)
+- [X] Schema design (Tender, Lot, Requirement, Deadline nodes)
+- [X] Cypher query templates
+- [ ] Graph indexes and constraints
+- [ ] Python Neo4j driver integration
+
+**Entity Extraction** 🚧 40% Complete
+- [ ] NER model fine-tuning (BERT Italian + tender domain)
+  - Labels: `LOT_ID`, `REQUIREMENT`, `DEADLINE`, `AMOUNT`, `ORG`, `CPV`
+  - Target F1: >0.90 per entity type
+- [ ] Relation extraction (Tender→Lot, Lot→Requirement)
+- [ ] Graph builder pipeline (chunks → entities → graph)
+- [ ] Sync pipeline (trigger after document ingestion)
+
+**Hybrid Retrieval** 📋 Not Started
+- [ ] Graph-first retrieval (structured queries → Cypher)
+  - "List all mandatory requirements for this tender"
+  - "What are the deadlines for Lot 2?"
+- [ ] Vector-first + graph enrichment (semantic search → related entities)
+- [ ] Hybrid orchestrator (auto-route queries to best strategy)
+
+### Success Metrics
+| Metric | Target |
+|--------|--------|
+| Entity extraction F1 | >0.90 |
+| Graph coverage | 80% of key entities |
+| Structured query accuracy | 95% |
+| Hybrid retrieval latency | <2s (p95) |
+
+### Deliverables
+- [ ] Neo4j production deployment
+- [ ] NER training dataset (500+ annotated documents)
+- [ ] Graph-enabled RAG API endpoints
+- [ ] Evaluation benchmark (50+ test queries)
+
+---
+
+## Q2 2025: External Integrations & Domain Adaptation
+
+**Goal**: Automate tender ingestion and optimize models for Italian procurement domain
+
+**Status**: Not Started | Target: June 30, 2025
+
+### Core Features
+
+**ANAC Integration** 📋 Planned
+- [ ] ANAC API client (Bandi Gara dataset)
+- [ ] Daily auto-ingestion (filter by CPV relevance)
+- [ ] Parser for tender metadata (CIG, buyer, amounts, dates)
+- [ ] Automatic document download + processing
+- [ ] Target: 100+ new tenders/day
+
+**TED Scraper** 📋 Planned
+- [ ] EU Tenders Electronic Daily scraper
+- [ ] Filter: Italy + relevant CPVs
+- [ ] Rate-limited PDF downloads
+- [ ] Compliance with robots.txt and ToS
+
+**Model Fine-Tuning** 📋 Planned
+- [ ] **Embedding model**: Italian tender-specific
+  - Base: `sentence-transformers/paraphrase-multilingual-mpnet`
+  - Dataset: 10K query-document pairs from logs
+  - Target: +15% recall@10 vs base
+- [ ] **Reranker**: Cross-encoder for tender context
+  - Base: `cross-encoder/ms-marco-MiniLM-L-6-v2`
+  - Target: +10% nDCG@10
+- [ ] **NER model**: Entity extraction accuracy boost
+  - Dataset: 500 annotated tender documents
+  - Target: F1 >0.92
+
+**Model Registry** 📋 Planned
+- [ ] Versioned model storage (S3/local)
+- [ ] A/B testing framework (50/50 split)
+- [ ] Performance tracking dashboard
+- [ ] Automated rollback on degradation
+
+### Success Metrics
+| Metric | Target |
+|--------|--------|
+| Auto-ingestion coverage | 100 tenders/day |
+| Embedding recall@10 improvement | +15% |
+| Reranker nDCG@10 improvement | +10% |
+| NER F1 score | >0.92 |
+
+### Deliverables
+- [ ] ANAC/TED integration live
+- [ ] Fine-tuned models deployed
+- [ ] Training datasets published (for reproducibility)
+- [ ] Model performance comparison report
+
+---
+
+## Q3 2025: Business Workflows
+
+**Goal**: Production-ready features for tender analysis and decision-making
+
+**Status**: Not Started | Target: September 30, 2025
+
+### Core Features
+
+**Compliance Checker** 📋 High Priority
+- [ ] Extract mandatory requirements from tender
+- [ ] Match against company profile (certifications, revenue, experience)
+- [ ] Generate compliance checklist (✅/❌/⚠️ status)
+- [ ] LLM-powered recommendation per requirement
+- [ ] API: `POST /workflows/compliance-checklist`
+- [ ] Target accuracy: 95% on mandatory requirements
+
+**Bid/No-Bid Assistant** 📋 High Priority
+- [ ] Multi-factor scoring algorithm:
+  - Compliance (35% weight)
+  - Timeline feasibility (15%)
+  - Penalty risk (10%)
+  - Evaluation criteria match (20%)
+  - Competition analysis (10%)
+  - Profitability estimate (10%)
+- [ ] GO/NO-GO/EVALUATE recommendation
+- [ ] Risk and opportunity identification
+- [ ] API: `POST /workflows/bid-no-bid`
+- [ ] Target: 85% alignment with human decisions
+
+**Tender Similarity Search** 📋 Medium Priority
+- [ ] Tender-level embeddings (aggregate chunks)
+- [ ] Search historical tenders by CPV, buyer, amount
+- [ ] Filter by outcome (won/lost)
+- [ ] Transfer insights from past bids
+- [ ] API: `GET /tenders/similar/{tender_id}`
+
+**Change Detection** 📋 Low Priority
+- [ ] Compare tender T1 vs T2 (same buyer/CPV)
+- [ ] Graph diff (added/removed/modified requirements)
+- [ ] Text diff (clause modifications)
+- [ ] Alert on significant changes
+
+**Analytics Dashboard** 📋 Low Priority
+- [ ] KPIs: tenders monitored, queries/day, response time
+- [ ] User activity: most searched tenders, common questions
+- [ ] Model performance: accuracy drift, user feedback
+- [ ] Cost tracking: LLM tokens, embeddings
+
+### Success Metrics
+| Metric | Target |
+|--------|--------|
+| Compliance accuracy | 95% |
+| Bid/No-Bid alignment | 85% |
+| Analysis time reduction | 60% vs manual |
+| User satisfaction (NPS) | >50 |
+
+### Deliverables
+- [ ] All workflows API + UI
+- [ ] User acceptance testing (5+ companies)
+- [ ] Workflow documentation + tutorials
+- [ ] Success case studies
+
+---
+
+## Q4 2025: Production Hardening
+
+**Goal**: Enterprise-grade deployment ready for paying customers
+
+**Status**: Not Started | Target: December 31, 2025
+
+### Core Features
+
+**Multi-Tenancy** 📋 Critical
+- [ ] Postgres Row-Level Security (RLS)
+- [ ] Milvus partitions per client
+- [ ] Neo4j database-per-tenant (or label isolation)
+- [ ] Tenant middleware in API
+- [ ] Usage quotas (docs/month, queries/day)
+
+**Authentication & Authorization** 📋 Critical
+- [ ] JWT access + refresh tokens
+- [ ] RBAC: admin, analyst, viewer roles
+- [ ] OAuth2 integration (Google, Azure AD)
+- [ ] API key management for programmatic access
+
+**High Availability** 📋 Critical
+- [ ] Kubernetes deployment (3+ API replicas)
+- [ ] Postgres HA (Patroni cluster)
+- [ ] Milvus clustering (3 nodes)
+- [ ] Neo4j cluster (primary + replicas)
+- [ ] LoadBalancer + health checks
+
+**Observability** 📋 High Priority
+- [ ] Prometheus metrics (latency, throughput, errors)
+- [ ] Grafana dashboards:
+  - RAG pipeline performance
+  - Database health
+  - Cost tracking (LLM calls, embeddings)
+- [ ] Jaeger distributed tracing
+- [ ] Sentry error tracking + alerts
+
+**Security & Compliance** 📋 High Priority
+- [ ] TLS/HTTPS everywhere
+- [ ] Encryption at-rest (Postgres, Milvus)
+- [ ] Secrets management (HashiCorp Vault)
+- [ ] GDPR compliance:
+  - Data retention policies
+  - Right-to-delete endpoint
+  - Audit logs (who accessed what)
+  - Data export (JSON portability)
+
+**Performance Optimization** 📋 Medium Priority
+- [ ] Redis caching (frequent queries, TTL 5min)
+- [ ] Batch processing for ingestion (500 docs/hour)
+- [ ] Connection pooling (asyncpg, pymilvus)
+- [ ] Database query optimization
+- [ ] Milvus index tuning (IVF_FLAT → HNSW)
+
+### Success Metrics
+| Metric | Target |
+|--------|--------|
+| System uptime (SLA) | 99.9% |
+| Query latency (p95) | <3s |
+| Concurrent users | 100+ |
+| Ingestion throughput | 500 docs/hour |
+| Security audit score | A+ |
+
+### Deliverables
+- [ ] Production Kubernetes manifests
+- [ ] Deployment runbook
+- [ ] Disaster recovery plan
+- [ ] Security audit report
+- [ ] Load testing results (100+ concurrent users)
+
+---
+
+## 2026 Roadmap: Advanced Features
+
+### Q1 2026: Generative Capabilities
+- [ ] Auto-draft technical response sections
+- [ ] Tender summarization (executive summary)
+- [ ] Question generation (for missing info)
+- [ ] Clause rewriting suggestions
+
+### Q2 2026: Multi-Language & International
+- [ ] English support for TED tenders
+- [ ] French, Spanish for EU expansion
+- [ ] CPV code translation
+- [ ] Cross-border tender analysis
+
+### Q3 2026: Advanced Analytics
+- [ ] Tender outcome prediction (ML model)
+- [ ] Win probability scoring
+- [ ] Budget optimization (maximize win rate)
+- [ ] Competitive intelligence (track competitors)
+
+### Q4 2026: Platform Expansion
+- [ ] Mobile app (iOS/Android)
+- [ ] CRM integration (Salesforce, HubSpot)
+- [ ] Document management (SharePoint, Google Drive)
+- [ ] Marketplace: templates for common tender types
+
+---
+
+## Technical Debt & Maintenance
+
+### Ongoing Priorities
+
+**Code Quality**
+- [ ] Test coverage >80%
+- [ ] Type hints throughout codebase
+- [ ] Docstring completeness
+- [ ] Linting (ruff, mypy, black)
+
+**Documentation**
+- [ ] API reference (OpenAPI/Swagger)
+- [ ] Architecture decision records (ADRs)
+- [ ] Deployment guides
+- [ ] Troubleshooting playbooks
+
+**Dependencies**
+- [ ] Monthly security updates
+- [ ] Quarterly major version upgrades
+- [ ] Deprecated package migration
+
+**Performance**
+- [ ] Monthly load testing
+- [ ] Quarterly cost optimization review
+- [ ] Database maintenance (vacuum, reindex)
+
+---
+
+## Contribution Opportunities
+
+### High-Impact Areas
+
+**1. Domain Expertise**
+- Italian public procurement regulations
+- Tender document annotation
+- Compliance requirement mapping
+- User testing and feedback
+
+**2. Data & Models**
+- Annotate training data (NER, retrieval, QA)
+- Fine-tune embedding models
+- Create evaluation benchmarks
+- Contribute to model registry
+
+**3. Integrations**
+- Additional tender platforms (regional portals)
+- New vector stores (Pinecone, Weaviate)
+- LLM providers (Claude, Gemini)
+- Document parsers (Excel, CAD drawings)
+
+**4. Features**
+- Business workflows (RFI generator, risk assessor)
+- UI components (React dashboard)
+- Mobile clients
+- Browser extensions
+
+### How to Contribute
+
+1. **Check Issues**: [GitHub Issues](https://github.com/gmottola00/Tender-RAG-Lab/issues)
+2. **Propose Features**: Open discussion with use case
+3. **Submit PRs**: Follow contribution guidelines
+4. **Join Community**: Discord (coming Q2 2025)
+
+---
+
+## Release Schedule
+
+**Current Cadence**
+- **Major features**: Quarterly (Q1, Q2, Q3, Q4)
+- **Bug fixes**: Bi-weekly
+- **Security patches**: Immediate
+
+**Version Naming**
+- v0.x.y: Pre-production (current)
+- v1.0.0: Production-ready (Q1 2026 target)
+- v1.x.y: Stable releases
+
+**Stability Guarantees**
+- ⚠️ v0.x: API may change (migration guides provided)
+- ✅ v1.0+: Semantic versioning with deprecation cycles
+- ✅ LTS releases starting v1.0
+
+---
+
+## Business Model (Post-v1.0)
+
+### Monetization Strategy
+
+**SaaS Tiers** (2026)
+- **Free**: 10 tenders/month, community support
+- **Pro** (€99/month): 100 tenders/month, email support, basic workflows
+- **Enterprise** (Custom): Unlimited, dedicated support, custom workflows, on-premise
+
+**Revenue Targets**
+- Q2 2026: 10 paying customers (€10K MRR)
+- Q4 2026: 50 paying customers (€50K MRR)
+- 2027: 200+ customers (€200K MRR)
+
+**Value Proposition**
+- 60% time savings on tender analysis
+- 95% compliance accuracy (reduce disqualifications)
+- Data-driven bid/no-bid decisions
+- ROI: 10x cost through better win rates
+
+---
+
+## Key Performance Indicators
+
+### Technical KPIs
+| Metric | Current | Q2 2025 | Q4 2025 |
+|--------|---------|---------|---------|
+| Retrieval Precision@5 | 0.75 | 0.85 | 0.90 |
+| Entity Extraction F1 | - | 0.90 | 0.92 |
+| Query Latency (p95) | 5s | 3s | 2s |
+| System Uptime | 95% | 99% | 99.9% |
+| Test Coverage | 60% | 75% | 85% |
+
+### Business KPIs (Post-Launch)
+| Metric | Target |
+|--------|--------|
+| Time-to-Analyze Tender | <30 min (vs 3 hours manual) |
+| Compliance Accuracy | 95% |
+| Bid/No-Bid Alignment | 85% |
+| User Retention (M2) | >70% |
+| Net Promoter Score | >50 |
+
+---
+
+## Dependencies & Risks
+
+### Critical Dependencies
+- ✅ **rag_toolkit**: External library (owned by maintainer)
+- ⚠️ **ANAC API**: Public API stability uncertain
+- ⚠️ **LLM Providers**: Cost and rate limits
+- ⚠️ **Regulations**: GDPR, public data usage rights
+
+### Risk Mitigation
+- **rag_toolkit**: Fork if needed, keep minimal coupling
+- **ANAC API**: Scraper fallback, local caching
+- **LLM Costs**: Self-hosted models (Ollama) as alternative
+- **Legal**: Legal review before launch, ToS alignment
+
+---
+
+## Stay Updated
+
+- ⭐ [Star on GitHub](https://github.com/gmottola00/Tender-RAG-Lab)
+- 📧 [Email Updates](mailto:contact@tenderraglab.com) (coming Q2 2025)
+- 💬 [Discord Community](https://discord.gg/tenderraglab) (coming Q2 2025)
+- 🐦 [Twitter](https://twitter.com/tenderraglab) (coming Q2 2025)
+
+---
+
+*This roadmap reflects the project vision as of December 2025 and may evolve based on user feedback, technical constraints, and market opportunities.*
+
+**Last Updated**: December 27, 2025  
+**Version**: 0.3.0  
+**Next Milestone**: Q1 2025 - Graph RAG (March 31, 2025)
 
 ### Q1 2025 (Gen-Mar) — Graph RAG Foundation ✅ 60% Complete
 
