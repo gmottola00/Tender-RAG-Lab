@@ -1,9 +1,9 @@
-========================
-rag_toolkit Integration
-========================
+==========================
+rag_toolkit Library Usage
+==========================
 
-This section documents how the Tender-RAG-Lab project integrates the **rag_toolkit** library
-to implement a production-grade RAG system for Italian public procurement documents.
+Learn how Tender-RAG-Lab leverages the **rag_toolkit** library for generic RAG components:
+embeddings, vector stores, chunking strategies, and search protocols.
 
 ----
 

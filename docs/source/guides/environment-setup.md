@@ -1,4 +1,4 @@
-# ⚙️ Environment Setup
+# Environment Setup
 
 > **Complete environment variable reference and configuration guide**
 
@@ -129,7 +129,7 @@ OPENAI_LLM_MODEL=gpt-4o-mini
 
 ---
 
-## 🗄️ Database Configuration
+## Database Configuration
 
 PostgreSQL database for tender management.
 
@@ -317,7 +317,7 @@ Instead of `.env` files:
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
 - [Quick Start Guide](quickstart.md) - Get started quickly
 - [Local Development](local-development.md) - Development workflow

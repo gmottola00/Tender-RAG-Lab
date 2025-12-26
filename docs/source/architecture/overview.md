@@ -1,4 +1,4 @@
-# 🏗️ Architecture Overview
+# Architecture Overview
 
 > **Clean Architecture for Production RAG Systems with rag_toolkit Integration**
 
@@ -6,58 +6,72 @@ Tender-RAG-Lab integrates the **rag_toolkit** library following **Clean Architec
 
 ---
 
-## 🎯 Design Philosophy
+## Design Philosophy
 
 This architecture is built on **four core principles**:
 
-1. **🔄 Maximum Reusability** — Generic RAG logic lives in rag_toolkit library
-2. **🎭 Clear Separation** — Generic logic (rag_toolkit) separate from domain-specific code  
-3. **📦 Zero Lock-in** — Easy migration between use cases without painful refactors
-4. **🚀 Protocol-Based** — Duck typing with type safety via Python Protocols
+1. **Maximum Reusability** — Generic RAG logic lives in rag_toolkit library
+2. **Clear Separation** — Generic logic (rag_toolkit) separate from domain-specific code  
+3. **Zero Lock-in** — Easy migration between use cases without painful refactors
+4. **Protocol-Based** — Duck typing with type safety via Python Protocols
 
-> ⚠️ **This structure is intentional.** Violating these rules leads to tight coupling, vendor lock-in, and technical debt.
+> **Note:** This structure is intentional and enforced. Violating these rules leads to tight coupling, vendor lock-in, and technical debt.
 
 ---
 
-## 📐 High-Level Architecture
+## High-Level Architecture
 
 ```
 src/
-├── domain/    # 💼 Business logic (tender-specific)
-├── infra/     # 🔌 Concrete integrations (Milvus, database, factories)
-├── api/       # 🌐 Application layer (FastAPI, UI)
-└── (rag_toolkit library) # 🧠 Generic RAG engine (external package)
+├── domain/    # Business logic (tender-specific)
+├── infra/     # Concrete integrations (Milvus, database, factories)
+├── api/       # Application layer (FastAPI, UI)
+└── (rag_toolkit library) # Generic RAG engine (external package)
 ```
 
 ### Dependency Rules
 
-```mermaid
-flowchart TB
-    Apps[🌐 api/] --> Domain[💼 domain/]
-    Domain --> Infra[🔌 infra/]
-    Infra --> RAG[🧠 rag_toolkit]
-    Domain --> RAG
-    
-    RAG -.x Apps
-    RAG -.x Domain
-    RAG -.x Infra
-    
-    style RAG fill:#e1f5e1
-    style Infra fill:#e1e5f5
-    style Domain fill:#f5e1e1
-    style Apps fill:#f5f5e1
+**Visual Dependency Flow:**
+
+```
+┌─────────────────────────────────────────┐
+│        api/ (FastAPI Routers)           │
+│         HTTP Layer                      │
+└──────────────┬──────────────────────────┘
+               │
+               ↓
+┌──────────────▼──────────────────────────┐
+│        domain/ (Business Logic)         │
+│    Tender-specific Services & Entities  │
+└──────┬───────────────────────┬──────────┘
+       │                       │
+       ↓                       ↓
+┌──────▼──────────┐    ┌──────▼──────────┐
+│  infra/         │    │  rag_toolkit    │
+│  (DB Models)    │    │  (External Lib) │
+└─────────────────┘    └──────┬──────────┘
+                              │
+                              ↓
+                       ┌──────▼──────────┐
+                       │  Milvus, LLMs   │
+                       │  Vector Stores  │
+                       └─────────────────┘
 ```
 
-### ✅ Allowed Dependencies
+**Key:**
+- `→` Allowed dependency (imports from)
+- `⊗` Forbidden dependency (cannot import from)
+
+### Allowed Dependencies
 
 ```
 api     →  domain, infra, rag_toolkit
 domain  →  infra, rag_toolkit (protocols)
 infra   →  rag_toolkit
-rag_toolkit → NOTHING ⛔ (external library)
+rag_toolkit → NOTHING (external library)
 ```
 
-### ❌ Forbidden Dependencies
+### Forbidden Dependencies
 
 - `rag_toolkit` importing from `domain`, `infra`, or `api` (it's external)
 - `domain` knowing about FastAPI or HTTP protocols
@@ -66,7 +80,7 @@ rag_toolkit → NOTHING ⛔ (external library)
 
 ---
 
-## 🧠 rag_toolkit Library — Generic RAG Engine
+## rag_toolkit Library — Generic RAG Engine
 
 **Purpose:** Generic, reusable RAG components. Zero domain knowledge. Zero vendor lock-in.
 
@@ -89,60 +103,48 @@ The project **extends** rag_toolkit with domain-specific customizations:
 - `TenderSearcher` — Facade for search strategies
 - Factory functions — Create complete stacks with configuration
 
-See: [rag_toolkit Integration Guide](../rag_toolkit/index.rst)
-└── utils/           # Generic utilities
-```
+**See:** [rag_toolkit Integration Guide](../rag_toolkit/index.rst)
 
-**Key Principle:** If another project needs this code, it belongs in `core/`.
+**Key Principle:** If another project needs this code, it belongs in rag_toolkit library (external).
 
 ---
 
-## 🔌 Layer 2: `infra/` — Infrastructure & Adapters
+## Layer 2: Infrastructure Layer (`infra/`)
 
-**Purpose:** Concrete implementations of `core/` interfaces. Vendor-specific code.
+**Purpose:** Domain-specific infrastructure including database models and factory functions.
 
 ### What Belongs Here
 
-- **Vector Store Adapters** — Milvus, Pinecone, Weaviate implementations
-- **Database Adapters** — Supabase, Postgres, SQLite connections
-- **Storage Adapters** — S3, Azure Blob, Supabase Storage
-- **Document Parsers** — PyMuPDF, python-docx, Tesseract OCR
-- **Language Detectors** — fastText integration
+- **Database Models** — SQLAlchemy ORM models specific to tender domain
 - **Factory Functions** — `create_milvus_service()`, `create_ingestion_service()`
+- **Configuration** — Environment-specific settings
+
+**Note:** Generic infrastructure (Milvus client, parsers, embeddings) is now in **rag_toolkit**.
 
 ### What Does NOT Belong
 
 - Business logic
 - RAG orchestration
-- Domain concepts
 - HTTP request handling
+- Generic RAG components (those go in rag_toolkit)
 
 ### Structure
 
 ```
 infra/
-├── vectorstores/
-│   ├── factory.py           # Production factories
-│   └── milvus/              # Milvus implementation
-│       ├── service.py       # MilvusService (facade)
-│       ├── connection.py    # Connection management
-│       ├── collection.py    # Collection operations
-│       ├── data.py          # Data operations
-│       └── config.py        # Configuration
-└── parsers/
-    ├── factory.py           # Parser factories
-    ├── pdf/                 # PDF parsing
-    ├── docx/                # DOCX parsing
-    └── text/                # Language detection
+├── factory.py           # Domain-specific factories
+└── database/            # Database infrastructure
+    ├── connection.py    # DB connection management
+    └── models/          # SQLAlchemy models (if not in domain/entities)
 ```
 
-**Key Principle:** Implementations of `core/` Protocols live here.
+**Key Principle:** Only tender-specific infrastructure lives here. Generic infra is in rag_toolkit.
 
 ---
 
-## 💼 Layer 3: `domain/` — Business Logic
+## Layer 3: Domain Layer (`domain/`)
 
-**Purpose:** Use-case specific logic. **This layer changes between projects.**
+**Purpose:** Use-case specific business logic. This layer contains tender-specific implementations.
 
 ### What Belongs Here
 
@@ -186,9 +188,9 @@ domain/
 
 ---
 
-## 🌐 Layer 4: `apps/` — Application Layer
+## Layer 4: Application Layer (`apps/`)
 
-**Purpose:** Thin entry points. HTTP, CLI, UI. **Glues everything together.**
+**Purpose:** Entry points for HTTP, CLI, and UI. Coordinates services and handles external communication.
 
 ### What Belongs Here
 
@@ -224,96 +226,111 @@ api/
 
 ---
 
-## 📜 Import Rules (Strictly Enforced)
+## Import Rules
 
-### ✅ Valid Imports
+### Valid Imports
 
 ```python
 # apps → domain
-from domain.tender.services.tenders import TenderService
+from src.domain.tender.services.tenders import TenderService
 
-# domain → core / infra
-from core.rag.pipeline import RagPipeline
-from infra.vectorstores.factory import create_milvus_service
+# domain → rag_toolkit
+from rag_toolkit.core.rag.pipeline import RagPipeline
+from rag_toolkit.core.chunking.dynamic import DynamicChunker
 
-# infra → core
-from core.index.base import VectorStore
+# domain → infra (domain-specific)
+from src.infra.factory import create_tender_service
 ```
 
-### ❌ Invalid Imports
+### Invalid Imports
 
 ```python
-# core importing domain ❌
-from domain.tender.entities.tenders import Tender
+# rag_toolkit importing domain (FORBIDDEN - it's external library)l library)
+from src.domain.tender.entities.tenders import Tender
 
-# domain importing FastAPI ❌
+# domain importing FastAPI (FORBIDDEN)
 from fastapi import APIRouter
 
-# core importing infra ❌
-from infra.vectorstores.milvus import MilvusService
+# api bypassing domain (FORBIDDEN)
+from rag_toolkit.core.rag.pipeline import RagPipeline  # Should go through domain service
 ```
 
 ---
 
-## 🔀 Example: Document Upload Flow
+## Example: Document Upload Flow
 
-```mermaid
-sequenceDiagram
-    participant Client
-    participant API as apps/api/routers
-    participant Domain as domain/services
-    participant Infra as infra/parsers
-    participant Core as core/chunking
-    participant Vector as infra/vectorstores
-    
-    Client->>API: POST /documents (file)
-    API->>Domain: DocumentService.upload()
-    Domain->>Infra: IngestionService.parse()
-    Infra-->>Domain: ParsedDocument
-    Domain->>Core: DynamicChunker.chunk()
-    Core-->>Domain: Chunks
-    Domain->>Vector: MilvusService.upsert()
-    Vector-->>Domain: Success
-    Domain-->>API: Document
-    API-->>Client: 201 Created
+**Sequence Diagram:**
+
+```
+Client                API              Domain           rag_toolkit        Milvus
+  |                    |                  |                  |                |
+  |--POST /documents-->|                  |                  |                |
+  |                    |                  |                  |                |
+  |                    |--upload()------->|                  |                |
+  |                    |                  |                  |                |
+  |                    |                  |--parse()-------->|                |
+  |                    |                  |<--ParsedDoc------|                |
+  |                    |                  |                  |                |
+  |                    |                  |--chunk()-------->|                |
+  |                    |                  |<--Chunks---------|                |
+  |                    |                  |                  |                |
+  |                    |                  |--upsert()------->|                |
+  |                    |                  |                  |--store()------>|
+  |                    |                  |                  |<--OK-----------|
+  |                    |                  |<--Success--------|                |
+  |                    |                  |                  |                |
+  |                    |<--Document-------|                  |                |
+  |                    |                  |                  |                |
+  |<--201 Created------|                  |                  |                |
 ```
 
-**Notice:** Each layer stays in its lane. API doesn't parse, Domain doesn't know HTTP details.
+**Flow Steps:**
+
+1. **Client** sends file via POST `/documents`
+2. **API Router** delegates to `DocumentService.upload()`
+3. **Domain Service** uses rag_toolkit's `IngestionService.parse()` for PDF/DOCX parsing
+4. **rag_toolkit** returns structured `ParsedDocument`
+5. **Domain** chunks via rag_toolkit's `DynamicChunker`
+6. **Domain** stores vectors via rag_toolkit's `IndexService.upsert()`
+7. **rag_toolkit** writes to Milvus vector database
+8. **Success** propagates back through layers
+9. **API** returns 201 Created with document metadata
+
+**Notice:** Each layer stays in its lane. API doesn't parse, Domain orchestrates via rag_toolkit.
 
 ---
 
-## 🏷️ Naming Conventions
+## Naming Conventions
 
-The same concept exists in multiple layers. **Naming prevents chaos.**
+Consistent naming across layers prevents confusion when the same concept appears in multiple contexts.
 
 | Layer      | Type                  | Naming Convention      | Example |
 |------------|-----------------------|------------------------|---------|
-| `infra`    | Database model        | `{Entity}ORM`          | `DocumentORM` |
-| `domain`   | Domain entity         | `{Entity}`             | `Document` |
+| `domain`   | Database model        | `{Entity}`             | `Document` (SQLAlchemy) |
 | `domain`   | Business service      | `{Entity}Service`      | `DocumentService` |
 | `domain`   | Pydantic DTO          | `{Entity}Create/Out`   | `DocumentCreate` |
-| `apps`     | HTTP request/response | `{Entity}Request/Response` | `DocumentRequest` |
+| `api`      | HTTP request/response | `{Entity}Request/Response` | `DocumentRequest` |
 
 **Why?** Prevents confusion when the same concept appears in multiple layers.
 
 ---
 
-## 🎓 Guiding Principle
+## Core Principle
 
-> **"The domain changes. The core survives."**
+> **"Domain logic changes per use case. Generic RAG components stay in rag_toolkit."**
 
-If you need something in multiple use cases, **it's not domain logic** — it belongs in `core` or `infra`.
-
----
-
-## 📚 Related Documentation
-
-- [Layer Responsibilities](layers.md) - Deep dive on each layer
-- [Design Decisions](decisions.md) - Why we chose this architecture
-- [File Placement Guide](where-to-put-code.md) - Decision tree for new code
+If you need something in multiple projects, **it's not domain logic** — it belongs in `rag_toolkit` library.
 
 ---
 
-**[⬆️ Documentation Home](../README.md) | [Layer Details ➡️](layers.md)**
+## Related Documentation
 
-*Last updated: 2025-12-18*
+- [rag_toolkit Integration Guide](../rag_toolkit/index.rst) - External library integration patterns
+- [Domain Layer Documentation](../domain/README.md) - Tender-specific business logic
+- [Main Documentation](../README.md) - Complete documentation index
+
+---
+
+**[Documentation Home](../README.md) | [rag_toolkit Guide](../rag_toolkit/index.rst)**
+
+*Last updated: 2025-12-25*

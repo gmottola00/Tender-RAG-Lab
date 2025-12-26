@@ -33,6 +33,7 @@ extensions = [
     "sphinx_autodoc_typehints",     # Type hints in docs
     "sphinx_copybutton",            # Copy button for code blocks
     "sphinxcontrib.mermaid",        # Mermaid diagram support
+    "sphinx_design",                # Grid cards and design components
 ]
 
 # -- MyST Parser Configuration -----------------------------------------------

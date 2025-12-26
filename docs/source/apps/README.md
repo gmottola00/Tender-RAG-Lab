@@ -1,12 +1,12 @@
-# 🌐 Apps Layer: README
+# API Layer
 
-> **HTTP API layer: FastAPI routes and dependency injection**
+> **FastAPI routes, HTTP handlers, and request validation**
 
 The apps layer contains HTTP-specific code: API endpoints, request/response handling, and authentication.
 
 ---
 
-## 🎯 Philosophy
+## Philosophy
 
 **Apps principles:**
 
@@ -44,7 +44,7 @@ src/api/
 
 ---
 
-## 📦 Key Components
+## Key Components
 
 ### API Routers
 
@@ -291,7 +291,7 @@ async def publish_tender(
 
 ---
 
-## 🎯 Best Practices
+## Best Practices
 
 ### 1. Thin Controllers
 
@@ -446,7 +446,7 @@ async def get_tender(tender_id: int, ...):
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
 - [Architecture Overview](../architecture/overview.md) - Layer dependencies
 - [Domain Services](../domain/services.md) - Business logic layer

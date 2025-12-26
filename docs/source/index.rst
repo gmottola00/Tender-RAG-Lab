@@ -4,8 +4,6 @@
 Tender-RAG-Lab Documentation
 =====================================
 
-**Production-grade RAG system for Italian public procurement documents**
-
 .. image:: https://img.shields.io/badge/Python-3.11+-blue.svg
    :target: https://www.python.org/downloads/
    :alt: Python Version
@@ -17,186 +15,128 @@ Tender-RAG-Lab Documentation
 .. image:: https://img.shields.io/badge/Architecture-Clean-brightgreen.svg
    :alt: Clean Architecture
 
-----
+.. image:: https://img.shields.io/badge/RAG-Hybrid-orange.svg
+   :alt: Hybrid RAG
 
-Welcome to Tender-RAG-Lab's comprehensive documentation! This project implements a production-grade 
-Retrieval-Augmented Generation (RAG) system specifically designed for Italian public procurement 
-tender documents, following clean architecture principles.
+**Tender-RAG-Lab** is a production-grade Retrieval-Augmented Generation system for analyzing Italian public procurement tender documents, built with clean architecture principles and the rag_toolkit library.
 
-----
+.. grid:: 2
+    :gutter: 3
 
-🚀 Quick Links
-==============
+    .. grid-item-card:: Quick Start
+        :link: guides/quickstart
+        :link-type: doc
 
-* :doc:`roadmap` - **🗺️ Complete project roadmap (2025-2026)**
-* :doc:`guides/quickstart` - Get running in 10 minutes
-* :doc:`rag_toolkit/index` - rag_toolkit integration guide
-* :doc:`guides/integration-walkthrough` - End-to-end document flow
-* :doc:`architecture/overview` - Understand the system design
-* :doc:`api/index` - Complete API reference
+        Get the system running in 10 minutes with Docker Compose and basic configuration.
 
-----
+    .. grid-item-card:: Architecture
+        :link: architecture/overview
+        :link-type: doc
 
-📚 Documentation Sections
-=========================
+        Learn about clean architecture, rag_toolkit integration, and design principles.
 
-Project Planning
-----------------
+    .. grid-item-card:: Implementation Guide
+        :link: domain/README
+        :link-type: doc
 
-Strategic roadmap and implementation plan.
+        Understand domain layer, services, and business logic implementation.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Planning
+    .. grid-item-card:: Project Roadmap
+        :link: roadmap
+        :link-type: doc
 
-   roadmap
+        Complete 2025-2026 implementation plan with Graph RAG and external integrations.
 
-Getting Started
----------------
+    .. grid-item-card:: API Reference
+        :link: api/index
+        :link-type: doc
 
-Essential guides to get you up and running quickly.
+        Auto-generated API documentation from Python docstrings.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Getting Started
+    .. grid-item-card:: rag_toolkit Integration
+        :link: rag_toolkit/index
+        :link-type: doc
 
-   guides/quickstart
-   guides/environment-setup
-   guides/integration-walkthrough
+        How Tender-RAG-Lab leverages rag_toolkit for generic RAG components.
 
-rag_toolkit Integration
------------------------
+Features
+--------
 
-Complete guide to using rag_toolkit in the Tender-RAG-Lab project.
+**Hybrid RAG System**
+   Combines classic vector search (Milvus) with graph-based reasoning (Neo4j in development) for comprehensive document analysis.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: rag_toolkit Integration
+**Clean Architecture**
+   Four-layer design with clear separation: Apps → Domain → Infrastructure → rag_toolkit, following dependency inversion principles.
 
-   rag_toolkit/index
-   rag_toolkit/pipeline
-   rag_toolkit/search
-   rag_toolkit/extending
+**Document Processing**
+   PDF, DOCX, and TXT parsing with OCR support for scanned documents. Multi-language support for Italian and English tenders.
 
-Architecture
-------------
+**Business Workflows**
+   Compliance checking, requirement extraction, and bid/no-bid decision support (planned).
 
-Learn about the clean architecture design and key decisions.
+**Vendor Agnostic**
+   Protocol-based design allows swapping vector stores (Milvus ↔ Qdrant) and LLM providers (Ollama ↔ OpenAI) without code changes.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Architecture
+**Production Ready**
+   Async-first architecture, comprehensive testing, Docker deployment, and PostgreSQL for structured data.
 
-   architecture/overview
-   architecture/where-to-put-code
-   architecture/decisions
-   README
-
-Core Layer
-----------
-
-Reusable, framework-agnostic abstractions (Protocols).
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Core Layer
-
-   core/README
-   core/chunking
-   core/embedding
-   core/llm
-   core/indexing
-   core/ingestion
-   core/rag
-
-Infrastructure Layer
---------------------
-
-Concrete implementations of core protocols (vendors, frameworks).
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Infrastructure
-
-   infra/README
-   infra/database
-   infra/storage
-   infra/embeddings
-   infra/llm
-   infra/milvus
-   infra/adding-integrations
-
-Domain Layer
-------------
-
-Business logic for tender management.
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Domain Layer
-
-   domain/README
-   domain/services
-   domain/tender-search
-
-Apps Layer
-----------
-
-HTTP API layer with FastAPI.
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Apps Layer
-
-   apps/README
-
-API Reference
+Quick Example
 -------------
 
-Auto-generated documentation from code.
+.. code-block:: bash
 
-.. toctree::
-   :maxdepth: 2
-   :caption: API Reference
+   # Clone and setup
+   git clone https://github.com/gmottola00/Tender-RAG-Lab.git
+   cd Tender-RAG-Lab
+   
+   # Install dependencies
+   uv sync
+   
+   # Configure environment
+   cp .env.example .env
+   
+   # Start services
+   docker-compose up -d
+   
+   # Run application
+   uv run uvicorn src.api.main:app --reload
 
-   api/index
+.. code-block:: python
 
-Migration History
------------------
+   # Upload and index a tender document
+   from src.domain.tender.services.documents import DocumentService
+   
+   service = DocumentService()
+   document = service.upload(
+       file_path="tender.pdf",
+       tender_id="TENDER-2025-001"
+   )
+   
+   # Search with hybrid retrieval
+   results = service.search(
+       query="What are the mandatory requirements?",
+       top_k=5
+   )
 
-Historical documentation of major refactoring efforts.
+Why Tender-RAG-Lab?
+-------------------
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Migrations
+**Domain-Specific**
+   Purpose-built for Italian public procurement documents with specialized entity extraction and compliance workflows.
 
-   migrations/README
+**Hybrid Retrieval**
+   Combines vector similarity search with graph-based reasoning for better accuracy on structured tender data.
 
-----
+**Extensible Architecture**
+   Generic RAG logic lives in rag_toolkit library, while tender-specific logic stays focused in the domain layer.
 
-🎯 Key Features
-===============
+**Developer Experience**
+   Clear documentation, working examples, type hints throughout, and comprehensive test coverage.
 
-* ✅ **Clean Architecture** - 4-layer design (Core → Infra → Domain → Apps)
-* ✅ **Protocol-Based Design** - No inheritance, easy testing, flexible implementations
-* ✅ **Classic RAG** - Vector similarity + BM25 keyword search with Milvus
-* 🚧 **Graph RAG (In Progress)** - Neo4j Knowledge Graph for structured queries
-* ✅ **Multi-Language Support** - Italian and English tender documents
-* ✅ **Document Processing** - PDF, DOCX, TXT parsing with OCR support
-* ✅ **RAG Pipeline** - Query rewriting, context assembly, answer generation
-* 🚧 **External Integrations** - ANAC & TED auto-ingestion (planned)
-* 🚧 **Business Workflows** - Compliance checking, Bid/No-Bid assistant (planned)
-* ✅ **Vendor Agnostic** - Swap Ollama ↔ OpenAI, Milvus ↔ Qdrant without code changes
-* ✅ **Async First** - Non-blocking I/O for high performance
+System Architecture
+-------------------
 
-**📅 Roadmap Status:** See :doc:`roadmap` for complete 2025-2026 implementation plan
-
-----
-
-🏗️ Architecture Overview
-=========================
-
-Tender-RAG-Lab is a **hybrid RAG system** combining classic vector search with graph-based reasoning:
+Tender-RAG-Lab follows clean architecture with four layers:
 
 .. code-block:: text
 
@@ -212,7 +152,7 @@ Tender-RAG-Lab is a **hybrid RAG system** combining classic vector search with g
                     │
    ┌────────────────▼────────────────────────────┐
    │         Infrastructure Layer                │
-   │    Milvus, Neo4j, Postgres, Storage         │
+   │    Database, factory functions              │
    └────────────────┬────────────────────────────┘
                     │
    ┌────────────────▼────────────────────────────┐
@@ -220,75 +160,40 @@ Tender-RAG-Lab is a **hybrid RAG system** combining classic vector search with g
    │    Protocols, chunking, vector search       │
    └─────────────────────────────────────────────┘
 
-**System Components:**
+**Key Principle:** Outer layers depend on inner layers, never the reverse. Generic RAG components live in rag_toolkit, domain logic stays in the domain layer.
 
-- **Classic RAG (✅ Operational):** Milvus vector store + reranking
-- **Graph RAG (🚧 In Development):** Neo4j for structured tender entities
-- **Hybrid Retrieval:** Intelligent routing between vector/graph strategies
-- **External Data:** ANAC & TED integration for auto-ingestion
-- **Business Logic:** Compliance checking, Bid/No-Bid analysis
-
-**Dependency Rule:** Outer layers depend on inner layers, never the reverse.
-
-Read more: :doc:`roadmap` | :doc:`rag_toolkit/index` | :doc:`architecture/overview`
-
-----
-
-🎓 Learning Paths
+Table of Contents
 =================
 
-Choose your path based on your role:
+.. toctree::
+   :maxdepth: 2
+   :caption: Getting Started
 
-**For Project Stakeholders** (15 min)
+   guides/quickstart
+   guides/environment-setup
+   architecture/overview
 
-1. :doc:`roadmap` - Strategic plan & timeline
-2. Current system capabilities & future features
-3. Expected business impact & ROI
+.. toctree::
+   :maxdepth: 2
+   :caption: Core Concepts
 
-**For New Developers** (30 min)
+   rag_toolkit/index
+   domain/README
+   apps/README
 
-1. :doc:`guides/quickstart` - Get system running
-2. :doc:`rag_toolkit/index` - Understand rag_toolkit integration
-3. :doc:`guides/integration-walkthrough` - See document flow
-4. :doc:`architecture/overview` - System design
+.. toctree::
+   :maxdepth: 2
+   :caption: User Guides
 
-**For Implementing Graph RAG** (60 min)
+   guides/indexing-documents
+   guides/search-retrieval
 
-1. :doc:`roadmap` - Phase 1 implementation details (Week 1-8)
-2. Neo4j schema design & entity extraction
-3. Hybrid retrieval strategies
-4. Testing & evaluation approach
+.. toctree::
+   :maxdepth: 1
+   :caption: Reference
 
-**For External Integrations** (45 min)
-
-1. :doc:`roadmap` - Phase 2 ANAC/TED integration
-2. Auto-ingestion workflow design
-3. Fine-tuning pipeline overview
-4. API contracts & data formats
-
-**For Adding Features** (30 min)
-
-1. :doc:`domain/services` - Business logic patterns
-2. :doc:`apps/README` - API implementation
-3. :doc:`architecture/where-to-put-code` - Decision tree
-
-**For Production Deployment** (60 min)
-
-1. :doc:`roadmap` - Phase 4 infrastructure requirements
-2. :doc:`guides/environment-setup` - Complete configuration
-3. :doc:`infra/milvus` - Vector database setup
-4. Multi-tenancy & security considerations
-
-----
-
-📖 Additional Resources
-=======================
-
-* **GitHub Repository:** https://github.com/gmottola00/Tender-RAG-Lab
-* **Issue Tracker:** https://github.com/gmottola00/Tender-RAG-Lab/issues
-* **Discussions:** https://github.com/gmottola00/Tender-RAG-Lab/discussions
-
-----
+   roadmap
+   api/index
 
 Indices and Tables
 ==================
@@ -296,20 +201,3 @@ Indices and Tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-----
-
-.. note::
-   **Documentation Version:** |version| (|release|)
-   
-   **📅 Project Status (Dec 2025):**
-   
-   - ✅ **Classic RAG:** Operational with Milvus + reranking
-   - 🚧 **Graph RAG:** Neo4j integration in progress (see :doc:`roadmap`)
-   - 📋 **External Integrations:** ANAC/TED planned for Q2 2025
-   - 📋 **Business Workflows:** Compliance & Bid/No-Bid planned for Q3 2025
-   
-   This documentation is auto-generated from Markdown source files using Sphinx + MyST-Parser.
-   To contribute, edit the ``.md`` files in the ``docs/`` directory.
-
-*Last updated: 24 December 2025*

@@ -1,4 +1,4 @@
-# 🔍 Domain: Tender Search
+# Domain: Tender Search
 
 > **Tender-specific search implementations combining vector, keyword, and hybrid strategies**
 
@@ -6,7 +6,7 @@ This module provides domain-specific search functionality for tender documents, 
 
 ---
 
-## 📍 Location
+## Location
 
 **Directory:** `src/domain/tender/search/`
 
@@ -19,7 +19,7 @@ This module provides domain-specific search functionality for tender documents, 
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 These search components are **domain-specific** because they:
 - Use `TenderMilvusIndexer` (tender document indexing)
@@ -48,7 +48,7 @@ These search components are **domain-specific** because they:
 
 ---
 
-## 🔌 Components
+## Components
 
 ### Vector Searcher
 
@@ -58,7 +58,7 @@ Semantic search using embeddings.
 
 ```python
 from src.domain.tender.search import VectorSearcher
-from src.core.embedding import EmbeddingClient
+from rag_toolkit.core.embedding import EmbeddingClient
 from src.domain.tender.indexing.indexer import TenderMilvusIndexer
 
 # Initialize
@@ -217,11 +217,11 @@ results = searcher.hybrid_search("query", top_k=5)
 
 ---
 
-## 🎯 Usage in RAG Pipeline
+## Usage in RAG Pipeline
 
 ```python
 from src.domain.tender.search import TenderSearcher
-from src.core.rag import RAGPipeline
+from rag_toolkit.core.rag import RAGPipeline
 
 # Setup
 searcher = TenderSearcher(indexer, embed_client)
@@ -244,9 +244,9 @@ answer = pipeline.query("What are the energy requirements?")
 **Before (Old):**
 ```python
 # ❌ Was in core layer (wrong)
-from src.core.index.search.vector_searcher import VectorSearcher
-from src.core.index.search.keyword_searcher import KeywordSearcher
-from src.core.index.search.hybrid_searcher import HybridSearcher
+from rag_toolkit.core.search.vector import VectorSearcher
+from rag_toolkit.core.search.keyword import KeywordSearcher
+from rag_toolkit.core.search.hybrid import HybridSearcher
 ```
 
 **After (New):**
@@ -281,7 +281,7 @@ from src.domain.tender.search import HybridSearcher
 
 ---
 
-## 🛠️ Testing
+## Testing
 
 ```python
 # Test vector search
@@ -306,7 +306,7 @@ def test_hybrid_search():
 
 ---
 
-## 📚 See Also
+## See Also
 
 - [Core Indexing](../core/indexing.md) - Generic search strategies
 - [RAG Pipeline](../core/rag.md) - Using search in RAG

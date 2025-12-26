@@ -1,4 +1,4 @@
-# 🏢 Domain: Services
+# Domain: Services
 
 > **Business logic and workflows for tender management**
 
@@ -6,7 +6,7 @@ Domain services encapsulate business operations and complex workflows.
 
 ---
 
-## 📍 Location
+## Location
 
 **Directory:** `src/services/`
 
@@ -18,7 +18,7 @@ Domain services encapsulate business operations and complex workflows.
 
 ---
 
-## 🎯 Purpose
+## Purpose
 
 **What services do:**
 - Encapsulate business logic
@@ -34,7 +34,7 @@ Domain services encapsulate business operations and complex workflows.
 
 ---
 
-## 📦 Key Services
+## Key Services
 
 ### TenderService
 
@@ -197,7 +197,7 @@ url = await storage.generate_signed_url(file_path, expires_in=3600)
 
 ---
 
-## 🏗️ Service Patterns
+## Service Patterns
 
 ### Pattern 1: Transaction Management
 
@@ -336,7 +336,7 @@ class TenderService:
 
 ---
 
-## 🎯 Best Practices
+## Best Practices
 
 ### 1. Validate Early
 
@@ -501,7 +501,7 @@ async with async_session() as session:
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
 - [Domain Layer Overview](README.md)
 - [Domain Entities](entities.md) - ORM models

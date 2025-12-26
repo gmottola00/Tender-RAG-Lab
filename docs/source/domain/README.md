@@ -1,12 +1,12 @@
-# 🏢 Domain Layer: README
+# Domain Layer
 
-> **Business logic and domain models for tender management**
+> **Tender-specific business logic, entities, and services**
 
 The domain layer contains business-specific logic and entity models for the tender management system.
 
 ---
 
-## 🎯 Philosophy
+## Philosophy
 
 **Domain principles:**
 
@@ -43,7 +43,7 @@ src/
 
 ---
 
-## 📦 Modules Overview
+## Modules Overview
 
 ### Models (Entities)
 
@@ -138,7 +138,7 @@ tender_data = TenderCreate(
 
 ---
 
-## 🏗️ Design Patterns
+## Design Patterns
 
 ### 1. Service Layer Pattern
 
@@ -268,7 +268,7 @@ def get_document_service(session: AsyncSession) -> DocumentService:
 
 ---
 
-## 🎯 Common Use Cases
+## Common Use Cases
 
 ### Use Case 1: Add Tender Validation Rule
 
@@ -493,7 +493,7 @@ class TenderService:
 
 ---
 
-## 📚 Related Documentation
+## Related Documentation
 
 - [Architecture Overview](../architecture/overview.md) - Layer dependencies
 - [Core Layer](../core/README.md) - Reusable abstractions

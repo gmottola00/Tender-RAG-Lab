@@ -1,4 +1,4 @@
-# 🚀 Quick Start Guide
+# Quick Start Guide
 
 > **Get Tender-RAG-Lab running in 10 minutes**
 
@@ -197,7 +197,7 @@ You now have a working RAG system! Here's what you can do next:
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Milvus Connection Error
 

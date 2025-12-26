@@ -1,12 +1,12 @@
-# 🗺️ Tender-RAG-Lab Roadmap
+# Project Roadmap
 
-**Professional Tender Analysis System — Production Roadmap 2025-2026**
+**2025-2026 Development Plan for Tender-RAG-Lab**
 
 > **Status:** Classic RAG ✅ Complete | Graph RAG 🚧 In Progress | Enterprise Features 📋 Planned
 
 ---
 
-## 📊 Executive Summary
+## Executive Summary
 
 Tender-RAG-Lab è un sistema avanzato di analisi gare di appalto pubbliche italiane che combina:
 
@@ -19,14 +19,14 @@ Tender-RAG-Lab è un sistema avanzato di analisi gare di appalto pubbliche itali
 **Target Users:** Aziende che partecipano a gare pubbliche (PMI, grandi imprese, consorzi)
 
 **Key Metrics:**
-- 📈 Riduzione 60% tempo analisi documentale
-- 🎯 Accuracy > 90% su requisiti obbligatori
-- ⚡ Response time < 3s (p95)
-- 📚 Supporto 100K+ documenti/client
+- Riduzione 60% tempo analisi documentale
+- Accuracy > 90% su requisiti obbligatori
+- Response time < 3s (p95)
+- Supporto 100K+ documenti/client
 
 ---
 
-## 🎯 Strategic Goals (2025-2026)
+## Strategic Goals (2025-2026)
 
 ### Q1 2025 (Gen-Mar) — Graph RAG Foundation ✅ 60% Complete
 
@@ -126,7 +126,7 @@ Tender-RAG-Lab è un sistema avanzato di analisi gare di appalto pubbliche itali
 
 ---
 
-## 📋 Detailed Implementation Plan
+## Detailed Implementation Plan
 
 ### Phase 1: Graph RAG Implementation (8 weeks)
 
@@ -728,7 +728,7 @@ class BidNoBidAssistant:
 
 ---
 
-## 📊 Success Metrics & KPIs
+## Success Metrics & KPIs
 
 ### Technical Metrics
 
@@ -754,7 +754,7 @@ class BidNoBidAssistant:
 
 ---
 
-## 🔄 Continuous Improvement
+## Continuous Improvement
 
 ### Post-Launch Roadmap (2026)
 
@@ -780,7 +780,7 @@ class BidNoBidAssistant:
 
 ---
 
-## 📚 Documentation & Training
+## Documentation & Training
 
 ### Developer Documentation
 - Architecture deep-dive (this file + /docs/architecture/)
@@ -801,7 +801,7 @@ class BidNoBidAssistant:
 
 ---
 
-## 🎯 Next Actions (This Week)
+## Next Actions (This Week)
 
 ### High Priority
 1. ✅ Create roadmap document (questo file)
