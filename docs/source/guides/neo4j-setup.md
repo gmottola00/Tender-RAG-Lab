@@ -1,6 +1,10 @@
-# Neo4j Knowledge Graph Setup
+# Neo4j Setup Guide
 
-Neo4j is used for storing structured tender knowledge: entities (Tender, Lot, Requirement, Deadline) and their relationships.
+This guide covers the complete setup and configuration of Neo4j for Tender-RAG-Lab, including local development with Docker and production deployment with Neo4j Aura Cloud.
+
+## Overview
+
+Neo4j is used for storing structured tender knowledge: entities (Tender, Lot, Requirement, Deadline) and their relationships. It enables graph-based queries and reasoning alongside vector search.
 
 ## Quick Start
 

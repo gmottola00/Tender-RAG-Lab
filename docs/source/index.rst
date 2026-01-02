@@ -35,11 +35,17 @@ Tender-RAG-Lab Documentation
 
         Learn about clean architecture, rag_toolkit integration, and design principles.
 
-    .. grid-item-card:: Implementation Guide
-        :link: domain/README
+    .. grid-item-card:: Search & Retrieval
+        :link: guides/search-retrieval
         :link-type: doc
 
-        Understand domain layer, services, and business logic implementation.
+        Query the system with vector search, hybrid retrieval, and reranking strategies.
+
+    .. grid-item-card:: Knowledge Graph
+        :link: guides/knowledge-graph
+        :link-type: doc
+
+        Use Neo4j for structured tender metadata, relationships, and graph-based reasoning.
 
     .. grid-item-card:: Project Roadmap
         :link: roadmap
@@ -59,11 +65,17 @@ Tender-RAG-Lab Documentation
 
         How Tender-RAG-Lab leverages rag_toolkit for generic RAG components.
 
+    .. grid-item-card:: Implementation Guide
+        :link: domain/README
+        :link-type: doc
+
+        Understand domain layer, services, and business logic implementation.
+
 Features
 --------
 
 **Hybrid RAG System**
-   Combines classic vector search (Milvus) with graph-based reasoning (Neo4j in development) for comprehensive document analysis.
+   Combines vector search (Milvus) with graph-based reasoning (Neo4j) for comprehensive document analysis and structured metadata tracking.
 
 **Clean Architecture**
    Four-layer design with clear separation: Apps → Domain → Infrastructure → rag_toolkit, following dependency inversion principles.
@@ -162,42 +174,40 @@ Tender-RAG-Lab follows clean architecture with four layers:
 
 **Key Principle:** Outer layers depend on inner layers, never the reverse. Generic RAG components live in rag_toolkit, domain logic stays in the domain layer.
 
-Table of Contents
-=================
+Documentation Guide
+===================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Getting Started
+   :hidden:
 
    guides/quickstart
    guides/environment-setup
-   architecture/overview
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Core Concepts
+   :maxdepth: 1
+   :caption: Architecture & Design
+   :hidden:
 
+   architecture/overview
    rag_toolkit/index
    domain/README
    apps/README
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: User Guides
+   :hidden:
 
    guides/indexing-documents
    guides/search-retrieval
+   guides/knowledge-graph
 
 .. toctree::
    :maxdepth: 1
    :caption: Reference
+   :hidden:
 
    roadmap
    api/index
-
-Indices and Tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

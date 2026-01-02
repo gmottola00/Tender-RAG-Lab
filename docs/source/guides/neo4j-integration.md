@@ -1,18 +1,15 @@
-# Neo4j Knowledge Graph Integration for Advanced RAG
+# Neo4j Integration for Advanced RAG
 
-**Complete guide for integrating Neo4j Knowledge Graph in a production-grade Tender RAG system**
+This guide explains how to integrate Neo4j Knowledge Graph in a production-grade Tender RAG system, covering all phases from ingestion to advanced graph queries.
 
-## 📚 Table of Contents
+```{admonition} Prerequisites
+:class: note
 
-1. [Architecture Overview](#architecture-overview)
-2. [Phase 1: Schema & Data Model](#phase-1-schema--data-model)
-3. [Phase 2: Ingestion Pipeline](#phase-2-ingestion-pipeline)
-4. [Phase 3: Graph-Enhanced Retrieval](#phase-3-graph-enhanced-retrieval)
-5. [Phase 4: Context Assembly](#phase-4-context-assembly)
-6. [Phase 5: Advanced Graph Queries](#phase-5-advanced-graph-queries)
-7. [Production Considerations](#production-considerations)
-
----
+Before following this guide, ensure you have:
+- Completed [Neo4j Setup](neo4j-setup.md)
+- Understanding of [Document Indexing](indexing-documents.md)
+- Familiarity with [Search & Retrieval](search-retrieval.md)
+```
 
 ## Architecture Overview
 
