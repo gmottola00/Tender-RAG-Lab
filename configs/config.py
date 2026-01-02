@@ -67,6 +67,60 @@ class Settings(BaseSettings):
         env="STORAGE_BUCKET",
         description="Supabase storage bucket name"
     )
+    
+    # Neo4j Knowledge Graph configuration
+    NEO4J_URI: str = Field(
+        default="bolt://localhost:7687",
+        env="NEO4J_URI",
+        description="Neo4j connection URI (bolt:// for local, neo4j+s:// for Aura)"
+    )
+    NEO4J_USER: str = Field(
+        default="neo4j",
+        env="NEO4J_USER",
+        description="Neo4j username",
+        validation_alias="NEO4J_USERNAME"  # Support both NEO4J_USER and NEO4J_USERNAME
+    )
+    NEO4J_PASSWORD: str = Field(
+        default="neo4j",
+        env="NEO4J_PASSWORD",
+        description="Neo4j password"
+    )
+    NEO4J_DATABASE: str = Field(
+        default="neo4j",
+        env="NEO4J_DATABASE",
+        description="Neo4j database name"
+    )
+    NEO4J_ENV: str = Field(
+        default="local",
+        env="NEO4J_ENV",
+        description="Neo4j environment: local (Docker) or aura (Cloud)"
+    )
+    
+    # Neo4j Aura specific (optional, for monitoring/metadata)
+    AURA_INSTANCEID: str | None = Field(
+        default=None,
+        env="AURA_INSTANCEID",
+        description="Neo4j Aura instance ID (cloud only)"
+    )
+    AURA_INSTANCENAME: str | None = Field(
+        default=None,
+        env="AURA_INSTANCENAME",
+        description="Neo4j Aura instance name (cloud only)"
+    )
+    
+    @property
+    def is_neo4j_aura(self) -> bool:
+        """Check if using Neo4j Aura (cloud)."""
+        return self.NEO4J_ENV == "aura" or self.NEO4J_URI.startswith("neo4j+s://")
 
 settings = Settings()
 logger = app_logger.get_logger(__name__)
+
+def get_settings() -> Settings:
+    """
+    Get application settings singleton.
+    
+    Returns:
+        Settings instance
+    """
+    return settings

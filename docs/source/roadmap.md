@@ -36,12 +36,12 @@
 
 ### Core Features
 
-**Graph Infrastructure** ✅ 80% Complete
+**Graph Infrastructure** ✅ Complete
 - [X] Neo4j cluster setup (Docker dev, Aura prod)
 - [X] Schema design (Tender, Lot, Requirement, Deadline nodes)
 - [X] Cypher query templates
-- [ ] Graph indexes and constraints
-- [ ] Python Neo4j driver integration
+- [X] Graph indexes and constraints
+- [X] Python Neo4j driver integration
 
 **Entity Extraction** 🚧 40% Complete
 - [ ] NER model fine-tuning (BERT Italian + tender domain)
