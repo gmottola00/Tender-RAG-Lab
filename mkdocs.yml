@@ -1,0 +1,243 @@
+site_name: Tender-RAG-Lab
+site_description: Production-grade RAG system for Italian public procurement documents
+site_author: Gianmarco Mottola
+site_url: https://tender-rag-lab.readthedocs.io/
+
+repo_name: gmottola00/Tender-RAG-Lab
+repo_url: https://github.com/gmottola00/Tender-RAG-Lab
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2025 Gianmarco Mottola
+
+theme:
+  name: material
+  language: en
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  
+  font:
+    text: Roboto
+    code: Roboto Mono
+  
+  features:
+    # Navigation
+    - navigation.instant        # Instant loading
+    - navigation.tracking       # URL tracking
+    - navigation.tabs           # Top-level tabs
+    - navigation.tabs.sticky    # Sticky tabs
+    - navigation.sections       # Sections in sidebar
+    - navigation.expand         # Expand sections by default
+    - navigation.path           # Breadcrumb path
+    - navigation.indexes        # Section index pages
+    - navigation.top            # Back to top button
+    
+    # Search
+    - search.suggest            # Search suggestions
+    - search.highlight          # Highlight search terms
+    - search.share              # Share search results
+    
+    # Header
+    - header.autohide          # Auto-hide header on scroll
+    
+    # Code blocks
+    - content.code.copy         # Copy button for code blocks
+    - content.code.annotate     # Code annotations
+    
+    # Content
+    - content.tabs.link         # Link content tabs
+    - content.tooltips          # Tooltips
+  
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/database-search
+    admonition:
+      note: octicons/tag-16
+      abstract: octicons/checklist-16
+      info: octicons/info-16
+      tip: octicons/light-bulb-16
+      success: octicons/check-16
+      question: octicons/question-16
+      warning: octicons/alert-16
+      failure: octicons/x-circle-16
+      danger: octicons/zap-16
+      bug: octicons/bug-16
+      example: octicons/beaker-16
+      quote: octicons/quote-16
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/gmottola00/Tender-RAG-Lab
+      name: GitHub Repository
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/tender-rag-lab/
+      name: PyPI Package
+  
+  version:
+    provider: mike
+    default: latest
+  
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js
+
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: On this page
+      toc_depth: 3
+  
+  # PyMdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"/]+|(?!\b)(?=[A-Z][a-z])|\.(?!\d)|&[lg]t;'
+      lang: 
+        - en
+        - it
+  
+  - autorefs
+  
+  - mkdocstrings:
+      enabled: true
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          import:
+            - https://docs.python.org/3/objects.inv
+          options:
+            docstring_style: google
+            docstring_section_style: spacy
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_object_full_path: false
+            show_category_heading: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            group_by_category: true
+            show_if_no_docstring: false
+            inherited_members: false
+            filters:
+              - "!^_"  # Exclude private members
+            merge_init_into_class: true
+            signature_crossrefs: true
+            allow_inspection: false  # Disable for missing modules
+  
+  - mermaid2:
+      version: 10.6.1
+
+nav:
+  - Home: index.md
+  
+  - Getting Started:
+    - Quick Start: guides/quickstart.md
+    - Environment Setup: guides/environment-setup.md
+    - Installation: guides/installation.md
+  
+  - Architecture:
+    - Overview: architecture/overview.md
+    - Clean Architecture: architecture/clean-architecture.md
+    - rag_toolkit Integration: architecture/rag-toolkit.md
+  
+  - User Guides:
+    - Document Ingestion: guides/indexing-documents.md
+    - Search & Retrieval: guides/search-retrieval.md
+    - Knowledge Graph: guides/knowledge-graph.md
+    - Neo4j Setup: guides/neo4j-setup.md
+    - Neo4j Integration: guides/neo4j-integration.md
+  
+  - Domain Layer:
+    - Overview: domain/README.md
+    - Tender Services: domain/services.md
+    - Search System: domain/tender-search.md
+  
+  - RAG Toolkit:
+    - Overview: rag_toolkit/index.md
+    - Pipeline: rag_toolkit/pipeline.md
+    - Search Strategies: rag_toolkit/search.md
+    - Extending: rag_toolkit/extending.md
+  
+  - API Reference:
+    - Core:
+      - Embedding: api/core/embedding.md
+      - LLM: api/core/llm.md
+      - Chunking: api/core/chunking.md
+    - Domain:
+      - Tender Services: api/domain/services.md
+      - NER: api/domain/ner.md
+    - Infrastructure:
+      - Factory: api/infra/factory.md
+  
+  - Development:
+    - Contributing: development/contributing.md
+    - Testing: development/testing.md
+    - Roadmap: roadmap.md
+  
+  - About:
+    - License: about/license.md
+    - Changelog: about/changelog.md
+
+watch:
+  - src/
+  - docs/
