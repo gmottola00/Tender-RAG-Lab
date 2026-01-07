@@ -1,46 +1,76 @@
 # Search & Retrieval
 
-> **Complete guide to querying indexed tender documents with hybrid search strategies**
-
-This guide covers all search methods available in Tender-RAG-Lab: vector similarity, keyword search, and hybrid retrieval.
+!!! abstract "Complete Search Guide"
+    Master all search methods in **Tender-RAG-Lab**: vector similarity, keyword search, and hybrid retrieval.
+    
+    From basic semantic search to advanced multi-strategy retrieval.
 
 ---
 
-## Overview
+## :material-magnify: Overview
 
-Tender-RAG-Lab supports multiple search strategies:
+!!! info "Three Search Strategies"
+    Tender-RAG-Lab supports multiple search approaches for different use cases:
 
-- **Vector Search** - Semantic similarity using embeddings (Milvus)
-- **Keyword Search** - Exact term matching with BM25
-- **Hybrid Search** - Combines both methods with reranking
+<div class="grid cards" markdown>
 
-```text
-┌──────────────┐
-│ User Query   │
-└──────┬───────┘
-       │
-       ├─────▶ Vector Search (Milvus)  ───┐
-       │                                    │
-       └─────▶ Keyword Search (BM25)   ────┤
-                                            ▼
-                                    ┌───────────────┐
-                                    │   Reranker    │
-                                    │ (merge results)│
-                                    └───────┬───────┘
-                                            │
-                                            ▼
-                                    ┌───────────────┐
-                                    │ Final Results │
-                                    └───────────────┘
+-   :material-vector-difference:{ .lg } **Vector Search**
+
+    ---
+
+    Semantic similarity using embeddings (Milvus)
+    
+    Best for: Natural language queries
+
+-   :material-text-search:{ .lg } **Keyword Search**
+
+    ---
+
+    Exact term matching with BM25 algorithm
+    
+    Best for: Specific terminology
+
+-   :material-merge:{ .lg } **Hybrid Search**
+
+    ---
+
+    Combines both methods with reranking
+    
+    Best for: Production use
+
+</div>
+
+### Search Flow
+
+```mermaid
+graph TD
+    A[👤 User Query] --> B{Search Strategy}
+    
+    B -->|Vector| C[🔍 Semantic Search<br/>Milvus]
+    B -->|Keyword| D[📝 BM25 Search]
+    B -->|Hybrid| E[⚡ Both Methods]
+    
+    C --> F[📊 Results]
+    D --> F
+    E --> G[🎯 Reranker<br/>Merge & Score]
+    G --> F
+    
+    F --> H[✅ Final Results]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style C fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style D fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style E fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style H fill:#c8e6c9,stroke:#388e3c,stroke-width:3px
 ```
 
 ---
 
-## Quick Start
+## :material-rocket-launch: Quick Start
 
 ### Basic Semantic Search
 
-```python
+```python title="Simple vector search"
 from src.domain.tender.services.search import TenderSearchService
 
 search = TenderSearchService()
@@ -53,33 +83,40 @@ results = search.search(
 
 for i, result in enumerate(results, 1):
     print(f"{i}. {result.text[:100]}...")
-    print(f"   Score: {result.score:.3f}")
-    print(f"   Source: {result.metadata['source_file']}\n")
+    print(f"   📊 Score: {result.score:.3f}")
+    print(f"   📄 Source: {result.metadata['source_file']}\n")
 ```
+
+---
 
 ### Search with Filters
 
-```python
+!!! tip "Narrow Down Results"
+    Apply metadata filters for precision:
+
+```python title="Filtered search"
 # Search within specific tender
 results = search.search(
     query="budget constraints",
     top_k=10,
     filters={
         "tender_id": "TENDER-2025-001",
-        "has_requirements": True
+        "has_requirements": True,
+        "section_type": "technical"
     }
 )
 ```
 
 ---
 
-## Search Strategies
+## :material-strategy: Search Strategies
 
-### 1. Vector Search (Default)
+### :material-vector-difference: 1. Vector Search (Default)
 
-Pure semantic similarity using embeddings:
+!!! info "Pure Semantic Similarity"
+    Uses embeddings to find conceptually similar content:
 
-```python
+```python title="Vector-only search"
 from src.domain.tender.search import TenderSearcher
 
 searcher = TenderSearcher(
@@ -91,29 +128,28 @@ searcher = TenderSearcher(
 results = searcher.vector_search(
     query="compliance requirements for data security",
     top_k=5,
-    score_threshold=0.7  # Only return results with score > 0.7
+    score_threshold=0.7  # Only results with score > 0.7
 )
 ```
 
-**Best for:**
-- Natural language queries
-- Conceptual questions ("What is this tender about?")
-- Synonym/paraphrase matching
+=== "✅ Best For"
 
-**Example queries:**
-```python
-queries = [
-    "What certifications are required?",
-    "delivery timeline and milestones",
-    "environmental sustainability criteria"
-]
-```
+    - **Natural language queries** ("What is this tender about?")
+    - **Conceptual questions** (understanding themes)
+    - **Cross-lingual search** (semantic matching across languages)
+    - **Fuzzy matching** (typos, synonyms)
 
-### 2. Keyword Search (BM25)
+=== "❌ Not Ideal For"
 
-Exact term matching with TF-IDF weighting:
+    - Exact code/ID searches (use keyword instead)
+    - Legal term matching (combine with keyword)
+    - Acronym searches
+### :material-text-search: 2. Keyword Search (BM25)
 
-```python
+!!! info "Exact Term Matching"
+    Uses BM25 algorithm for precise term matching with TF-IDF weighting.
+
+```python title="Keyword-based search"
 # Keyword-based search
 results = searcher.keyword_search(
     query="ISO 27001 AND GDPR",
@@ -121,25 +157,38 @@ results = searcher.keyword_search(
 )
 ```
 
-**Best for:**
-- Specific terms (CIG codes, certification IDs)
-- Boolean queries (AND, OR, NOT)
-- Acronyms and technical jargon
+=== "✅ Best For"
+
+    - **Specific identifiers** (CIG codes, certification IDs)
+    - **Boolean queries** (AND, OR, NOT operators)
+    - **Acronyms** (ISO, GDPR, ANAC)
+    - **Technical jargon** (exact terminology)
+
+=== "❌ Not Ideal For"
+
+    - Natural language questions
+    - Conceptual understanding
+    - Synonym matching
+    - Cross-lingual search
 
 **Example queries:**
 ```python
 queries = [
-    'CIG:"12345678AB"',
-    "ISO 27001 OR ISO 9001",
-    "ANAC compliance -optional"
+    'CIG:"12345678AB"',           # Exact CIG code
+    "ISO 27001 OR ISO 9001",       # Boolean OR
+    "ANAC compliance -optional",   # Exclude term
+    '"data protection"',           # Exact phrase
 ]
 ```
 
-### 3. Hybrid Search (Recommended)
+---
 
-Combines vector + keyword with reranking:
+### :material-merge: 3. Hybrid Search (Recommended)
 
-```python
+!!! success "Best of Both Worlds"
+    Combines vector + keyword search with intelligent reranking for optimal results.
+
+```python title="Hybrid search (production-ready)"
 # Hybrid search (best results)
 results = searcher.hybrid_search(
     query="mandatory cybersecurity certifications ISO 27001",
@@ -148,25 +197,38 @@ results = searcher.hybrid_search(
 )
 ```
 
-**Ranking formula:**
-```
+**Ranking Formula:**
+
+```python
 final_score = (alpha × vector_score) + ((1 - alpha) × keyword_score)
 ```
 
-**Best for:**
-- Production use cases
-- Complex queries with both concepts and specific terms
-- Maximum recall and precision
+=== "⚙️ Alpha Tuning"
+
+    | Alpha | Vector | Keyword | Best For |
+    |-------|--------|---------|----------|
+    | **0.8** | 80% | 20% | Natural questions |
+    | **0.7** | 70% | 30% | **Balanced (default)** ⭐ |
+    | **0.5** | 50% | 50% | Mixed queries |
+    | **0.3** | 30% | 70% | Technical searches |
+
+=== "✅ Best For"
+
+    - **Production deployments** (most reliable)
+    - **Complex queries** (concepts + specific terms)
+    - **Maximum recall & precision**
+    - **User-facing search** (handles any query type)
 
 ---
 
-## Advanced Queries
+## :material-magnify-plus: Advanced Queries
 
 ### Query Rewriting
 
-Automatically expand/clarify user queries:
+!!! abstract "Automatic Query Enhancement"
+    Uses LLM to expand and clarify user queries for better retrieval.
 
-```python
+```python title="Query rewriting with LLM"
 from src.domain.tender.services.query import QueryRewriter
 
 rewriter = QueryRewriter(llm_client=llm)
@@ -181,14 +243,22 @@ rewritten = rewriter.rewrite(
 )
 # → "What documentation is required for the tender application?"
 
-results = search.search(query=rewritten, top_k=5)
+results = searcher.search(query=rewritten, top_k=5)
 ```
+
+!!! tip "When to Use"
+    - Vague user queries
+    - Short questions (< 5 words)
+    - Ambiguous terminology
+
+---
 
 ### Multi-Query Fusion
 
-Generate multiple query variations and merge results:
+!!! abstract "Query Expansion Strategy"
+    Generate multiple query variations and merge results for comprehensive coverage.
 
-```python
+```python title="Multi-query with result fusion"
 # Generate query variations
 queries = rewriter.generate_variations(
     query="submission deadlines",
@@ -203,54 +273,67 @@ queries = rewriter.generate_variations(
 # Search with all variations
 all_results = []
 for q in queries:
-    results = search.search(query=q, top_k=5)
+    results = searcher.search(query=q, top_k=5)
     all_results.extend(results)
 
 # Deduplicate and rerank
-final_results = search.rerank(all_results, original_query="submission deadlines")
+final_results = searcher.rerank(all_results, original_query="submission deadlines")
 ```
+
+!!! success "Benefits"
+    - ✅ Higher recall (find more relevant documents)
+    - ✅ Multiple perspectives on same question
+    - ✅ Handles query ambiguity
+
+---
 
 ### Contextual Search
 
-Search within previous results (chain queries):
+!!! abstract "Chain Search Queries"
+    Search within previous results to refine and narrow down.
 
-```python
+```python title="Iterative refinement"
 # First query
-initial = search.search(
+initial = searcher.search(
     query="technical requirements",
     top_k=10
 )
 
 # Narrow down results
-refined = search.search(
+refined = searcher.search(
     query="minimum server specifications",
     top_k=5,
     context_results=initial  # Search within these results only
 )
 ```
 
+!!! tip "Use Case"
+    Perfect for conversational search where users progressively refine their query.
+
 ---
 
-## Filters and Metadata
+## :material-filter: Filters and Metadata
 
 ### Filter by Tender
 
-```python
-results = search.search(
+```python title="Tender-specific search"
+results = searcher.search(
     query="budget breakdown",
     filters={"tender_id": "TENDER-2025-001"}
 )
 ```
 
+---
+
 ### Filter by Date Range
 
-```python
+```python title="Time-based filtering"
 from datetime import datetime, timedelta
 
 # Tenders from last 30 days
 cutoff = datetime.now() - timedelta(days=30)
 
-results = search.search(
+results = searcher.search(
     query="infrastructure projects",
     filters={
         "upload_date": {"$gte": cutoff.isoformat()}
@@ -258,11 +341,13 @@ results = search.search(
 )
 ```
 
+---
+
 ### Filter by Entity Type
 
-```python
+```python title="Content type filtering"
 # Only chunks with deadlines
-results = search.search(
+results = searcher.search(
     query="submission process",
     filters={
         "has_deadlines": True,
@@ -271,11 +356,13 @@ results = search.search(
 )
 ```
 
+---
+
 ### Complex Filters
 
-```python
-# Multiple conditions
-results = search.search(
+```python title="Multi-condition filtering"
+# Multiple conditions with boolean logic
+results = searcher.search(
     query="evaluation criteria",
     filters={
         "$and": [
@@ -289,80 +376,31 @@ results = search.search(
 
 ---
 
-## RAG Pipeline (Retrieval + Generation)
-
-Combine search with LLM generation for answers:
-
-```python
-from src.domain.tender.services.rag import TenderRAGService
-
-rag = TenderRAGService(
-    searcher=searcher,
-    llm_client=llm
-)
-
-# Ask a question
-response = rag.query(
-    query="What are the mandatory requirements for this tender?",
-    tender_id="TENDER-2025-001"
-)
-
-print(f"Answer: {response.answer}")
-print(f"\nSources:")
-for source in response.sources:
-    print(f"  - {source.metadata['source_file']} (page {source.metadata['page_number']})")
-```
-
-### Streaming Responses
-
-For better UX in web applications:
-
-```python
-# Stream answer token by token
-for chunk in rag.query_stream(query="Explain the evaluation process"):
-    print(chunk, end="", flush=True)
-```
-
-### Citation Tracking
-
-Get exact source quotes:
-
-```python
-response = rag.query(
-    query="What is the project budget?",
-    include_citations=True
-)
-
-for citation in response.citations:
-    print(f'"{citation.text}"')
-    print(f"  → {citation.source} (score: {citation.score:.3f})\n")
-```
-
----
-
-## Performance Optimization
+## :material-speedometer: Performance Optimization
 
 ### Caching
 
-Cache frequent queries:
+!!! tip "Speed Up Frequent Queries"
 
-```python
+```python title="LRU cache for queries"
 from functools import lru_cache
 
 @lru_cache(maxsize=100)
 def cached_search(query: str, tender_id: str):
-    return search.search(query=query, filters={"tender_id": tender_id})
+    return searcher.search(query=query, filters={"tender_id": tender_id})
 
 # Subsequent calls are instant
 results1 = cached_search("requirements", "TENDER-2025-001")  # 200ms
 results2 = cached_search("requirements", "TENDER-2025-001")  # <1ms
 ```
 
+---
+
 ### Batch Queries
 
-Process multiple queries efficiently:
+!!! tip "Parallel Execution"
 
-```python
+```python title="Batch search for multiple queries"
 queries = [
     "budget constraints",
     "technical specifications",
@@ -370,7 +408,7 @@ queries = [
 ]
 
 # Batch search (parallel execution)
-results = search.batch_search(
+results = searcher.batch_search(
     queries=queries,
     top_k=5,
     filters={"tender_id": "TENDER-2025-001"}
@@ -380,34 +418,52 @@ for query, result_list in zip(queries, results):
     print(f"{query}: {len(result_list)} results")
 ```
 
+---
+
 ### Index Optimization
 
-Tune Milvus parameters for faster search:
+!!! tip "Tune Milvus for Speed"
 
-```python
-# Create optimized index
-from pymilvus import Collection
+=== "IVF_FLAT (Balanced)"
 
-collection = Collection("tender_documents")
+    ```python title="Speed/accuracy balance"
+    from pymilvus import Collection
+    
+    collection = Collection("tender_documents")
+    
+    collection.create_index(
+        field_name="embedding",
+        index_params={
+            "metric_type": "COSINE",
+            "index_type": "IVF_FLAT",
+            "params": {"nlist": 1024}
+        }
+    )
+    ```
 
-# IVF_FLAT for speed/accuracy balance
-collection.create_index(
-    field_name="embedding",
-    index_params={
-        "metric_type": "COSINE",
-        "index_type": "IVF_FLAT",
-        "params": {"nlist": 1024}
-    }
-)
-```
+=== "HNSW (Fast)"
+
+    ```python title="Fastest search"
+    collection.create_index(
+        field_name="embedding",
+        index_params={
+            "metric_type": "IP",
+            "index_type": "HNSW",
+            "params": {
+                "M": 16,
+                "efConstruction": 200
+            }
+        }
+    )
+    ```
 
 ---
 
-## Complete Example
+## :material-code-block-tags: Complete Example
 
-End-to-end search workflow:
+!!! example "End-to-End RAG Workflow"
 
-```python
+```python title="Full search & answer pipeline"
 from src.domain.tender.services.search import TenderSearchService
 from src.infra.factory import create_tender_stack
 
@@ -467,22 +523,113 @@ answer = answer_tender_question(
 
 ---
 
-## Troubleshooting
+## :material-alert-circle: Troubleshooting
 
-### No Results Found
+??? failure "No Results Found"
 
-```python
-# Check if documents are indexed
-from pymilvus import Collection
+    **Problem**: Search returns empty results
+    
+    **Solutions**:
+    
+    1. **Check indexing**:
+       ```python
+       from pymilvus import Collection
+       
+       collection = Collection("tender_documents")
+       print(f"Total documents: {collection.num_entities}")
+       ```
+    
+    2. **Relax thresholds**:
+       ```python
+       results = searcher.search(
+           query="budget",
+           score_threshold=0.5,  # Lower threshold
+           top_k=20  # More results
+       )
+       ```
+    
+    3. **Verify filters**:
+       ```python
+       # Remove filters temporarily
+       results = searcher.search(query="budget", filters={})
+       ```
 
-collection = Collection("tender_documents")
-print(f"Total documents: {collection.num_entities}")
+??? failure "Poor Result Quality"
 
-# Try relaxing filters
-results = search.search(
-    query="budget",
-    score_threshold=0.5,  # Lower threshold
-    top_k=20  # More results
+    **Problem**: Irrelevant results returned
+    
+    **Solutions**:
+    
+    1. **Use hybrid search** (not just vector):
+       ```python
+       results = searcher.hybrid_search(query=q, alpha=0.7)
+       ```
+    
+    2. **Add reranking**:
+       ```python
+       results = searcher.search(query=q, top_k=20)
+       reranked = searcher.rerank(results, query=q, top_k=5)
+       ```
+    
+    3. **Query rewriting**:
+       ```python
+       rewritten = rewriter.rewrite(query)
+       results = searcher.search(query=rewritten)
+       ```
+
+??? failure "Slow Search Performance"
+
+    **Problem**: Queries taking >1 second
+    
+    **Solutions**:
+    
+    1. **Optimize index**:
+       - Use HNSW instead of IVF_FLAT
+       - Increase `nprobe` value
+    
+    2. **Enable caching**:
+       ```python
+       @lru_cache(maxsize=100)
+       def cached_search(q): ...
+       ```
+    
+    3. **Reduce `top_k`**:
+       ```python
+       results = searcher.search(query=q, top_k=5)  # Instead of 50
+       ```
+
+---
+
+## :material-arrow-right-circle: Next Steps
+
+<div class="grid cards" markdown>
+
+-   :material-robot-outline:{ .lg } **[RAG Pipeline](rag-pipeline.md)**
+
+    ---
+    
+    **Complete end-to-end RAG** with retrieval + graph + generation
+
+-   :material-file-document-multiple:{ .lg } **[Index Documents](indexing-documents.md)**
+
+    ---
+    
+    Learn how to process and index tender documents
+
+-   :material-graph:{ .lg } **[Knowledge Graph](knowledge-graph.md)**
+
+    ---
+    
+    Enhance search with Neo4j graph relationships
+
+-   :material-cog-outline:{ .lg } **[Environment Setup](environment-setup.md)**
+
+    ---
+    
+    Configure advanced search parameters
+
+</div>
+
 )
 ```
 

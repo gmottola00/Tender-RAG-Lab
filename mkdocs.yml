@@ -203,6 +203,7 @@ nav:
   - User Guides:
     - Document Ingestion: guides/indexing-documents.md
     - Search & Retrieval: guides/search-retrieval.md
+    - RAG Pipeline: guides/rag-pipeline.md
     - Knowledge Graph: guides/knowledge-graph.md
     - Neo4j Setup: guides/neo4j-setup.md
     - Neo4j Integration: guides/neo4j-integration.md
@@ -232,6 +233,7 @@ nav:
   - Development:
     - Contributing: development/contributing.md
     - Testing: development/testing.md
+    - Roadmap: roadmap.md
     - Roadmap: roadmap.md
   
   - About:

@@ -18,3 +18,6 @@ install:
 
 api:
 	./run.sh run-api
+
+serve:
+	uv run mkdocs serve

@@ -63,10 +63,10 @@
 
 ## Features
 
-### :material-hybrid: Hybrid RAG System
+### :material-vector-combine: Hybrid RAG System
 Combines vector search (Milvus) with graph-based reasoning (Neo4j) for comprehensive document analysis and structured metadata tracking.
 
-### :material-architecture: Clean Architecture
+### :material-floor-plan: Clean Architecture
 Four-layer design with clear separation: Apps → Domain → Infrastructure → rag_toolkit, following dependency inversion principles.
 
 ### :material-file-document: Document Processing

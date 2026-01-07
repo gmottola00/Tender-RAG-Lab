@@ -1,30 +1,35 @@
 # Clean Architecture
 
-Tender-RAG-Lab follows **Clean Architecture** principles for maintainability, testability, and flexibility.
+!!! abstract "Overview"
+    Tender-RAG-Lab follows **Clean Architecture** principles for maintainability, testability, and flexibility.
+    
+    This ensures the codebase remains **easy to understand**, **simple to modify**, and **ready to scale**.
 
-## Four-Layer Design
+---
+
+## :material-layers-triple: Four-Layer Design
 
 ```mermaid
 graph TB
-    subgraph "Apps Layer"
+    subgraph "🌐 Apps Layer"
         A1[FastAPI Routers]
         A2[Request/Response DTOs]
         A3[Dependency Injection]
     end
     
-    subgraph "Domain Layer"
+    subgraph "💼 Domain Layer"
         D1[Tender Services]
         D2[Business Logic]
         D3[Domain Entities]
     end
     
-    subgraph "Infrastructure Layer"
+    subgraph "🔌 Infrastructure Layer"
         I1[Database Models]
         I2[Factory Functions]
         I3[Storage Adapters]
     end
     
-    subgraph "rag_toolkit"
+    subgraph "📦 rag_toolkit"
         R1[RAG Pipeline]
         R2[Vector Search]
         R3[Protocols]
@@ -41,269 +46,398 @@ graph TB
     I1 --> R1
     I2 --> R2
     
-    style A1 fill:#e3f2fd
-    style D1 fill:#f3e5f5
-    style I1 fill:#fff3e0
-    style R1 fill:#e8f5e9
+    style A1 fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style D1 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style I1 fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style R1 fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
 ```
+
+### Layer Summary
+
+| Layer | Purpose | Examples |
+|-------|---------|----------|
+| 🌐 **Apps** | HTTP interface | FastAPI routers, auth middleware |
+| 💼 **Domain** | Business logic | TenderService, validation rules |
+| 🔌 **Infrastructure** | Technical adapters | DB models, factories, Milvus client |
+| 📦 **rag_toolkit** | Generic RAG | Protocols, pipeline, chunking |
+
+---
 
 ## Layer Responsibilities
 
-### 1. Apps Layer (`src/api/`)
+### :material-web: 1. Apps Layer (`src/api/`)
 
-**Purpose:** HTTP interface and request handling
+!!! info "Purpose"
+    HTTP interface and request handling
 
-**Contains:**
-- FastAPI routers
-- Request/Response schemas
-- Authentication middleware
-- Dependency injection setup
+=== "✅ Contains"
 
-**Rules:**
-- ✅ Can import from: Domain, Infrastructure, rag_toolkit
-- ❌ Cannot: Contain business logic
-- ❌ Cannot: Access databases directly
-
-**Example:**
-```python
-# src/api/routers/documents.py
-from fastapi import APIRouter, Depends
-from src.domain.tender.services.documents import DocumentService
-
-router = APIRouter()
-
-@router.post("/documents/upload")
-async def upload_document(
-    file: UploadFile,
-    service: DocumentService = Depends(get_document_service)
-):
-    return await service.upload(file)
-```
-
-### 2. Domain Layer (`src/domain/tender/`)
-
-**Purpose:** Business logic and workflows
-
-**Contains:**
-- Domain services
-- Business entities
-- Validation rules
-- Orchestration logic
-
-**Rules:**
-- ✅ Can import from: Infrastructure (interfaces only), rag_toolkit
-- ❌ Cannot: Import from Apps
-- ❌ Cannot: Know about HTTP, databases directly
-
-**Example:**
-```python
-# src/domain/tender/services/documents.py
-class DocumentService:
-    """Tender document management with business logic."""
+    - :material-api: **FastAPI routers** — HTTP endpoints
+    - :material-file-code: **Request/Response schemas** — HTTP DTOs
+    - :material-shield-lock: **Authentication middleware** — JWT, OAuth
+    - :material-needle: **Dependency injection setup** — Service providers
     
-    def __init__(self, indexer: TenderMilvusIndexer):
-        self.indexer = indexer
+    ```python title="src/api/routers/documents.py"
+    from fastapi import APIRouter, Depends
+    from src.domain.tender.services.documents import DocumentService
     
-    async def upload(self, file: UploadFile) -> Document:
-        # Business logic here
-        chunks = await self.parse_and_chunk(file)
-        await self.indexer.index(chunks)
-        return document
-```
+    router = APIRouter()
+    
+    @router.post("/documents/upload")
+    async def upload_document(
+        file: UploadFile,
+        service: DocumentService = Depends(get_document_service)
+    ):
+        """Thin router — delegates to domain service."""
+        return await service.upload(file)
+    ```
 
-### 3. Infrastructure Layer (`src/infra/`)
+=== "❌ Cannot"
 
-**Purpose:** Technical implementation and adapters
+    - Contain business logic
+    - Access databases directly
+    - Know about vector stores or embeddings
+    
+    ```python
+    # ❌ BAD: Logic in router
+    @router.post("/documents")
+    async def upload(file: UploadFile):
+        chunks = parse_pdf(file)  # NO!
+        vectors = embed(chunks)   # NO!
+        return {"status": "ok"}
+    
+    # ✅ GOOD: Delegate to service
+    @router.post("/documents")
+    async def upload(
+        file: UploadFile,
+        service: DocumentService = Depends()
+    ):
+        return await service.upload(file)
+    ```
 
-**Contains:**
-- Database models (SQLAlchemy)
-- Factory functions
-- Storage adapters
-- External service clients
+---
 
-**Rules:**
-- ✅ Can import from: rag_toolkit
-- ❌ Cannot: Import from Domain or Apps
-- ❌ Cannot: Contain business logic
+### :material-briefcase: 2. Domain Layer (`src/domain/tender/`)
 
-**Example:**
-```python
-# src/infra/factory.py
+!!! info "Purpose"
+    Business logic and workflows
+
+=== "✅ Contains"
+
+    - :material-cog-outline: **Domain services** — Business operations
+    - :material-file-document: **Business entities** — Domain models
+    - :material-check-circle: **Validation rules** — Business constraints
+    - :material-play-network: **Orchestration logic** — Workflow coordination
+    
+    ```python title="src/domain/tender/services/documents.py"
+    class DocumentService:
+        """Tender document management with business logic."""
+        
+        def __init__(self, indexer: TenderMilvusIndexer):
+            self.indexer = indexer
+        
+        async def upload(self, file: UploadFile) -> Document:
+            # ✅ Business logic here
+            self._validate_file(file)
+            chunks = await self._parse_and_chunk(file)
+            await self.indexer.index(chunks)
+            return self._save_metadata(file, chunks)
+    ```
+
+=== "❌ Cannot"
+
+    - Import from Apps (FastAPI, HTTP)
+    - Access databases directly
+    - Know about Milvus/vector stores (use interfaces)
+    
+    ```python
+    # ❌ BAD: Importing from API
+    from fastapi import APIRouter  # NO!
+    from src.api.routers import documents  # NO!
+    
+    # ❌ BAD: Direct database access
+    from pymilvus import connections  # NO!
+    session.query(Document).all()  # NO!
+    ```
+
+---
+
+### :material-database: 3. Infrastructure Layer (`src/infra/`)
+
+!!! info "Purpose"
+    Technical implementation and adapters
+
+=== "✅ Contains"
+
+    - :material-database-cog: **Database models** — SQLAlchemy ORM
+    - :material-factory: **Factory functions** — Component creation
+    - :material-connection: **Storage adapters** — External service clients
+    - :material-cog: **External service clients** — Milvus, Supabase, etc.
+    
+    ```python title="src/infra/factory.py"
+    def create_tender_stack(
+        embed_client: EmbeddingClient,
+        embedding_dim: int,
+    ) -> Tuple[TenderMilvusIndexer, TenderSearcher]:
+        """Create infrastructure components."""
+        milvus_service = create_milvus_service()
+        index_service = create_index_service(...)
+        
+        indexer = TenderMilvusIndexer(index_service=index_service)
+        searcher = TenderSearcher(indexer=indexer)
+        
+        return indexer, searcher
+    ```
+
+=== "❌ Cannot"
+
+    - Import from Domain or Apps
+    - Contain business logic
+    
+    ```python
+    # ❌ BAD: Infrastructure importing domain
+    from src.domain.tender.services import TenderService  # NO!
+    ```
+
+---
+
+### :material-package-variant: 4. rag_toolkit (External Library)
+
+!!! info "Purpose"
+    Generic RAG components (reusable across projects)
+
+=== "✅ Contains"
+
+    - :material-protocol: **Protocol definitions** — `EmbeddingClient`, `ChunkLike`
+    - :material-pipeline: **RAG pipeline** — Query, retrieve, generate
+    - :material-magnify: **Vector search strategies** — Hybrid, semantic, keyword
+    - :material-file-document-multiple: **Chunking algorithms** — Dynamic, token-based
+    
+    ```python
+    from rag_toolkit.rag import RagPipeline
+    from rag_toolkit.core.embedding import EmbeddingClient
+    ```
+
+=== "❌ Cannot"
+
+    - Have dependencies on app code
+    - Contain domain-specific logic
+    
+    !!! quote "Zero Dependencies Rule"
+        rag_toolkit is **protocol-based** and has **zero knowledge** of tender, medical, or legal domains.
+
+---
+
+## :material-arrow-decision: Dependency Rules
+
+!!! success "✅ Allowed Dependencies"
+
+    ```python
+    # Apps → Domain
+    from src.domain.tender.services.documents import DocumentService
+    
+    # Domain → Infrastructure (via interfaces)
+    from src.infra.factory import create_tender_stack
+    
+    # Domain → rag_toolkit
+    from rag_toolkit.core.embedding import EmbeddingClient
+    
+    # Infrastructure → rag_toolkit
+    from rag_toolkit.infra.vectorstores.factory import create_milvus_service
+    ```
+
+!!! danger "❌ Forbidden Dependencies"
+
+    ```python
+    # Infrastructure importing Domain ❌
+    from src.domain.tender.services import TenderService  # NO!
+    
+    # Domain importing Apps ❌
+    from src.api.routers import documents  # NO!
+    
+    # rag_toolkit importing app code ❌
+    from src.domain import anything  # NO!
+    ```
+
+---
+
+## :material-protocol: Protocol-Based Design
+
+!!! abstract "Protocol Pattern"
+    rag_toolkit uses **Protocols** (structural typing) for extensibility without inheritance coupling.
+
+=== "Generic Protocol"
+
+    ```python
+    # rag_toolkit defines generic protocol
+    from rag_toolkit.core.chunking.types import ChunkLike
+    
+    @dataclass
+    class ChunkLike(Protocol):
+        id: str
+        text: str
+        # ... generic fields
+        
+        def to_dict(self) -> Dict[str, Any]:
+            ...
+    ```
+
+=== "Domain Extension"
+
+    ```python
+    # Domain extends with specific fields
+    @dataclass
+    class TenderChunk:
+        # ✅ Protocol fields
+        id: str
+        text: str
+        
+        # 🎯 Tender-specific extensions
+        tender_id: str
+        lot_id: Optional[str]
+        section_type: str
+        
+        def to_dict(self) -> Dict[str, Any]:
+            return asdict(self)
+    ```
+
+!!! success "Benefits"
+    - ✅ No inheritance coupling
+    - ✅ Duck typing compatibility
+    - ✅ Easy to extend without modifying library
+    - ✅ Type-safe at static analysis time
+
+---
+
+## :material-factory: Factory Pattern
+
+!!! tip "Centralized Component Creation"
+    Domain-specific components are created via **factories** that wrap rag_toolkit.
+
+```python title="src/infra/factory.py" hl_lines="8-10 17-20"
+from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
+
 def create_tender_stack(
     embed_client: EmbeddingClient,
     embedding_dim: int,
 ) -> Tuple[TenderMilvusIndexer, TenderSearcher]:
-    """Create infrastructure components."""
+    # 1️⃣ Create generic rag_toolkit components
     milvus_service = create_milvus_service()
     index_service = create_index_service(...)
     
-    indexer = TenderMilvusIndexer(index_service=index_service)
-    searcher = TenderSearcher(indexer=indexer)
-    
-    return indexer, searcher
-```
-
-### 4. rag_toolkit (External Library)
-
-**Purpose:** Generic RAG components (reusable across projects)
-
-**Contains:**
-- Protocol definitions
-- RAG pipeline
-- Vector search strategies
-- Chunking algorithms
-
-**Rules:**
-- ✅ Zero dependencies on app code
-- ✅ Protocol-based for extensibility
-- ❌ No domain-specific logic
-
-## Dependency Rules
-
-### ✅ Allowed Dependencies
-
-```python
-# Apps → Domain
-from src.domain.tender.services.documents import DocumentService
-
-# Domain → Infrastructure (via interfaces)
-from src.infra.factory import create_tender_stack
-
-# Domain → rag_toolkit
-from rag_toolkit.core.embedding import EmbeddingClient
-
-# Infrastructure → rag_toolkit
-from rag_toolkit.infra.vectorstores.factory import create_milvus_service
-```
-
-### ❌ Forbidden Dependencies
-
-```python
-# Infrastructure importing Domain ❌
-from src.domain.tender.services import TenderService  # NO!
-
-# Domain importing Apps ❌
-from src.api.routers import documents  # NO!
-
-# rag_toolkit importing app code ❌
-from src.domain import anything  # NO!
-```
-
-## Protocol-Based Design
-
-rag_toolkit uses **Protocols** (structural typing) for extensibility:
-
-```python
-# rag_toolkit defines generic protocol
-from rag_toolkit.core.chunking.types import ChunkLike
-
-@dataclass
-class ChunkLike(Protocol):
-    id: str
-    text: str
-    # ... generic fields
-
-# Domain extends with specific fields
-@dataclass
-class TenderChunk:
-    # Protocol fields
-    id: str
-    text: str
-    
-    # Tender-specific extensions
-    tender_id: str
-    lot_id: Optional[str]
-    section_type: str
-```
-
-**Benefits:**
-- No inheritance coupling
-- Duck typing compatibility
-- Easy to extend without modifying library
-
-## Factory Pattern
-
-Domain-specific components are created via **factories**:
-
-```python
-# src/infra/factory.py
-def create_tender_stack(...):
-    # 1. Create generic rag_toolkit components
-    milvus_service = create_milvus_service()
-    
-    # 2. Wrap with domain-specific logic
+    # 2️⃣ Wrap with domain-specific logic
     indexer = TenderMilvusIndexer(
         index_service=index_service,
         # ... tender-specific config
     )
     
+    searcher = TenderSearcher(
+        indexer=indexer,
+        embed_client=embed_client,
+    )
+    
     return indexer, searcher
 ```
 
-**Benefits:**
-- Centralized configuration
-- Easy to test (inject mocks)
-- Clear separation of concerns
+!!! success "Benefits"
+    - ✅ Centralized configuration
+    - ✅ Easy to test (inject mocks)
+    - ✅ Clear separation of concerns
+    - ✅ Single source of truth
 
-## Testing Strategy
+---
 
-Each layer has different testing needs:
+## :material-test-tube: Testing Strategy
 
-### Apps Layer
-```python
-# Integration tests with TestClient
-from fastapi.testclient import TestClient
+!!! info "Each Layer Has Different Testing Needs"
 
-def test_upload_endpoint(client: TestClient):
-    response = client.post("/documents/upload", files=...)
-    assert response.status_code == 200
-```
+=== "🌐 Apps Layer"
 
-### Domain Layer
-```python
-# Unit tests with mocked infrastructure
-def test_document_service():
-    mock_indexer = Mock(spec=TenderMilvusIndexer)
-    service = DocumentService(indexer=mock_indexer)
+    **Integration tests with TestClient**
     
-    document = service.upload(file)
-    mock_indexer.index.assert_called_once()
-```
-
-### Infrastructure Layer
-```python
-# Integration tests with real services
-def test_milvus_indexer():
-    indexer = create_tender_stack(...)
-    indexer.index(chunks)
+    ```python
+    from fastapi.testclient import TestClient
     
-    results = indexer.search(query)
-    assert len(results) > 0
-```
+    def test_upload_endpoint(client: TestClient):
+        response = client.post(
+            "/documents/upload",
+            files={"file": ("test.pdf", pdf_bytes)}
+        )
+        assert response.status_code == 200
+        assert "id" in response.json()
+    ```
 
-## Benefits
+=== "💼 Domain Layer"
 
-### 1. Testability
-- Mock dependencies easily
-- Test business logic in isolation
-- Fast unit tests
+    **Unit tests with mocked infrastructure**
+    
+    ```python
+    from unittest.mock import Mock
+    
+    def test_document_service():
+        # Mock infrastructure
+        mock_indexer = Mock(spec=TenderMilvusIndexer)
+        service = DocumentService(indexer=mock_indexer)
+        
+        # Test business logic
+        document = service.upload(file)
+        
+        # Verify interactions
+        mock_indexer.index.assert_called_once()
+    ```
 
-### 2. Flexibility
-- Swap implementations (Milvus → Qdrant)
-- Change UI (FastAPI → gRPC)
-- No ripple effects
+=== "🔌 Infrastructure Layer"
 
-### 3. Maintainability
-- Clear boundaries
-- Single Responsibility Principle
-- Easy to navigate codebase
+    **Integration tests with real services**
+    
+    ```python
+    def test_milvus_indexer():
+        # Real Milvus connection
+        indexer, _ = create_tender_stack(...)
+        
+        # Index real chunks
+        indexer.index(chunks)
+        
+        # Verify stored correctly
+        results = indexer.search(query)
+        assert len(results) > 0
+    ```
 
-### 4. Reusability
-- rag_toolkit reusable across projects
-- Domain logic portable
-- Infrastructure adapters swappable
+---
 
-## Common Pitfalls
+## :material-star: Benefits
+
+<div class="grid cards" markdown>
+
+-   :material-test-tube:{ .lg } **Testability**
+
+    ---
+
+    Mock dependencies easily, test business logic in isolation, fast unit tests
+
+-   :material-swap-horizontal:{ .lg } **Flexibility**
+
+    ---
+
+    Swap implementations (Milvus → Qdrant), change UI (FastAPI → gRPC), no ripple effects
+
+-   :material-wrench:{ .lg } **Maintainability**
+
+    ---
+
+    Clear boundaries, Single Responsibility Principle, easy to navigate codebase
+
+-   :material-sync:{ .lg } **Reusability**
+
+    ---
+
+    rag_toolkit reusable across projects, domain logic portable, infrastructure adapters swappable
+
+</div>
+
+---
+
+## :material-alert: Common Pitfalls
 
 !!! danger "Anti-Pattern: Business Logic in Apps"
     ```python
@@ -343,8 +477,38 @@ def test_milvus_indexer():
             return self.repo.find_by_id(id)
     ```
 
-## See Also
+---
 
-- [rag_toolkit Integration](rag-toolkit.md) - How generic components work
-- [Architecture Overview](overview.md) - High-level system design
-- [API Reference](../api/core/embedding.md) - Code documentation
+## :material-book-open: See Also
+
+<div class="grid cards" markdown>
+
+-   :material-package-variant:{ .lg } **rag_toolkit Integration**
+
+    ---
+
+    [:octicons-arrow-right-24: How generic components work](rag-toolkit.md)
+
+-   :material-layers-outline:{ .lg } **Architecture Overview**
+
+    ---
+
+    [:octicons-arrow-right-24: High-level system design](overview.md)
+
+-   :material-api:{ .lg } **API Reference**
+
+    ---
+
+    [:octicons-arrow-right-24: Code documentation](../api/core/embedding.md)
+
+</div>
+
+---
+
+<div align="center">
+
+**[← Architecture Overview](overview.md)** | **[rag_toolkit Integration →](rag-toolkit.md)**
+
+*Last updated: 2026-01-05*
+
+</div>

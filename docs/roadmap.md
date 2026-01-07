@@ -1,164 +1,741 @@
 # Project Roadmap
 
-**Production-Ready RAG System for Italian Public Procurement Analysis**
+!!! abstract "Vision & Strategic Plan"
+    Production-ready **RAG System** for Italian public procurement analysis.
+    
+    From foundation to enterprise-grade deployment.
 
 ---
 
-## Current Status: v0.3.0 (December 2025)
+## :material-map-marker-path: Current Status
 
-✅ **Foundation Complete**
-- Classic RAG with Milvus vector store
-- Ollama/OpenAI embedding + LLM support
-- PDF/DOCX/TXT parsing with OCR
-- Document chunking (512 tokens, 50 overlap)
-- Semantic search with BM25 fallback
-- FastAPI REST endpoints
-- PostgreSQL for structured data
-- Docker Compose development setup
+!!! success "v0.3.0 — December 2025"
+    **Foundation established** with core RAG capabilities
 
-🚧 **In Progress**
-- Neo4j Knowledge Graph schema
-- NER for tender entities (Lot, Requirement, Deadline)
-- Graph-based retrieval strategies
+### ✅ Completed Features
 
-📋 **Planned**
-- External integrations (ANAC, TED)
-- Business workflows (Compliance, Bid/No-Bid)
-- Multi-tenancy and production hardening
+<div class="grid cards" markdown>
+
+-   :material-database-search:{ .lg } **Classic RAG**
+
+    ---
+    
+    - Milvus vector store
+    - Ollama/OpenAI support
+    - Semantic + BM25 search
+
+-   :material-file-document:{ .lg } **Document Processing**
+
+    ---
+    
+    - PDF/DOCX/TXT parsing
+    - OCR support
+    - Smart chunking (512 tokens)
+
+-   :material-api:{ .lg } **API Layer**
+
+    ---
+    
+    - FastAPI REST endpoints
+    - PostgreSQL storage
+    - Docker Compose setup
+
+-   :material-graph:{ .lg } **Graph Foundation**
+
+    ---
+    
+    - Neo4j schema design
+    - Entity extraction (NER)
+    - Graph-based retrieval
+
+</div>
+
+### 🚧 In Progress
+
+!!! warning "Active Development"
+    - **Neo4j Knowledge Graph** schema refinement
+    - **NER models** for tender entities (Lot, Requirement, Deadline)
+    - **Graph-based retrieval** strategies
+
+### 📋 Planned
+
+!!! info "Upcoming Features"
+    - External integrations (ANAC, TED)
+    - Business workflows (Compliance, Bid/No-Bid)
+    - Multi-tenancy and production hardening
 
 ---
 
-## Q1 2025: Graph RAG Foundation
+## :material-calendar: 2025 Timeline
 
-**Goal**: Enable structured queries and multi-hop reasoning with Knowledge Graphs
+```mermaid
+gantt
+    title Tender-RAG-Lab 2025 Roadmap
+    dateFormat YYYY-MM-DD
+    section Q1 2025
+    Graph RAG Foundation           :done, q1, 2025-01-01, 90d
+    Neo4j Setup                    :done, 2025-01-01, 30d
+    Entity Extraction              :active, 2025-02-01, 60d
+    Hybrid Retrieval               :active, 2025-03-01, 30d
+    
+    section Q2 2025
+    External Integrations          :q2, 2025-04-01, 90d
+    ANAC/TED Integration           :2025-04-01, 45d
+    Model Fine-tuning              :2025-05-15, 45d
+    
+    section Q3 2025
+    Business Workflows             :q3, 2025-07-01, 90d
+    Compliance Checker             :2025-07-01, 30d
+    Bid/No-Bid Assistant           :2025-08-01, 30d
+    Analytics Dashboard            :2025-09-01, 30d
+    
+    section Q4 2025
+    Production Hardening           :q4, 2025-10-01, 90d
+    Multi-tenancy                  :2025-10-01, 30d
+    High Availability              :2025-11-01, 30d
+    Security & Compliance          :2025-12-01, 30d
+```
 
-**Status**: 60% Complete | Target: March 31, 2025
+---
+
+## :material-rocket-launch: Q1 2025: Graph RAG Foundation
+
+!!! abstract "Goal"
+    Enable **structured queries** and **multi-hop reasoning** with Knowledge Graphs
+
+**Status**: 60% Complete | **Target**: March 31, 2025
 
 ### Core Features
 
-**Graph Infrastructure** ✅ Complete
-- [X] Neo4j cluster setup (Docker dev, Aura prod)
-- [X] Schema design (Tender, Lot, Requirement, Deadline nodes)
-- [X] Cypher query templates
-- [X] Graph indexes and constraints
-- [X] Python Neo4j driver integration
+=== "✅ Graph Infrastructure"
 
-**Entity Extraction** 🚧 40% Complete
-- [ ] NER model fine-tuning (BERT Italian + tender domain)
-  - Labels: `LOT_ID`, `REQUIREMENT`, `DEADLINE`, `AMOUNT`, `ORG`, `CPV`
-  - Target F1: >0.90 per entity type
-- [ ] Relation extraction (Tender→Lot, Lot→Requirement)
-- [ ] Graph builder pipeline (chunks → entities → graph)
-- [ ] Sync pipeline (trigger after document ingestion)
+    **Status**: Complete
+    
+    - [X] Neo4j cluster setup (Docker dev, Aura prod)
+    - [X] Schema design (Tender, Lot, Requirement, Deadline nodes)
+    - [X] Cypher query templates
+    - [X] Graph indexes and constraints
+    - [X] Python Neo4j driver integration
 
-**Hybrid Retrieval** 📋 Not Started
-- [ ] Graph-first retrieval (structured queries → Cypher)
-  - "List all mandatory requirements for this tender"
-  - "What are the deadlines for Lot 2?"
-- [ ] Vector-first + graph enrichment (semantic search → related entities)
-- [ ] Hybrid orchestrator (auto-route queries to best strategy)
+=== "🚧 Entity Extraction"
+
+    **Status**: 40% Complete
+    
+    - [ ] **NER model fine-tuning** (BERT Italian + tender domain)
+      - Labels: `LOT_ID`, `REQUIREMENT`, `DEADLINE`, `AMOUNT`, `ORG`, `CPV`
+      - Target F1: >0.90 per entity type
+    - [ ] **Relation extraction** (Tender→Lot, Lot→Requirement)
+    - [ ] **Graph builder pipeline** (chunks → entities → graph)
+    - [ ] **Sync pipeline** (trigger after document ingestion)
+
+=== "📋 Hybrid Retrieval"
+
+    **Status**: Not Started
+    
+    - [ ] **Graph-first retrieval** (structured queries → Cypher)
+      - "List all mandatory requirements for this tender"
+      - "What are the deadlines for Lot 2?"
+    - [ ] **Vector-first + graph enrichment** (semantic search → related entities)
+    - [ ] **Hybrid orchestrator** (auto-route queries to best strategy)
 
 ### Success Metrics
-| Metric | Target |
-|--------|--------|
-| Entity extraction F1 | >0.90 |
-| Graph coverage | 80% of key entities |
-| Structured query accuracy | 95% |
-| Hybrid retrieval latency | <2s (p95) |
+
+| Metric | Current | Target |
+|--------|---------|--------|
+| **Entity extraction F1** | 0.78 | **>0.90** |
+| **Graph coverage** | 60% | **80%** |
+| **Structured query accuracy** | - | **95%** |
+| **Hybrid retrieval latency (p95)** | - | **<2s** |
 
 ### Deliverables
-- [ ] Neo4j production deployment
-- [ ] NER training dataset (500+ annotated documents)
-- [ ] Graph-enabled RAG API endpoints
-- [ ] Evaluation benchmark (50+ test queries)
+
+<div class="grid cards" markdown>
+
+-   :material-database:{ .lg } **Neo4j Production**
+
+    ---
+    
+    Scalable graph database deployment
+
+-   :material-teach:{ .lg } **Training Dataset**
+
+    ---
+    
+    500+ annotated documents for NER
+
+-   :material-api:{ .lg } **Graph-Enabled APIs**
+
+    ---
+    
+    New endpoints for graph queries
+
+-   :material-chart-box:{ .lg } **Evaluation Benchmark**
+
+    ---
+    
+    50+ test queries with metrics
+
+</div>
 
 ---
 
-## Q2 2025: External Integrations & Domain Adaptation
+## :material-download: Q2 2025: External Integrations
 
-**Goal**: Automate tender ingestion and optimize models for Italian procurement domain
+!!! abstract "Goal"
+    Automate tender ingestion and optimize models for Italian procurement domain
 
-**Status**: Not Started | Target: June 30, 2025
+**Status**: Not Started | **Target**: June 30, 2025
 
 ### Core Features
 
-**ANAC Integration** 📋 Planned
-- [ ] ANAC API client (Bandi Gara dataset)
-- [ ] Daily auto-ingestion (filter by CPV relevance)
-- [ ] Parser for tender metadata (CIG, buyer, amounts, dates)
-- [ ] Automatic document download + processing
-- [ ] Target: 100+ new tenders/day
+=== "🏛️ ANAC Integration"
 
-**TED Scraper** 📋 Planned
-- [ ] EU Tenders Electronic Daily scraper
-- [ ] Filter: Italy + relevant CPVs
-- [ ] Rate-limited PDF downloads
-- [ ] Compliance with robots.txt and ToS
+    **Priority**: High
+    
+    - [ ] ANAC API client (Bandi Gara dataset)
+    - [ ] Daily auto-ingestion (filter by CPV relevance)
+    - [ ] Parser for tender metadata (CIG, buyer, amounts, dates)
+    - [ ] Automatic document download + processing
+    - [ ] **Target**: 100+ new tenders/day
 
-**Model Fine-Tuning** 📋 Planned
-- [ ] **Embedding model**: Italian tender-specific
-  - Base: `sentence-transformers/paraphrase-multilingual-mpnet`
-  - Dataset: 10K query-document pairs from logs
-  - Target: +15% recall@10 vs base
-- [ ] **Reranker**: Cross-encoder for tender context
-  - Base: `cross-encoder/ms-marco-MiniLM-L-6-v2`
-  - Target: +10% nDCG@10
-- [ ] **NER model**: Entity extraction accuracy boost
-  - Dataset: 500 annotated tender documents
-  - Target: F1 >0.92
+=== "🇪🇺 TED Scraper"
 
-**Model Registry** 📋 Planned
-- [ ] Versioned model storage (S3/local)
-- [ ] A/B testing framework (50/50 split)
-- [ ] Performance tracking dashboard
-- [ ] Automated rollback on degradation
+    **Priority**: Medium
+    
+    - [ ] EU Tenders Electronic Daily scraper
+    - [ ] Filter: Italy + relevant CPVs
+    - [ ] Rate-limited PDF downloads
+    - [ ] Compliance with robots.txt and ToS
+
+=== "🤖 Model Fine-Tuning"
+
+    **Priority**: High
+    
+    - [ ] **Embedding model**: Italian tender-specific
+      - Base: `sentence-transformers/paraphrase-multilingual-mpnet`
+      - Dataset: 10K query-document pairs from logs
+      - Target: **+15% recall@10** vs base
+    
+    - [ ] **Reranker**: Cross-encoder for tender context
+      - Base: `cross-encoder/ms-marco-MiniLM-L-6-v2`
+      - Target: **+10% nDCG@10**
+    
+    - [ ] **NER model**: Entity extraction accuracy boost
+      - Dataset: 500 annotated tender documents
+      - Target: **F1 >0.92**
+
+=== "📦 Model Registry"
+
+    **Priority**: Medium
+    
+    - [ ] Versioned model storage (S3/local)
+    - [ ] A/B testing framework (50/50 split)
+    - [ ] Performance tracking dashboard
+    - [ ] Automated rollback on degradation
 
 ### Success Metrics
+
 | Metric | Target |
 |--------|--------|
-| Auto-ingestion coverage | 100 tenders/day |
-| Embedding recall@10 improvement | +15% |
-| Reranker nDCG@10 improvement | +10% |
-| NER F1 score | >0.92 |
+| **Auto-ingestion coverage** | 100 tenders/day |
+| **Embedding recall@10** | **+15%** improvement |
+| **Reranker nDCG@10** | **+10%** improvement |
+| **NER F1 score** | **>0.92** |
 
 ### Deliverables
-- [ ] ANAC/TED integration live
-- [ ] Fine-tuned models deployed
-- [ ] Training datasets published (for reproducibility)
-- [ ] Model performance comparison report
+
+!!! success "Expected Outcomes"
+    - ✅ ANAC/TED integration live in production
+    - ✅ Fine-tuned models deployed and monitored
+    - ✅ Training datasets published (reproducibility)
+    - ✅ Model performance comparison report
 
 ---
 
-## Q3 2025: Business Workflows
+## :material-briefcase: Q3 2025: Business Workflows
 
-**Goal**: Production-ready features for tender analysis and decision-making
+!!! abstract "Goal"
+    Production-ready features for tender analysis and decision-making
 
-**Status**: Not Started | Target: September 30, 2025
+**Status**: Not Started | **Target**: September 30, 2025
 
 ### Core Features
 
-**Compliance Checker** 📋 High Priority
-- [ ] Extract mandatory requirements from tender
-- [ ] Match against company profile (certifications, revenue, experience)
-- [ ] Generate compliance checklist (✅/❌/⚠️ status)
-- [ ] LLM-powered recommendation per requirement
-- [ ] API: `POST /workflows/compliance-checklist`
-- [ ] Target accuracy: 95% on mandatory requirements
+=== "✅ Compliance Checker"
 
-**Bid/No-Bid Assistant** 📋 High Priority
-- [ ] Multi-factor scoring algorithm:
-  - Compliance (35% weight)
-  - Timeline feasibility (15%)
-  - Penalty risk (10%)
-  - Evaluation criteria match (20%)
-  - Competition analysis (10%)
-  - Profitability estimate (10%)
-- [ ] GO/NO-GO/EVALUATE recommendation
-- [ ] Risk and opportunity identification
-- [ ] API: `POST /workflows/bid-no-bid`
-- [ ] Target: 85% alignment with human decisions
+    **Priority**: High | **API**: `POST /workflows/compliance-checklist`
+    
+    - [ ] Extract mandatory requirements from tender
+    - [ ] Match against company profile (certifications, revenue, experience)
+    - [ ] Generate compliance checklist (✅/❌/⚠️ status)
+    - [ ] LLM-powered recommendation per requirement
+    - [ ] **Target accuracy**: 95% on mandatory requirements
+    
+    **Example Response:**
+    ```json
+    {
+      "checklist": [
+        {
+          "requirement": "ISO 27001 certification",
+          "status": "compliant",
+          "evidence": ["chunk-abc123"],
+          "recommendation": "✅ OK - Certificate valid"
+        }
+      ],
+      "recommendation": "GO - All requirements met"
+    }
+    ```
 
-**Tender Similarity Search** 📋 Medium Priority
+=== "🎯 Bid/No-Bid Assistant"
+
+    **Priority**: High | **API**: `POST /workflows/bid-no-bid`
+    
+    **Multi-factor scoring**:
+    - Compliance (35% weight)
+    - Timeline feasibility (15%)
+    - Penalty risk (10%)
+    - Evaluation criteria match (20%)
+    - Competition analysis (10%)
+    - Profitability estimate (10%)
+    
+    **Output**: GO/NO-GO/EVALUATE recommendation
+    
+    **Target**: 85% alignment with human decisions
+
+=== "🔍 Tender Similarity"
+
+    **Priority**: Medium | **API**: `GET /tenders/similar/{tender_id}`
+    
+    - [ ] Tender-level embeddings (aggregate chunks)
+    - [ ] Search historical tenders by CPV, buyer, amount
+    - [ ] Filter by outcome (won/lost)
+    - [ ] Transfer insights from past bids
+
+=== "📊 Analytics Dashboard"
+
+    **Priority**: Low
+    
+    **KPIs to track**:
+    - Tenders monitored
+    - Queries per day
+    - Response time
+    - User activity patterns
+    - Model performance drift
+    - Cost tracking (LLM tokens, embeddings)
+
+### Success Metrics
+
+| Metric | Target |
+|--------|--------|
+| **Compliance accuracy** | **95%** |
+| **Bid/No-Bid alignment** | **85%** |
+| **Analysis time reduction** | **60%** vs manual |
+| **User satisfaction (NPS)** | **>50** |
+
+---
+
+## :material-shield-check: Q4 2025: Production Hardening
+
+!!! abstract "Goal"
+    Enterprise-grade deployment ready for paying customers
+
+**Status**: Not Started | **Target**: December 31, 2025
+
+### Core Features
+
+=== "🏢 Multi-Tenancy"
+
+    **Priority**: Critical
+    
+    - [ ] Postgres Row-Level Security (RLS)
+    - [ ] Milvus partitions per client
+    - [ ] Neo4j database-per-tenant (or label isolation)
+    - [ ] Tenant middleware in API
+    - [ ] Usage quotas (docs/month, queries/day)
+
+=== "🔐 Authentication & Authorization"
+
+    **Priority**: Critical
+    
+    - [ ] JWT access + refresh tokens
+    - [ ] RBAC: admin, analyst, viewer roles
+    - [ ] OAuth2 integration (Google, Azure AD)
+    - [ ] API key management for programmatic access
+
+=== "⚡ High Availability"
+
+    **Priority**: Critical
+    
+    - [ ] Kubernetes deployment (3+ API replicas)
+    - [ ] Postgres HA (Patroni cluster)
+    - [ ] Milvus clustering (3 nodes)
+    - [ ] Neo4j cluster (primary + replicas)
+    - [ ] LoadBalancer + health checks
+
+=== "📊 Observability"
+
+    **Priority**: High
+    
+    **Stack**:
+    - Prometheus metrics (latency, throughput, errors)
+    - Grafana dashboards (RAG pipeline, DB health, costs)
+    - Jaeger distributed tracing
+    - Sentry error tracking + alerts
+
+=== "🔒 Security & Compliance"
+
+    **Priority**: High
+    
+    - [ ] TLS/HTTPS everywhere
+    - [ ] Encryption at-rest (Postgres, Milvus)
+    - [ ] Secrets management (HashiCorp Vault)
+    - [ ] **GDPR compliance**:
+      - Data retention policies
+      - Right-to-delete endpoint
+      - Audit logs
+      - Data export (JSON portability)
+
+=== "🚀 Performance Optimization"
+
+    **Priority**: Medium
+    
+    - [ ] Redis caching (frequent queries, TTL 5min)
+    - [ ] Batch processing (500 docs/hour)
+    - [ ] Connection pooling (asyncpg, pymilvus)
+    - [ ] Database query optimization
+    - [ ] Milvus index tuning (IVF_FLAT → HNSW)
+
+### Success Metrics
+
+| Metric | Target |
+|--------|--------|
+| **System uptime (SLA)** | **99.9%** |
+| **Query latency (p95)** | **<3s** |
+| **Concurrent users** | **100+** |
+| **Ingestion throughput** | **500 docs/hour** |
+| **Security audit score** | **A+** |
+
+---
+
+## :material-star: 2026 Vision: Advanced Features
+
+### Q1 2026: Generative Capabilities
+
+<div class="grid cards" markdown>
+
+-   :material-file-edit:{ .lg } **Auto-Draft**
+
+    ---
+    
+    Technical response section generation
+
+-   :material-file-document:{ .lg } **Summarization**
+
+    ---
+    
+    Executive summaries for tenders
+
+-   :material-help-circle:{ .lg } **Question Generation**
+
+    ---
+    
+    Identify missing information
+
+-   :material-pencil:{ .lg } **Clause Rewriting**
+
+    ---
+    
+    Optimization suggestions
+
+</div>
+
+---
+
+### Q2 2026: Multi-Language & International
+
+!!! tip "EU Expansion"
+    - English support for TED tenders
+    - French, Spanish for EU markets
+    - CPV code translation
+    - Cross-border tender analysis
+
+---
+
+### Q3 2026: Advanced Analytics
+
+```mermaid
+graph LR
+    A[Historical Data] --> B[ML Models]
+    B --> C[Outcome Prediction]
+    B --> D[Win Probability]
+    B --> E[Budget Optimization]
+    B --> F[Competitive Intelligence]
+    
+    style A fill:#e3f2fd,stroke:#1976d2
+    style B fill:#f3e5f5,stroke:#7b1fa2
+    style C fill:#e8f5e9,stroke:#388e3c
+    style D fill:#fff3e0,stroke:#f57c00
+    style E fill:#fce4ec,stroke:#c2185b
+    style F fill:#e0f2f1,stroke:#00796b
+```
+
+---
+
+### Q4 2026: Platform Expansion
+
+=== "📱 Mobile"
+
+    - iOS/Android native apps
+    - Offline document access
+    - Push notifications for deadlines
+
+=== "🔗 Integrations"
+
+    - CRM (Salesforce, HubSpot)
+    - Document management (SharePoint, Google Drive)
+    - Project management (Jira, Monday)
+
+=== "🛒 Marketplace"
+
+    - Templates for common tender types
+    - Pre-built compliance checklists
+    - Industry-specific workflows
+
+---
+
+## :material-chart-timeline-variant: Progress Tracking
+
+### Technical KPIs
+
+| Metric | Current | Q2 2025 | Q4 2025 | Target 2026 |
+|--------|---------|---------|---------|-------------|
+| **Retrieval Precision@5** | 0.75 | 0.85 | 0.90 | 0.95 |
+| **Entity Extraction F1** | 0.78 | 0.90 | 0.92 | 0.95 |
+| **Query Latency (p95)** | 5s | 3s | 2s | <1s |
+| **System Uptime** | 95% | 99% | 99.9% | 99.99% |
+| **Test Coverage** | 60% | 75% | 85% | 90% |
+
+### Business KPIs (Post-Launch)
+
+| Metric | Q1 2026 | Q4 2026 | 2027 |
+|--------|---------|---------|------|
+| **Paying Customers** | 10 | 50 | 200 |
+| **MRR** | €10K | €50K | €200K |
+| **Time-to-Analyze** | <30min | <15min | <10min |
+| **Win Rate Improvement** | +10% | +20% | +30% |
+| **User Retention (M2)** | >70% | >80% | >85% |
+
+---
+
+## :material-puzzle: Dependencies & Risks
+
+### Critical Dependencies
+
+!!! warning "External Factors"
+
+=== "✅ rag_toolkit"
+
+    - **Status**: Owned by maintainer
+    - **Risk**: Low
+    - **Mitigation**: Fork if needed, minimal coupling
+
+=== "⚠️ ANAC API"
+
+    - **Status**: Public API stability uncertain
+    - **Risk**: Medium
+    - **Mitigation**: Scraper fallback, local caching
+
+=== "⚠️ LLM Providers"
+
+    - **Status**: Cost and rate limits
+    - **Risk**: Medium
+    - **Mitigation**: Self-hosted models (Ollama) as alternative
+
+=== "⚠️ Regulations"
+
+    - **Status**: GDPR, public data usage rights
+    - **Risk**: High
+    - **Mitigation**: Legal review before launch, ToS alignment
+
+---
+
+## :material-account-multiple: Contribution Opportunities
+
+### High-Impact Areas
+
+<div class="grid cards" markdown>
+
+-   :material-domain:{ .lg } **Domain Expertise**
+
+    ---
+    
+    - Italian procurement regulations
+    - Tender document annotation
+    - Compliance requirement mapping
+    - User testing and feedback
+
+-   :material-database:{ .lg } **Data & Models**
+
+    ---
+    
+    - Annotate training data (NER, retrieval, QA)
+    - Fine-tune embedding models
+    - Create evaluation benchmarks
+    - Contribute to model registry
+
+-   :material-puzzle:{ .lg } **Integrations**
+
+    ---
+    
+    - Additional tender platforms
+    - New vector stores (Pinecone, Weaviate)
+    - LLM providers (Claude, Gemini)
+    - Document parsers (Excel, CAD)
+
+-   :material-feature-search:{ .lg } **Features**
+
+    ---
+    
+    - Business workflows (RFI generator)
+    - UI components (React dashboard)
+    - Mobile clients
+    - Browser extensions
+
+</div>
+
+### How to Contribute
+
+!!! tip "Get Involved"
+    1. **Check Issues**: [:material-github: GitHub Issues](https://github.com/gmottola00/Tender-RAG-Lab/issues)
+    2. **Propose Features**: Open discussion with use case
+    3. **Submit PRs**: Follow contribution guidelines
+    4. **Join Community**: Discord (coming Q2 2025)
+
+---
+
+## :material-rocket: Release Schedule
+
+### Version Strategy
+
+=== "🔄 Current (v0.x)"
+
+    **Pre-production**
+    
+    - Major features: Quarterly (Q1, Q2, Q3, Q4)
+    - Bug fixes: Bi-weekly
+    - Security patches: Immediate
+    - ⚠️ API may change (migration guides provided)
+
+=== "✅ Stable (v1.0+)"
+
+    **Target**: Q1 2026
+    
+    - Semantic versioning
+    - Deprecation cycles
+    - LTS releases
+    - Backward compatibility guarantees
+
+### Stability Guarantees
+
+| Version | API Stability | Support |
+|---------|---------------|---------|
+| **v0.x** | ⚠️ May change | Best effort |
+| **v1.0+** | ✅ Stable | LTS support |
+| **v2.0+** | ✅ Stable | Long-term |
+
+---
+
+## :material-currency-eur: Business Model (Post-v1.0)
+
+### SaaS Tiers (2026)
+
+=== "🆓 Free"
+
+    **Perfect for testing**
+    
+    - 10 tenders/month
+    - Community support
+    - Basic search features
+    - **Price**: €0
+
+=== "⭐ Pro"
+
+    **For small companies**
+    
+    - 100 tenders/month
+    - Email support
+    - Basic workflows
+    - Analytics dashboard
+    - **Price**: €99/month
+
+=== "🏢 Enterprise"
+
+    **For large organizations**
+    
+    - Unlimited tenders
+    - Dedicated support
+    - Custom workflows
+    - On-premise deployment
+    - **Price**: Custom
+
+### Revenue Targets
+
+```mermaid
+graph LR
+    A[Q2 2026<br/>10 customers<br/>€10K MRR] --> B[Q4 2026<br/>50 customers<br/>€50K MRR]
+    B --> C[2027<br/>200+ customers<br/>€200K MRR]
+    
+    style A fill:#fff3e0,stroke:#f57c00
+    style B fill:#e8f5e9,stroke:#388e3c
+    style C fill:#e3f2fd,stroke:#1976d2
+```
+
+### Value Proposition
+
+!!! success "ROI: 10x Cost"
+    - **60% time savings** on tender analysis
+    - **95% compliance accuracy** (reduce disqualifications)
+    - **Data-driven decisions** (bid/no-bid)
+    - **Higher win rates** through better preparation
+
+---
+
+## :material-link: Stay Updated
+
+<div class="grid cards" markdown>
+
+-   :material-github:{ .lg } **GitHub**
+
+    ---
+    
+    [:material-star: Star on GitHub](https://github.com/gmottola00/Tender-RAG-Lab)
+
+-   :material-email:{ .lg } **Newsletter**
+
+    ---
+    
+    Email updates (coming Q2 2025)
+
+-   :material-chat:{ .lg } **Discord**
+
+    ---
+    
+    Community chat (coming Q2 2025)
+
+-   :material-twitter:{ .lg } **Twitter**
+
+    ---
+    
+    [@tenderraglab](https://twitter.com/tenderraglab) (coming Q2 2025)
+
+</div>
+
+---
+
+!!! info "Document Info"
+    **Last Updated**: January 6, 2026  
+    **Version**: 0.3.0  
+    **Next Milestone**: Q1 2025 - Graph RAG (March 31, 2025)
 - [ ] Tender-level embeddings (aggregate chunks)
 - [ ] Search historical tenders by CPV, buyer, amount
 - [ ] Filter by outcome (won/lost)

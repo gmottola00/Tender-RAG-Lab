@@ -1,23 +1,68 @@
 # Knowledge Graph (Neo4j)
 
-The Tender-RAG-Lab system uses Neo4j as a Knowledge Graph to store structured tender entities and their relationships, enabling graph-based reasoning alongside vector search.
+!!! abstract "Graph-Powered Tender Intelligence"
+    Neo4j Knowledge Graph stores **structured tender entities** and **explicit relationships**, 
+    enabling graph-based reasoning alongside vector search.
 
-## Overview
+---
 
-The Knowledge Graph complements the vector store (Milvus) by maintaining explicit relationships between:
+## :material-graph: Overview
 
-- **Tenders** and their metadata (buyer, CPV code, amount, dates)
-- **Chunks** from tender documents
-- **Lots** (sub-tenders)
-- **Requirements** (technical, economic, administrative)
-- **Deadlines** (submission, clarification, award)
-- **Organizations** (buyers, suppliers)
+!!! info "Complementary Storage"
+    The Knowledge Graph works **alongside** Milvus to provide dual-mode retrieval:
+    
+    - **Milvus** → Semantic similarity (embeddings)
+    - **Neo4j** → Structured relationships (graph)
 
-## Quick Start
+### Entity Relationships
 
-### 1. Start Neo4j
+<div class="grid cards" markdown>
 
-```bash
+-   :material-file-document:{ .lg } **Tenders**
+
+    ---
+    
+    Core entities with metadata:
+    - Buyer information
+    - CPV codes
+    - Amounts & dates
+
+-   :material-text-box-multiple:{ .lg } **Chunks**
+
+    ---
+    
+    Document sections linked to:
+    - Parent tenders
+    - Specific lots
+    - Related requirements
+
+-   :material-package-variant:{ .lg } **Lots**
+
+    ---
+    
+    Sub-tender divisions with:
+    - Individual CPV codes
+    - Separate budgets
+    - Specific requirements
+
+-   :material-checkbox-marked-circle:{ .lg } **Requirements**
+
+    ---
+    
+    Structured criteria:
+    - Technical specs
+    - Economic thresholds
+    - Administrative rules
+
+</div>
+
+---
+
+## :material-rocket-launch: Quick Start
+
+### :material-numeric-1-circle: Start Neo4j
+
+```bash title="Launch Neo4j container"
 # Start Neo4j container
 docker-compose up -d neo4j
 
@@ -25,57 +70,123 @@ docker-compose up -d neo4j
 docker logs -f tender-neo4j
 ```
 
-### 2. Initialize Schema
+!!! tip "Health Check"
+    Wait until you see `Remote interface available at http://localhost:7474/`
 
-```bash
+### :material-numeric-2-circle: Initialize Schema
+
+```bash title="Setup graph structure"
 # Run setup script
 uv run python scripts/setup_neo4j.py
 ```
 
-This creates:
-- ✅ Uniqueness constraints (tender codes, chunk IDs)
-- ✅ Performance indexes (CPV codes, buyer names, dates)
-- ✅ Test data and validation
+**Creates:**
 
-### 3. Access Neo4j Browser
+<div class="grid cards" markdown>
 
-Open [http://localhost:7474](http://localhost:7474)
+-   ✅ **Constraints**
 
-**Credentials:**
-- Username: `neo4j`
-- Password: `tendergraph2025`
+    ---
+    
+    - Unique tender codes
+    - Unique chunk IDs
 
-## Architecture
+-   ⚡ **Indexes**
+
+    ---
+    
+    - CPV codes
+    - Buyer names
+    - Publication dates
+
+-   🧪 **Test Data**
+
+    ---
+    
+    - Sample tenders
+    - Validation queries
+
+</div>
+
+### :material-numeric-3-circle: Access Browser
+
+!!! success "Neo4j Browser Ready"
+    Open [:material-open-in-new: http://localhost:7474](http://localhost:7474)
+    
+    **Credentials:**
+    
+    - Username: `neo4j`
+    - Password: `tendergraph2025`
+
+---
+
+## :material-sitemap: Architecture
 
 ### Graph Structure
 
-```
-Tender (CIG code)
-  ├─ HAS_CHUNK ──> Chunk (document sections)
-  ├─ HAS_LOT ────> Lot (sub-tenders)
-  ├─ HAS_REQUIREMENT ──> Requirement
-  ├─ HAS_DEADLINE ────> Deadline
-  └─ PUBLISHED_BY ───> Organization (buyer)
+```mermaid
+graph TB
+    subgraph "Core Entities"
+        T[Tender<br/>CIG Code]
+        C[Chunk<br/>Document Section]
+        L[Lot<br/>Sub-tender]
+        R[Requirement<br/>Criteria]
+        D[Deadline<br/>Important Dates]
+        O[Organization<br/>Buyer/Supplier]
+    end
+    
+    T -->|HAS_CHUNK| C
+    T -->|HAS_LOT| L
+    T -->|HAS_REQUIREMENT| R
+    T -->|HAS_DEADLINE| D
+    T -->|PUBLISHED_BY| O
+    L -->|HAS_REQUIREMENT| R
+    
+    style T fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style C fill:#2196F3,stroke:#1565C0,color:#fff
+    style L fill:#FF9800,stroke:#E65100,color:#fff
+    style R fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style D fill:#F44336,stroke:#C62828,color:#fff
+    style O fill:#607D8B,stroke:#37474F,color:#fff
 ```
 
-### Integration with RAG Pipeline
+### RAG Pipeline Integration
 
+```mermaid
+graph LR
+    subgraph "Ingestion Flow"
+        PDF[📄 PDF] --> Chunks[📝 Chunks]
+        Chunks --> Embeddings[🔢 Embeddings]
+        Embeddings --> Milvus[(Milvus<br/>Vectors)]
+        Chunks --> Neo4j[(Neo4j<br/>Graph)]
+    end
+    
+    subgraph "Query Flow"
+        Query[❓ Question] --> VS[Vector Search]
+        Query --> GC[Graph Context]
+        VS --> Milvus
+        GC --> Neo4j
+        Milvus --> Enrich[🎯 Enriched Results]
+        Neo4j --> Enrich
+        Enrich --> LLM[🤖 LLM]
+    end
+    
+    style PDF fill:#F44336,stroke:#C62828,color:#fff
+    style Milvus fill:#4CAF50,stroke:#2E7D32,color:#fff
+    style Neo4j fill:#2196F3,stroke:#1565C0,color:#fff
+    style LLM fill:#9C27B0,stroke:#6A1B9A,color:#fff
+    style Enrich fill:#FF9800,stroke:#E65100,color:#fff
 ```
-Document Ingestion:
-  PDF → Chunks → Embeddings → Milvus (vector)
-                            ↘ Neo4j (graph metadata)
 
-Query Processing:
-  Question → Vector Search (Milvus)
-          ↘ Graph Context (Neo4j)
-          → Enriched Results → LLM
-```
+---
 
-## Usage Patterns
+## :material-code-braces: Usage Patterns
 
 ### Pattern 1: Index Tender with Graph
 
-```python
+!!! example "Store Tender in Graph"
+
+```python title="src/infra/graph/graph_indexer.py"
 from src.infra.graph.graph_indexer import index_tender_to_graph
 
 # After indexing to Milvus, also index to graph
@@ -83,7 +194,7 @@ await index_tender_to_graph(
     tender_code="2025-001-IT",
     tender_metadata={
         "title": "IT Infrastructure Services",
-        "cpv_code": "72000000",
+        "cpv_code": "72000000",  # IT services
         "base_amount": 500000.0,
         "buyer_name": "Ministero dell'Interno",
         "publication_date": "2025-01-15"
@@ -92,83 +203,154 @@ await index_tender_to_graph(
 )
 ```
 
+**Creates graph structure:**
+
+- ✅ `Tender` node with metadata
+- ✅ `HAS_CHUNK` relationships to document sections
+- ✅ `PUBLISHED_BY` relationship to buyer organization
+
+---
+
 ### Pattern 2: Enrich Search Results
 
-```python
-from src.infra.graph.graph_indexer import get_tender_context_for_chunks
+!!! example "Add Graph Context to Vector Results"
 
-# After vector search
-vector_results = await milvus_search(query, top_k=10)
+=== "Code"
 
-# Get graph context
-chunk_ids = [r.id for r in vector_results]
-contexts = await get_tender_context_for_chunks(chunk_ids)
+    ```python title="Enrich vector search with graph metadata"
+    from src.infra.graph.graph_indexer import get_tender_context_for_chunks
+    
+    # After vector search
+    vector_results = await milvus_search(query, top_k=10)
+    
+    # Get graph context
+    chunk_ids = [r.id for r in vector_results]
+    contexts = await get_tender_context_for_chunks(chunk_ids)
+    
+    # Enrich results with tender metadata
+    for result in vector_results:
+        context = contexts.get(result.id)
+        if context:
+            result.tender_title = context["tender_title"]
+            result.buyer_name = context["buyer_name"]
+            result.base_amount = context["base_amount"]
+    ```
 
-# Enrich results with tender metadata
-for result in vector_results:
-    context = contexts.get(result.id)
-    if context:
-        result.tender_title = context["tender_title"]
-        result.buyer_name = context["buyer_name"]
-        result.base_amount = context["base_amount"]
-```
+=== "Benefits"
+
+    **Why enrich results?**
+    
+    - 📊 **Context**: See which tender each chunk belongs to
+    - 💰 **Metadata**: Display amounts, buyers, dates
+    - 🔗 **Navigation**: Link to full tender details
+    - 🎯 **Filtering**: Group by tender, sort by amount
+
+---
 
 ### Pattern 3: Find Related Tenders
 
-```python
-from src.infra.graph.graph_indexer import find_related_tenders
+!!! example "Graph-Based Similarity"
 
-# Find tenders with similar CPV code or same buyer
-related = await find_related_tenders(
-    tender_code="2025-001-IT",
-    limit=5
-)
+=== "Code"
 
-# Use for query expansion or recommendations
-for tender in related:
-    print(f"{tender['code']}: {tender['title']}")
-    print(f"  Similarity: {tender['similarity_score']}")
-```
+    ```python title="Find similar tenders via graph relationships"
+    from src.infra.graph.graph_indexer import find_related_tenders
+    
+    # Find tenders with similar CPV code or same buyer
+    related = await find_related_tenders(
+        tender_code="2025-001-IT",
+        limit=5
+    )
+    
+    # Use for query expansion or recommendations
+    for tender in related:
+        print(f"{tender['code']}: {tender['title']}")
+        print(f"  Similarity: {tender['similarity_score']}")
+    ```
 
-## Configuration
+=== "Use Cases"
 
-### Local Development (Docker)
+    **Applications:**
+    
+    - 🔍 **Query Expansion**: Find related procurement contexts
+    - 💡 **Recommendations**: "Similar tenders you may be interested in"
+    - 📈 **Trend Analysis**: Track buyer procurement patterns
+    - 🎯 **Market Intelligence**: Identify recurring requirements
 
-```bash
-# .env
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=tendergraph2025
-NEO4J_DATABASE=neo4j
-NEO4J_ENV=local
-```
+---
 
-### Production (Neo4j Aura Cloud)
+## :material-cog: Configuration
 
-```bash
-# .env
-NEO4J_URI=neo4j+s://xxxxx.databases.neo4j.io
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=your-secure-password
-NEO4J_DATABASE=neo4j
-NEO4J_ENV=aura
-```
+!!! abstract "Connection Settings"
 
-The client automatically detects the environment based on the URI scheme:
-- `bolt://` → Local mode (unencrypted)
-- `neo4j+s://` → Aura mode (TLS encrypted)
+=== "🖥️ Local Development"
 
-## Next Steps
+    ```bash title=".env - Docker setup"
+    NEO4J_URI=bolt://localhost:7687
+    NEO4J_USER=neo4j
+    NEO4J_PASSWORD=tendergraph2025
+    NEO4J_DATABASE=neo4j
+    NEO4J_ENV=local
+    ```
+    
+    !!! info "Local Mode"
+        - Unencrypted connection (`bolt://`)
+        - Docker container on localhost
+        - Development credentials
 
-- See [Neo4j Setup](neo4j-setup.md) for detailed configuration
-- See [Neo4j Integration](neo4j-integration.md) for advanced RAG patterns
-- Try the examples: `uv run python examples/graph_integration_examples.py`
+=== "☁️ Production (Aura Cloud)"
 
-## Reference
+    ```bash title=".env - Neo4j Aura"
+    NEO4J_URI=neo4j+s://xxxxx.databases.neo4j.io
+    NEO4J_USER=neo4j
+    NEO4J_PASSWORD=your-secure-password
+    NEO4J_DATABASE=neo4j
+    NEO4J_ENV=aura
+    ```
+    
+    !!! success "Managed Service"
+        - TLS encrypted (`neo4j+s://`)
+        - Automatic backups
+        - Enterprise features
+        - Free tier available
 
-```{toctree}
-:maxdepth: 1
+!!! tip "Auto-Detection"
+    The client automatically detects environment based on URI scheme:
+    
+    - `bolt://` → Local mode (unencrypted)
+    - `neo4j+s://` → Aura mode (TLS encrypted)
 
-neo4j-setup
-neo4j-integration
-```
+---
+
+## :material-arrow-right-circle: Next Steps
+
+<div class="grid cards" markdown>
+
+-   :material-robot-outline:{ .lg } **[RAG Pipeline](rag-pipeline.md)**
+
+    ---
+    
+    **Complete RAG orchestration** with vector + graph integration
+
+-   :material-cog-outline:{ .lg } **[Neo4j Setup](neo4j-setup.md)**
+
+    ---
+    
+    Detailed configuration, schema design, indexes
+
+-   :material-puzzle:{ .lg } **[Neo4j Integration](neo4j-integration.md)**
+
+    ---
+    
+    Advanced RAG patterns, graph queries, optimization
+
+-   :material-flask:{ .lg } **Examples**
+
+    ---
+    
+    ```bash
+    uv run python examples/graph_integration_examples.py
+    ```
+
+</div>
+

@@ -1,33 +1,44 @@
 # Indexing Documents
 
-> **Complete guide to uploading, processing, and indexing tender documents**
-
-This guide covers the full document lifecycle: from uploading files to indexing them in the vector store for semantic search.
+!!! abstract "Complete Document Lifecycle"
+    Learn how to **upload**, **process**, and **index** tender documents for semantic search.
+    
+    From raw PDFs to searchable vector embeddings in minutes.
 
 ---
 
-## Overview
+## :material-chart-timeline: Overview
 
-The document indexing pipeline consists of three main stages:
+!!! info "Three-Stage Pipeline"
+    The document indexing pipeline consists of three main stages:
 
-1. **Upload** - Store raw files (PDF, DOCX, TXT)
-2. **Processing** - Extract text, parse structure, OCR if needed
-3. **Indexing** - Chunk text, generate embeddings, store in Milvus
-
-```text
-┌─────────────┐    ┌──────────────┐    ┌───────────────┐
-│   Upload    │───▶│  Processing  │───▶│   Indexing    │
-│  (Storage)  │    │  (Parsing)   │    │  (Milvus)     │
-└─────────────┘    └──────────────┘    └───────────────┘
+```mermaid
+graph LR
+    A[📤 Upload] -->|Store| B[⚙️ Processing]
+    B -->|Parse & OCR| C[📇 Indexing]
+    C -->|Embed & Store| D[(🔍 Milvus)]
+    
+    style A fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    style B fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style C fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style D fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
 ```
 
+### Pipeline Stages
+
+| Stage | Purpose | Tools |
+|-------|---------|-------|
+| 1️⃣ **Upload** | Store raw files | Supabase/S3/Local |
+| 2️⃣ **Processing** | Extract & parse text | Docling, OCR |
+| 3️⃣ **Indexing** | Generate embeddings | Ollama, Milvus |
+
 ---
 
-## Quick Start
+## :material-rocket-launch: Quick Start
 
 ### Upload a Single Document
 
-```python
+```python title="Simple document upload"
 from src.domain.tender.services.documents import DocumentService
 
 service = DocumentService()
@@ -43,17 +54,22 @@ document = service.upload(
     }
 )
 
-print(f"Document uploaded: {document.id}")
-print(f"Status: {document.status}")
+print(f"✅ Document uploaded: {document.id}")
+print(f"📊 Status: {document.status}")
 ```
+
+---
 
 ### Batch Upload
 
-```python
+!!! tip "Process Multiple Documents"
+    Upload all PDFs from a directory:
+
+```python title="Batch processing"
 import os
 from pathlib import Path
 
-# Upload all PDFs from a directory
+# Upload all PDFs from directory
 tender_dir = Path("data/input/tenders/2025/")
 
 for pdf_file in tender_dir.glob("*.pdf"):
@@ -61,40 +77,102 @@ for pdf_file in tender_dir.glob("*.pdf"):
         file_path=str(pdf_file),
         tender_id=f"TENDER-{pdf_file.stem}",
     )
-    print(f"Uploaded: {pdf_file.name} → {document.id}")
+    print(f"✅ {pdf_file.name} → {document.id}")
 ```
 
 ---
 
-## Document Processing Pipeline
+## :material-cog: Document Processing Pipeline
 
-### Step 1: File Upload
+### :material-upload: Step 1: File Upload
 
-Documents are stored in the configured storage backend (local filesystem or S3):
+!!! info "Storage Options"
+    Documents are stored in the configured storage backend:
 
-```python
-from src.infra.storage import get_storage_client
+=== "Local Filesystem"
 
-storage = get_storage_client()
+    ```python title="Local storage"
+    from src.infra.storage import get_storage_client
+    
+    storage = get_storage_client()
+    
+    # Store file locally
+    file_path = storage.upload(
+        file_content=pdf_bytes,
+        filename="tender_2025_001.pdf",
+        folder="tenders/2025"
+    )
+    ```
 
-# Store file
-file_url = storage.upload(
-    file_path="tender.pdf",
-    bucket="tenders",
-    prefix="2025/01/"
-)
-```
+=== "Supabase Storage"
 
-**Supported formats:**
-- PDF (including scanned with OCR)
-- DOCX (Microsoft Word)
-- TXT (plain text)
+    ```python title="Cloud storage with Supabase"
+    from src.clients.supabase import get_supabase_client
+    
+    supabase = get_supabase_client()
+    
+    # Upload to Supabase bucket
+    response = supabase.storage.from_("documents").upload(
+        path="tenders/2025/tender_001.pdf",
+        file=pdf_bytes,
+        file_options={"content-type": "application/pdf"}
+    )
+    ```
 
-### Step 2: Text Extraction
+=== "S3-Compatible"
 
-The system automatically detects file type and applies appropriate parsing:
+    ```python title="AWS S3 or MinIO"
+    import boto3
+    
+    s3 = boto3.client('s3')
+    
+    s3.upload_fileobj(
+        file_obj,
+        bucket_name='tender-documents',
+        key='2025/tender_001.pdf'
+    )
+    ```
 
-```python
+---
+
+## :material-file-document-edit: Step 2: Document Parsing
+
+!!! abstract "Text Extraction"
+    Automatically detect format and extract structured content with metadata.
+
+### Supported Formats
+
+<div class="grid cards" markdown>
+
+-   📄 **PDF**
+
+    ---
+    
+    - Native text extraction
+    - **OCR for scanned docs**
+    - Layout preservation
+
+-   📝 **DOCX**
+
+    ---
+    
+    - Microsoft Word
+    - Rich formatting
+    - Tables & images
+
+-   📃 **TXT**
+
+    ---
+    
+    - Plain text
+    - Fast processing
+    - UTF-8 encoding
+
+</div>
+
+### Usage
+
+```python title="Automatic format detection"
 from src.domain.tender.services.documents import DocumentParser
 
 parser = DocumentParser()
@@ -107,16 +185,21 @@ print(f"Pages: {parsed_data.page_count}")
 print(f"Extracted text length: {len(parsed_data.text)}")
 ```
 
-**OCR Support:**
-- Automatically triggered for scanned PDFs
-- Uses Tesseract OCR for Italian/English
-- Preserves layout and page numbers
+!!! success "OCR Support"
+    - **Automatic triggering** for scanned PDFs
+    - **Tesseract OCR** for Italian/English
+    - **Layout preservation** with page numbers
 
-### Step 3: Text Chunking
+---
 
-Text is split into overlapping chunks for better retrieval:
+## :material-scissors-cutting: Step 3: Text Chunking
 
-```python
+!!! abstract "Smart Document Splitting"
+    Split text into overlapping chunks for optimal retrieval performance.
+
+### Strategy
+
+```python title="Token-based chunking"
 from rag_toolkit.chunking import RecursiveTokenChunker
 
 chunker = RecursiveTokenChunker(
@@ -129,16 +212,29 @@ chunks = chunker.chunk(parsed_data.text)
 print(f"Created {len(chunks)} chunks")
 ```
 
-**Chunking strategy:**
-- Default: 512 tokens per chunk with 50 token overlap
-- Respects sentence boundaries (no mid-sentence cuts)
-- Preserves metadata (page numbers, section headers)
+### Configuration
 
-### Step 4: Embedding Generation
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `chunk_size` | `512` | Target tokens per chunk |
+| `chunk_overlap` | `50` | Overlapping tokens for context |
+| `model` | `gpt-3.5-turbo` | Tokenizer model |
 
-Each chunk is converted to a vector embedding:
+!!! tip "Chunking Features"
+    - ✅ **Sentence boundary respect** (no mid-sentence cuts)
+    - ✅ **Metadata preservation** (page numbers, headers)
+    - ✅ **Configurable overlap** (maintain context)
 
-```python
+---
+
+## :material-vector-polygon: Step 4: Embedding Generation
+
+!!! abstract "Convert Text to Vectors"
+    Transform chunks into high-dimensional embeddings for semantic search.
+
+### Generate Embeddings
+
+```python title="Batch embedding generation"
 from src.infra.factory import create_tender_stack
 
 stack = create_tender_stack()
@@ -153,15 +249,36 @@ print(f"Generated {len(vectors)} embeddings")
 print(f"Embedding dimension: {len(vectors[0])}")
 ```
 
-**Models supported:**
-- Ollama: `nomic-embed-text` (768d, local)
-- OpenAI: `text-embedding-3-small` (1536d, API)
+### Supported Models
 
-### Step 5: Vector Store Indexing
+=== "🤖 Ollama (Local)"
 
-Embeddings are stored in Milvus with metadata:
+    | Model | Dimensions | Size | Speed |
+    |-------|-----------|------|-------|
+    | `nomic-embed-text` | 768 | 274MB | ⚡⚡⚡ |
+    | `mxbai-embed-large` | 1024 | 670MB | ⚡⚡ |
+    
+    **Best for**: Local development, privacy, cost-free
 
-```python
+=== "☁️ OpenAI (Cloud)"
+
+    | Model | Dimensions | Cost | Quality |
+    |-------|-----------|------|---------|
+    | `text-embedding-3-small` | 1536 | $ | ⭐⭐⭐ |
+    | `text-embedding-3-large` | 3072 | $$$ | ⭐⭐⭐⭐⭐ |
+    
+    **Best for**: Production, highest quality, managed infrastructure
+
+---
+
+## :material-database-arrow-up: Step 5: Vector Store Indexing
+
+!!! abstract "Store in Milvus"
+    Index embeddings with metadata in Milvus vector database.
+
+### Index Documents
+
+```python title="Milvus indexing"
 from src.domain.tender.indexing import TenderMilvusIndexer
 
 indexer = TenderMilvusIndexer(
@@ -175,20 +292,28 @@ indexer.index_documents(
     tender_id="TENDER-2025-001",
     metadata={
         "source_file": "tender.pdf",
-        "upload_date": "2025-12-26"
+        "upload_date": "2025-12-26",
+        "buyer_name": "Ministero dell'Interno",
+        "cpv_code": "72000000"
     }
 )
 
 print(f"Indexed {len(chunks)} chunks in Milvus")
 ```
 
+!!! success "What Gets Stored"
+    - ✅ **Embeddings** (vector data)
+    - ✅ **Original text** (for retrieval)
+    - ✅ **Metadata** (tender_id, page numbers, etc.)
+    - ✅ **Relationships** (chunk → document → tender)
+
 ---
 
-## Complete Example
+## :material-code-block-tags: Complete Example
 
-Here's a full end-to-end indexing workflow:
+!!! example "End-to-End Indexing Pipeline"
 
-```python
+```python title="Full indexing workflow"
 from pathlib import Path
 from src.domain.tender.services.documents import DocumentService
 from src.infra.factory import create_tender_stack
@@ -212,17 +337,23 @@ def index_tender(file_path: str, tender_id: str):
     
     print(f"2. Parsing document...")
     parsed = doc_service.parse(document.id)
+    print(f"   → {parsed.page_count} pages, {len(parsed.text):,} chars")
     
-    print(f"3. Chunking text ({len(parsed.text)} chars)...")
+    print(f"3. Chunking text...")
     chunks = doc_service.chunk(parsed)
+    print(f"   → Created {len(chunks)} chunks")
     
-    print(f"4. Generating embeddings for {len(chunks)} chunks...")
+    print(f"4. Generating embeddings...")
     doc_service.embed(chunks)
+    print(f"   → {len(chunks)} embeddings ({stack.embedding_dim}d)")
     
     print(f"5. Indexing in Milvus...")
     result = doc_service.index(chunks, tender_id=tender_id)
     
     print(f"✅ Successfully indexed {result.chunk_count} chunks")
+    print(f"   Collection: {result.collection_name}")
+    print(f"   Document ID: {result.document_id}")
+    
     return result
 
 # Usage
@@ -234,13 +365,14 @@ result = index_tender(
 
 ---
 
-## Advanced Configuration
+## :material-cog-refresh: Advanced Configuration
 
 ### Custom Chunking Strategy
 
-For technical documents with tables/diagrams:
+!!! tip "Semantic Chunking"
+    For documents with complex structure (tables, diagrams):
 
-```python
+```python title="Semantic-based chunking"
 from rag_toolkit.chunking import SemanticChunker
 
 # Split by semantic similarity instead of fixed size
@@ -253,12 +385,20 @@ chunker = SemanticChunker(
 chunks = chunker.chunk(parsed_data.text)
 ```
 
+**When to use:**
+
+- 📊 Documents with tables/charts
+- 📋 Structured sections (requirements lists)
+- 📖 Multi-topic documents
+
+---
+
 ### Metadata Enrichment
 
-Add custom metadata to chunks:
+!!! tip "Extract Entities"
+    Add structured metadata to chunks:
 
-```python
-# Extract entities and add to metadata
+```python title="Entity extraction"
 from src.domain.tender.services.entities import EntityExtractor
 
 extractor = EntityExtractor()
@@ -268,21 +408,198 @@ for chunk in chunks:
     chunk.metadata.update({
         "entities": entities,
         "has_deadlines": bool(entities.get("deadlines")),
-        "has_requirements": bool(entities.get("requirements"))
+        "has_requirements": bool(entities.get("requirements")),
+        "cpv_codes": entities.get("cpv_codes", [])
     })
 ```
 
+**Extracted entities:**
+
+- 📅 Deadlines (submission, award dates)
+- ✅ Requirements (technical, economic)
+- 🔢 CPV codes
+- 💰 Budget amounts
+- 🏢 Organizations (buyers, suppliers)
+
+---
+
 ### Parallel Processing
 
-For bulk uploads:
+!!! tip "Bulk Upload"
+    Process multiple files simultaneously:
 
-```python
+```python title="Parallel batch indexing"
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 
 files = list(Path("data/input/").glob("*.pdf"))
 
+def index_file(file_path: Path):
+    tender_id = f"TENDER-{file_path.stem}"
+    return index_tender(str(file_path), tender_id)
+
+# Process 4 files in parallel
 with ThreadPoolExecutor(max_workers=4) as executor:
-    futures = [
+    futures = [executor.submit(index_file, f) for f in files]
+    
+    for future in futures:
+        result = future.result()
+        print(f"✅ {result.document_id}: {result.chunk_count} chunks")
+```
+
+!!! warning "Resource Limits"
+    - Limit workers based on CPU/memory
+    - Ollama: 2-4 workers (GPU limited)
+    - OpenAI: 8-16 workers (API rate limits)
+
+---
+
+## :material-alert-circle: Troubleshooting
+
+??? failure "OCR Errors"
+
+    **Problem**: Text extraction fails on scanned PDFs
+    
+    **Solutions**:
+    
+    1. **Install Tesseract**:
+       ```bash
+       # macOS
+       brew install tesseract tesseract-lang
+       
+       # Ubuntu
+       sudo apt-get install tesseract-ocr tesseract-ocr-ita
+       ```
+    
+    2. **Check language support**:
+       ```bash
+       tesseract --list-langs
+       ```
+    
+    3. **Force OCR**:
+       ```python
+       parsed = parser.parse(file_path="scan.pdf", force_ocr=True)
+       ```
+
+??? failure "Chunking Issues"
+
+    **Problem**: Chunks too large/small or cut mid-sentence
+    
+    **Solutions**:
+    
+    1. **Adjust chunk size**:
+       ```python
+       chunker = RecursiveTokenChunker(
+           chunk_size=256,  # Smaller chunks
+           chunk_overlap=50
+       )
+       ```
+    
+    2. **Use semantic chunking**:
+       ```python
+       chunker = SemanticChunker(
+           max_chunk_size=1024,
+           similarity_threshold=0.75
+       )
+       ```
+    
+    3. **Check token counts**:
+       ```python
+       from rag_toolkit.chunking import count_tokens
+       
+       for chunk in chunks:
+           tokens = count_tokens(chunk.text)
+           print(f"Chunk {chunk.id}: {tokens} tokens")
+       ```
+
+??? failure "Milvus Connection Error"
+
+    **Problem**: Cannot connect to Milvus
+    
+    **Solutions**:
+    
+    1. **Check Milvus is running**:
+       ```bash
+       docker ps | grep milvus
+       ```
+    
+    2. **Verify connection**:
+       ```python
+       from pymilvus import connections
+       
+       connections.connect(
+           alias="default",
+           host="localhost",
+           port="19530"
+       )
+       ```
+    
+    3. **Check environment**:
+       ```bash
+       echo $MILVUS_URI
+       ```
+
+??? warning "Out of Memory"
+
+    **Problem**: Process crashes during embedding generation
+    
+    **Solutions**:
+    
+    1. **Reduce batch size**:
+       ```python
+       embedding_client.embed_batch(
+           texts=chunk_texts,
+           batch_size=32  # Smaller batches
+       )
+       ```
+    
+    2. **Process sequentially**:
+       ```python
+       vectors = [embedding_client.embed(c.text) for c in chunks]
+       ```
+    
+    3. **Use smaller model**:
+       ```bash
+       # .env
+       OLLAMA_EMBED_MODEL=all-minilm  # 45MB vs 274MB
+       ```
+
+---
+
+## :material-arrow-right-circle: Next Steps
+
+<div class="grid cards" markdown>
+
+-   :material-robot-outline:{ .lg } **[RAG Pipeline](rag-pipeline.md)**
+
+    ---
+    
+    **Complete end-to-end RAG** with retrieval, graph enrichment, and generation
+
+-   :material-magnify:{ .lg } **[Search & Retrieval](search-retrieval.md)**
+
+    ---
+    
+    Query indexed documents with vector, keyword, and hybrid search
+
+-   :material-graph:{ .lg } **[Knowledge Graph](knowledge-graph.md)**
+
+    ---
+    
+    Enhance retrieval with Neo4j graph relationships
+
+-   :material-api:{ .lg } **API Reference**
+
+    ---
+    
+    ```bash
+    # View API docs
+    uvicorn main:app --reload
+    # Open http://localhost:8000/docs
+    ```
+
+</div>
+
         executor.submit(index_tender, str(f), f"TENDER-{f.stem}")
         for f in files
     ]

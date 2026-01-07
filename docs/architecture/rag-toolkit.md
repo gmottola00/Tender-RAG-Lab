@@ -1,8 +1,13 @@
 # rag_toolkit Integration
 
-Learn how Tender-RAG-Lab integrates with **rag_toolkit** for generic RAG components.
+!!! abstract "Overview"
+    Learn how Tender-RAG-Lab integrates with **rag_toolkit** for generic RAG components.
+    
+    rag_toolkit is a **standalone library** providing reusable RAG primitives that work across domains.
 
-## What is rag_toolkit?
+---
+
+## :material-package-variant: What is rag_toolkit?
 
 **rag_toolkit** is a standalone Python library providing **generic, reusable RAG components** that work across different domains and use cases.
 
@@ -11,23 +16,54 @@ graph LR
     A[Tender-RAG-Lab] --> B[rag_toolkit]
     C[Medical-RAG] --> B
     D[Legal-RAG] --> B
+    E[Finance-RAG] --> B
     
-    style B fill:#e8f5e9
+    style B fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
+    style A fill:#e3f2fd,stroke:#1976d2
+    style C fill:#fff3e0,stroke:#f57c00
+    style D fill:#f3e5f5,stroke:#7b1fa2
+    style E fill:#fce4ec,stroke:#c2185b
 ```
 
 ### Design Philosophy
 
-1. **Protocol-Based** - Structural typing for flexibility
-2. **Zero Domain Knowledge** - No tender/medical/legal specifics
-3. **Composable** - Mix and match components
-4. **Tested** - Comprehensive test coverage
+<div class="grid cards" markdown>
 
-## Installation
+-   :material-protocol:{ .lg } **Protocol-Based**
 
-rag_toolkit is installed in **editable mode** for local development:
+    ---
 
-```bash
-# Clone rag_toolkit
+    Structural typing for flexibility without inheritance
+
+-   :material-domain:{ .lg } **Zero Domain Knowledge**
+
+    ---
+
+    No tender/medical/legal specifics — pure generic logic
+
+-   :material-puzzle:{ .lg } **Composable**
+
+    ---
+
+    Mix and match components like LEGO blocks
+
+-   :material-check-circle:{ .lg } **Tested**
+
+    ---
+
+    Comprehensive test coverage for reliability
+
+</div>
+
+---
+
+## :material-download: Installation
+
+!!! tip "Editable Mode for Development"
+    rag_toolkit is installed in **editable mode** for local development:
+
+```bash title="Install rag_toolkit"
+# Clone rag_toolkit repository
 git clone https://github.com/yourusername/Rag-Toolkit.git
 
 # Install in editable mode
@@ -35,58 +71,67 @@ cd Tender-RAG-Lab
 uv pip install -e ../Rag-Toolkit
 ```
 
-## Core Components
+!!! info "Why Editable Mode?"
+    - ✅ Changes to rag_toolkit immediately available
+    - ✅ No need to reinstall after edits
+    - ✅ Perfect for parallel development
 
-### 1. Protocols (Interfaces)
+---
 
-rag_toolkit defines **Protocols** that domain code implements:
+## :material-cube-outline: Core Components
 
-```python
-# rag_toolkit.core.chunking.types
-from typing import Protocol, runtime_checkable
+### :material-protocol: 1. Protocols (Interfaces)
 
-@runtime_checkable
-class ChunkLike(Protocol):
-    """Generic chunk interface."""
-    id: str
-    text: str
-    title: str
-    heading_level: int
-    blocks: List[Dict[str, Any]]
-    page_numbers: List[int]
+!!! abstract "Protocol Pattern"
+    rag_toolkit defines **Protocols** that domain code implements for type-safe duck typing.
+
+=== "Generic Protocol"
+
+    ```python title="rag_toolkit/core/chunking/types.py"
+    from typing import Protocol, runtime_checkable
     
-    def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
-        ...
-```
+    @runtime_checkable
+    class ChunkLike(Protocol):
+        """Generic chunk interface."""
+        id: str
+        text: str
+        title: str
+        heading_level: int
+        blocks: List[Dict[str, Any]]
+        page_numbers: List[int]
+        
+        def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
+            ...
+    ```
 
-**Domain Extension:**
+=== "Domain Extension"
 
-```python
-# src/domain/tender/schemas/chunking.py
-from rag_toolkit.core.chunking.types import ChunkLike
-
-@dataclass
-class TenderChunk:
-    """Implements ChunkLike with tender-specific fields."""
+    ```python title="src/domain/tender/schemas/chunking.py"
+    from rag_toolkit.core.chunking.types import ChunkLike
     
-    # Protocol fields
-    id: str
-    text: str
-    title: str
-    heading_level: int
-    blocks: List[Dict[str, Any]] = field(default_factory=list)
-    page_numbers: List[int] = field(default_factory=list)
-    
-    # Tender-specific extensions
-    tender_id: str = ""
-    lot_id: Optional[str] = None
-    section_type: str = ""
-    
-    def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
-        # Implementation...
-```
+    @dataclass
+    class TenderChunk:
+        """Implements ChunkLike with tender-specific fields."""
+        
+        # ✅ Protocol fields (required)
+        id: str
+        text: str
+        title: str
+        heading_level: int
+        blocks: List[Dict[str, Any]] = field(default_factory=list)
+        page_numbers: List[int] = field(default_factory=list)
+        
+        # 🎯 Tender-specific extensions
+        tender_id: str = ""
+        lot_id: Optional[str] = None
+        section_type: str = ""
+        
+        def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
+            # Implementation...
+            return asdict(self)
+    ```
 
-**Key Protocols:**
+### Key Protocols
 
 | Protocol | Purpose | Location |
 |----------|---------|----------|
@@ -96,11 +141,14 @@ class TenderChunk:
 | `LLMClient` | Language models | `rag_toolkit.core.llm` |
 | `VectorStoreClient` | Vector databases | `rag_toolkit.core.vectorstore` |
 
-### 2. RAG Pipeline
+---
 
-Generic orchestration for retrieval and generation:
+### :material-pipeline: 2. RAG Pipeline
 
-```python
+!!! info "Generic Orchestration"
+    End-to-end retrieval and generation workflow.
+
+```python title="Using RagPipeline"
 from rag_toolkit.rag import RagPipeline
 from rag_toolkit.rag.rewriter import QueryRewriter
 from rag_toolkit.rag.assembler import ContextAssembler
@@ -112,12 +160,18 @@ pipeline = RagPipeline(
     llm_client=llm_client,
 )
 
+# Query with automatic rewriting, search, reranking, generation
 result = await pipeline.query("What are the requirements?")
 ```
 
-### 3. Vector Store Abstractions
+---
 
-```python
+### :material-database-search: 3. Vector Store Abstractions
+
+!!! tip "Factory Pattern"
+    Create vector store services with factories for easy swapping.
+
+```python title="Factory Usage"
 from rag_toolkit.infra.vectorstores.factory import (
     create_milvus_service,
     create_index_service
@@ -135,31 +189,44 @@ index_service = create_index_service(
 )
 ```
 
-### 4. Chunking Strategies
+---
 
-```python
-from rag_toolkit.core.chunking import DynamicChunker, TokenChunker
+### :material-file-document-multiple: 4. Chunking Strategies
 
-# Dynamic chunking by document structure
-chunker = DynamicChunker(
-    max_tokens=512,
-    overlap_tokens=50,
-)
+=== "Dynamic Chunking"
 
-chunks = chunker.chunk_document(document)
+    ```python
+    from rag_toolkit.core.chunking import DynamicChunker
+    
+    # Chunk by document structure
+    chunker = DynamicChunker(
+        max_tokens=512,
+        overlap_tokens=50,
+    )
+    
+    chunks = chunker.chunk_document(document)
+    ```
 
-# Token-optimized chunking
-token_chunker = TokenChunker(
-    max_tokens=512,
-    overlap=50,
-)
+=== "Token Chunking"
 
-token_chunks = token_chunker.create_token_chunks(chunks)
-```
+    ```python
+    from rag_toolkit.core.chunking import TokenChunker
+    
+    # Token-optimized chunking
+    token_chunker = TokenChunker(
+        max_tokens=512,
+        overlap=50,
+    )
+    
+    token_chunks = token_chunker.create_token_chunks(chunks)
+    ```
 
-## Import Mapping
+---
 
-After migration (Phases 1-3), imports changed:
+## :material-import: Import Mapping
+
+!!! warning "After Migration (Phases 1-3)"
+    Imports changed from local `src.core.*` to external `rag_toolkit.*`.
 
 | Old (Deleted) | New (rag_toolkit) |
 |---------------|-------------------|
@@ -169,24 +236,32 @@ After migration (Phases 1-3), imports changed:
 | `src.core.chunking` | `rag_toolkit.core.chunking` |
 | `src.core.index` | `rag_toolkit.core.index` |
 
-**Example:**
+=== "❌ Old (Deleted)"
 
-```python
-# ❌ Old (deleted)
-from src.core.rag.pipeline import RagPipeline
-from src.core.embedding.base import EmbeddingClient
+    ```python
+    # These imports no longer work
+    from src.core.rag.pipeline import RagPipeline
+    from src.core.embedding.base import EmbeddingClient
+    from src.core.chunking.dynamic_chunker import DynamicChunker
+    ```
 
-# ✅ New (rag_toolkit)
-from rag_toolkit.rag import RagPipeline
-from rag_toolkit.core.embedding import EmbeddingClient
-```
+=== "✅ New (rag_toolkit)"
 
-## Factory Pattern Integration
+    ```python
+    # Use these instead
+    from rag_toolkit.rag import RagPipeline
+    from rag_toolkit.core.embedding import EmbeddingClient
+    from rag_toolkit.core.chunking import DynamicChunker
+    ```
 
-Domain-specific components wrap rag_toolkit via **factories**:
+---
 
-```python
-# src/infra/factory.py
+## :material-factory: Factory Pattern Integration
+
+!!! tip "Wrapping rag_toolkit Components"
+    Domain-specific components wrap rag_toolkit via **factories** for centralized configuration.
+
+```python title="src/infra/factory.py" hl_lines="11-15 21-25"
 from rag_toolkit.core.embedding import EmbeddingClient
 from rag_toolkit.core.index.service import IndexService
 from rag_toolkit.infra.vectorstores.factory import (
@@ -201,7 +276,7 @@ def create_tender_stack(
 ) -> Tuple[TenderMilvusIndexer, TenderSearcher]:
     """Create tender-specific stack wrapping rag_toolkit."""
     
-    # 1. Generic rag_toolkit components
+    # 1️⃣ Generic rag_toolkit components
     milvus_service = create_milvus_service()
     index_service = create_index_service(
         embedding_dim=embedding_dim,
@@ -210,7 +285,7 @@ def create_tender_stack(
         vector_store=milvus_service,
     )
     
-    # 2. Domain-specific wrappers
+    # 2️⃣ Domain-specific wrappers
     indexer = TenderMilvusIndexer(
         index_service=index_service,
         # ... tender-specific config
@@ -224,71 +299,65 @@ def create_tender_stack(
     return indexer, searcher
 ```
 
-**Pattern:**
-1. Use rag_toolkit factories for generic components
-2. Wrap with domain-specific classes
-3. Inject domain-specific configuration
+!!! success "Factory Pattern Benefits"
+    1. Use rag_toolkit factories for generic components
+    2. Wrap with domain-specific classes
+    3. Inject domain-specific configuration
+    4. Single source of truth for infrastructure
 
-## Dependency Injection
+---
 
-FastAPI deps use factory functions:
+## :material-chart-timeline: Migration Status
 
-```python
-# src/api/deps.py
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
-from src.infra.factory import create_tender_stack
+=== "✅ Completed (Phases 1-3)"
 
-def get_tender_indexer() -> TenderMilvusIndexer:
-    """Dependency for indexer."""
-    embed_client = OllamaEmbeddingClient()
-    embedding_dim = len(embed_client.embed("test"))
+    - [x] **Phase 1:** Protocol imports (`EmbeddingClient`, `LLMClient`)
+    - [x] **Phase 2:** RAG modules (`pipeline`, `rerankers`, `assembler`)
+    - [x] **Phase 3:** Chunking modules (`DynamicChunker`, `TokenChunker`)
     
-    indexer, _ = create_tender_stack(embed_client, embedding_dim)
-    return indexer
+    !!! success "Result"
+        ~17 files eliminated, ~60% code reduction in core logic
 
-# Usage in router
-@router.post("/documents/index")
-async def index_document(
-    file: UploadFile,
-    indexer: TenderMilvusIndexer = Depends(get_tender_indexer)
-):
-    return await indexer.index(file)
-```
+=== "⚠️ Pending (Phases 4-5)"
 
-## Migration Status
+    - [ ] **Phase 4:** Vector store verification
+    - [ ] **Phase 5:** Final cleanup
 
-### ✅ Completed (Phases 1-3)
+---
 
-- **Phase 1:** Protocol imports (`EmbeddingClient`, `LLMClient`)
-- **Phase 2:** RAG modules (`pipeline`, `rerankers`, `assembler`)
-- **Phase 3:** Chunking modules (`DynamicChunker`, `TokenChunker`)
+## :material-star: Benefits
 
-**Result:** ~17 files eliminated, ~60% code reduction in core
+<div class="grid cards" markdown>
 
-### ⚠️ Pending
+-   :material-sync:{ .lg } **Code Reuse**
 
-- **Phase 4:** Vector store verification
-- **Phase 5:** Final cleanup
+    ---
 
-## Benefits
+    Generic RAG logic shared across projects — no need to reimplement pipelines
 
-### 1. Code Reuse
-- Generic RAG logic shared across projects
-- No need to reimplement pipelines
+-   :material-layers-outline:{ .lg } **Separation of Concerns**
 
-### 2. Separation of Concerns
-- rag_toolkit = generic components
-- Tender-RAG-Lab = domain logic
+    ---
 
-### 3. Upgradability
-- Update rag_toolkit independently
-- Bug fixes benefit all projects
+    rag_toolkit = generic components | Tender-RAG-Lab = domain logic
 
-### 4. Testability
-- rag_toolkit has its own tests
-- Domain tests focus on business logic
+-   :material-update:{ .lg } **Upgradability**
 
-## Common Patterns
+    ---
+
+    Update rag_toolkit independently — bug fixes benefit all projects
+
+-   :material-test-tube:{ .lg } **Testability**
+
+    ---
+
+    rag_toolkit has its own tests — domain tests focus on business logic
+
+</div>
+
+---
+
+## :material-code-braces: Common Patterns
 
 ### Pattern 1: Protocol Compliance
 
@@ -296,12 +365,12 @@ async def index_document(
 # Domain class implements protocol
 @dataclass
 class TenderChunk:
-    # All ChunkLike fields
+    # ✅ All ChunkLike fields
     id: str
     text: str
     # ...
     
-    # Domain extensions
+    # 🎯 Domain extensions
     tender_id: str
     
     def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
@@ -352,39 +421,69 @@ results = index_service.search(
 )
 ```
 
-## Troubleshooting
+---
 
-### ImportError: cannot import name 'X'
+## :material-bug: Troubleshooting
 
-Check import paths match rag_toolkit structure:
-
-```python
-# ❌ Wrong
-from rag_toolkit.core.index.base import IndexService
-
-# ✅ Correct
-from rag_toolkit.core.index.service import IndexService
-```
-
-### Protocol Compliance Error
-
-Ensure domain classes implement all required protocol methods:
-
-```python
-# Missing to_dict() causes runtime error
-@dataclass
-class MyChunk:
-    id: str
-    text: str
-    # ❌ Missing to_dict()!
+!!! failure "ImportError: cannot import name 'X'"
+    Check import paths match rag_toolkit structure:
     
-# ✅ Add required method
-def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
-    return {"id": self.id, "text": self.text}
-```
+    ```python
+    # ❌ Wrong
+    from rag_toolkit.core.index.base import IndexService
+    
+    # ✅ Correct
+    from rag_toolkit.core.index.service import IndexService
+    ```
 
-## See Also
+!!! failure "Protocol Compliance Error"
+    Ensure domain classes implement all required protocol methods:
+    
+    ```python
+    # ❌ Missing to_dict() causes runtime error
+    @dataclass
+    class MyChunk:
+        id: str
+        text: str
+        # Missing to_dict()!
+    
+    # ✅ Add required method
+    def to_dict(self, *, include_blocks: bool = True) -> Dict[str, Any]:
+        return {"id": self.id, "text": self.text}
+    ```
 
-- [Clean Architecture](clean-architecture.md) - Layer design principles
-- [Architecture Overview](overview.md) - System design
-- [API Reference](../api/core/embedding.md) - rag_toolkit API docs
+---
+
+## :material-book-open: See Also
+
+<div class="grid cards" markdown>
+
+-   :material-layers-triple:{ .lg } **Clean Architecture**
+
+    ---
+
+    [:octicons-arrow-right-24: Layer design principles](clean-architecture.md)
+
+-   :material-layers-outline:{ .lg } **Architecture Overview**
+
+    ---
+
+    [:octicons-arrow-right-24: System design](overview.md)
+
+-   :material-api:{ .lg } **API Reference**
+
+    ---
+
+    [:octicons-arrow-right-24: rag_toolkit API docs](../api/core/embedding.md)
+
+</div>
+
+---
+
+<div align="center">
+
+**[← Clean Architecture](clean-architecture.md)** | **[Architecture Overview →](overview.md)**
+
+*Last updated: 2026-01-05*
+
+</div>
