@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
@@ -12,6 +13,47 @@ from src.domain.tender.schemas.tenders import TenderCreate, TenderUpdate
 
 class TenderService:
     """Business logic for tenders."""
+
+    @staticmethod
+    async def generate_next_code(db: AsyncSession, fiscal_year: Optional[str] = None) -> str:
+        """Generate next incremental tender code (e.g., FY26-0004).
+
+        Args:
+            db: Database session
+            fiscal_year: Fiscal year prefix (default: current year as FY{YY})
+
+        Returns:
+            Next tender code in format FY{YY}-{NNNN}
+
+        Example:
+            If last code is FY26-0003, returns FY26-0004
+            If no codes exist, returns FY26-0001
+        """
+        if fiscal_year is None:
+            current_year = datetime.now().year
+            fiscal_year = f"FY{str(current_year)[2:]}"  # FY26 for 2026
+
+        # Query ultimo tender code per l'anno fiscale
+        result = await db.execute(
+            select(Tender.code)
+            .where(Tender.code.like(f"{fiscal_year}-%"))
+            .order_by(Tender.code.desc())
+            .limit(1)
+        )
+        last_code = result.scalar_one_or_none()
+
+        if last_code:
+            # Estrai numero: FY26-0003 → 3
+            try:
+                num = int(last_code.split("-")[1])
+                next_num = num + 1
+            except (IndexError, ValueError):
+                # Fallback se il formato non è valido
+                next_num = 1
+        else:
+            next_num = 1
+
+        return f"{fiscal_year}-{next_num:04d}"  # FY26-0004
 
     @staticmethod
     async def create(db: AsyncSession, data: TenderCreate) -> Tender:

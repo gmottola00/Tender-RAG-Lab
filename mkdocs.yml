@@ -205,6 +205,7 @@ nav:
     - Search & Retrieval: guides/search-retrieval.md
     - RAG Pipeline: guides/rag-pipeline.md
     - Knowledge Graph: guides/knowledge-graph.md
+    - NER & Graph Integration: guides/ner-graph-integration.md
     - Neo4j Setup: guides/neo4j-setup.md
     - Neo4j Integration: guides/neo4j-integration.md
   

@@ -119,13 +119,19 @@ gantt
 
 === "🚧 Entity Extraction"
 
-    **Status**: 40% Complete
+    **Status**: 60% Complete ⬆️ (+20%)
     
+    - [X] **spaCy NER pipeline** (`TenderNER` class)
+      - Italian model: `it_core_news_lg`
+      - Entities: ORG, PERSON, LOCATION, DATE, MONEY
+    - [X] **Entity extraction service** (`EntityExtractionService`)
+    - [X] **API endpoint** (`POST /extract-entities`)
     - [ ] **NER model fine-tuning** (BERT Italian + tender domain)
-      - Labels: `LOT_ID`, `REQUIREMENT`, `DEADLINE`, `AMOUNT`, `ORG`, `CPV`
+      - Labels: `LOT_ID`, `REQUIREMENT`, `DEADLINE`, `AMOUNT`, `CPV`
       - Target F1: >0.90 per entity type
     - [ ] **Relation extraction** (Tender→Lot, Lot→Requirement)
     - [ ] **Graph builder pipeline** (chunks → entities → graph)
+    - [ ] **Neo4j integration** (auto-populate after ingestion)
     - [ ] **Sync pipeline** (trigger after document ingestion)
 
 === "📋 Hybrid Retrieval"

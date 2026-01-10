@@ -45,7 +45,8 @@ class TenderGraphClient(Neo4jClient):
             ("lot_id_unique", "Lot", "id"),
             ("requirement_id_unique", "Requirement", "id"),
             ("deadline_id_unique", "Deadline", "id"),
-            ("org_cf_unique", "Organization", "cf"),
+            ("org_name_unique", "Organization", "name"),  # Changed from cf to name
+            ("chunk_id_unique", "Chunk", "id"),
         ]
         
         for name, label, prop in constraints:
@@ -57,7 +58,9 @@ class TenderGraphClient(Neo4jClient):
             ("tender_buyer", "Tender", "buyer_name"),
             ("tender_publication_date", "Tender", "publication_date"),
             ("requirement_mandatory", "Requirement", "mandatory"),
-            ("deadline_date", "Deadline", "date"),
+            ("requirement_type", "Requirement", "type"),
+            ("deadline_date", "Deadline", "date_text"),
+            ("deadline_type", "Deadline", "type"),
             ("lot_cpv", "Lot", "cpv_code"),
         ]
         
@@ -275,8 +278,419 @@ class TenderGraphClient(Neo4jClient):
             "base_amount": base_amount,
         }
         params.update(kwargs)
-        
+
         return await self.execute_write(query, params)
+
+    async def add_requirement(
+        self,
+        requirement_id: str,
+        requirement_type: str,
+        description: str,
+        mandatory: bool,
+        tender_code: str,
+        lot_id: Optional[str] = None,
+        chunk_id: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Add a requirement to a tender (and optionally to a lot).
+
+        Args:
+            requirement_id: Unique requirement identifier
+            requirement_type: Type (e.g., "tecnico", "economico", "amministrativo")
+            description: Requirement description/text
+            mandatory: Whether the requirement is mandatory
+            tender_code: Parent tender code
+            lot_id: Optional lot ID to link to
+            chunk_id: Optional chunk ID where requirement is mentioned
+            **kwargs: Additional requirement properties
+
+        Returns:
+            Summary statistics
+        """
+        # Build query dynamically based on what's linked
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+        """
+
+        if lot_id:
+            query += """
+            MATCH (t)-[:HAS_LOT]->(l:Lot {id: $lot_id})
+            """
+
+        if chunk_id:
+            query += """
+            MATCH (c:Chunk {id: $chunk_id})
+            """
+
+        query += """
+        MERGE (r:Requirement {id: $requirement_id})
+        ON CREATE SET
+            r.type = $requirement_type,
+            r.description = $description,
+            r.mandatory = $mandatory
+        """
+
+        # Create relationships
+        if lot_id:
+            query += """
+            MERGE (l)-[:HAS_REQUIREMENT]->(r)
+            """
+        else:
+            query += """
+            MERGE (t)-[:HAS_REQUIREMENT]->(r)
+            """
+
+        if chunk_id:
+            query += """
+            MERGE (r)-[:MENTIONED_IN]->(c)
+            """
+
+        query += """
+        RETURN r
+        """
+
+        params = {
+            "tender_code": tender_code,
+            "requirement_id": requirement_id,
+            "requirement_type": requirement_type,
+            "description": description,
+            "mandatory": mandatory,
+        }
+
+        if lot_id:
+            params["lot_id"] = lot_id
+        if chunk_id:
+            params["chunk_id"] = chunk_id
+
+        params.update(kwargs)
+
+        return await self.execute_write(query, params)
+
+    async def add_deadline(
+        self,
+        deadline_id: str,
+        deadline_type: str,
+        date_text: str,
+        tender_code: str,
+        chunk_id: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Add a deadline to a tender.
+
+        Args:
+            deadline_id: Unique deadline identifier
+            deadline_type: Type (e.g., "scadenza_offerta", "sopralluogo", "qna")
+            date_text: Date as extracted text (e.g., "31 marzo 2025")
+            tender_code: Parent tender code
+            chunk_id: Optional chunk ID where deadline is mentioned
+            **kwargs: Additional deadline properties
+
+        Returns:
+            Summary statistics
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+        """
+
+        if chunk_id:
+            query += """
+            MATCH (c:Chunk {id: $chunk_id})
+            """
+
+        query += """
+        MERGE (d:Deadline {id: $deadline_id})
+        ON CREATE SET
+            d.type = $deadline_type,
+            d.date_text = $date_text
+        MERGE (t)-[:HAS_DEADLINE]->(d)
+        """
+
+        if chunk_id:
+            query += """
+            MERGE (d)-[:MENTIONED_IN]->(c)
+            """
+
+        query += """
+        RETURN d
+        """
+
+        params = {
+            "tender_code": tender_code,
+            "deadline_id": deadline_id,
+            "deadline_type": deadline_type,
+            "date_text": date_text,
+        }
+
+        if chunk_id:
+            params["chunk_id"] = chunk_id
+
+        params.update(kwargs)
+
+        return await self.execute_write(query, params)
+
+    async def add_organization(
+        self,
+        name: str,
+        role: str,
+        tender_code: Optional[str] = None,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Add an organization and optionally link to a tender.
+
+        Args:
+            name: Organization name
+            role: Role (e.g., "ente_appaltante", "concorrente", "mentioned")
+            tender_code: Optional tender to link to
+            **kwargs: Additional organization properties
+
+        Returns:
+            Summary statistics
+        """
+        query = """
+        MERGE (o:Organization {name: $name})
+        ON CREATE SET o.role = $role
+        """
+
+        if tender_code:
+            query += """
+            WITH o
+            MATCH (t:Tender {code: $tender_code})
+            MERGE (t)-[:ISSUED_BY]->(o)
+            """
+
+        query += """
+        RETURN o
+        """
+
+        params = {
+            "name": name,
+            "role": role,
+        }
+
+        if tender_code:
+            params["tender_code"] = tender_code
+
+        params.update(kwargs)
+
+        return await self.execute_write(query, params)
+
+    async def get_requirements_for_tender(
+        self,
+        tender_code: str,
+        lot_id: Optional[str] = None,
+        mandatory_only: bool = False,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get all requirements for a tender (optionally filtered by lot).
+
+        Args:
+            tender_code: Tender code
+            lot_id: Optional lot ID to filter
+            mandatory_only: If True, return only mandatory requirements
+
+        Returns:
+            List of requirements with chunk references
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+        """
+
+        if lot_id:
+            query += """
+            MATCH (t)-[:HAS_LOT]->(l:Lot {id: $lot_id})
+            MATCH (l)-[:HAS_REQUIREMENT]->(r:Requirement)
+            """
+        else:
+            query += """
+            MATCH (t)-[:HAS_REQUIREMENT]->(r:Requirement)
+            """
+
+        if mandatory_only:
+            query += """
+            WHERE r.mandatory = true
+            """
+
+        query += """
+        OPTIONAL MATCH (r)-[:MENTIONED_IN]->(c:Chunk)
+        RETURN r.id as requirement_id,
+               r.type as type,
+               r.description as description,
+               r.mandatory as mandatory,
+               collect(DISTINCT c.id) as chunk_ids
+        ORDER BY r.mandatory DESC, r.id
+        """
+
+        params = {"tender_code": tender_code}
+        if lot_id:
+            params["lot_id"] = lot_id
+
+        return await self.execute_query(query, params)
+
+    async def get_deadlines_for_tender(
+        self,
+        tender_code: str,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get all deadlines for a tender.
+
+        Args:
+            tender_code: Tender code
+
+        Returns:
+            List of deadlines with chunk references
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})-[:HAS_DEADLINE]->(d:Deadline)
+        OPTIONAL MATCH (d)-[:MENTIONED_IN]->(c:Chunk)
+        RETURN d.id as deadline_id,
+               d.type as type,
+               d.date_text as date_text,
+               collect(DISTINCT c.id) as chunk_ids
+        ORDER BY d.date_text
+        """
+
+        return await self.execute_query(query, {"tender_code": tender_code})
+
+    async def get_tender_with_all_entities(
+        self,
+        tender_code: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get tender with all extracted entities from the knowledge graph.
+
+        This retrieves the complete tender graph including:
+        - Tender basic information
+        - Organizations (buyers, issuers)
+        - Requirements (technical, economic, administrative)
+        - Deadlines (submission, Q&A, site visits)
+        - Lots (if any)
+        - CPV codes
+        - Locations
+        - Amounts/Values
+
+        Args:
+            tender_code: Unique tender code (CIG)
+
+        Returns:
+            Dictionary with tender data and all entities grouped by type,
+            or None if tender not found
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+
+        // Get organizations
+        OPTIONAL MATCH (t)-[:ISSUED_BY]->(org:Organization)
+        WITH t, collect(DISTINCT {
+            name: org.name,
+            role: org.role,
+            properties: properties(org)
+        }) as organizations
+
+        // Get requirements
+        OPTIONAL MATCH (t)-[:HAS_REQUIREMENT]->(req:Requirement)
+        WITH t, organizations, collect(DISTINCT {
+            id: req.id,
+            type: req.type,
+            description: req.description,
+            mandatory: req.mandatory,
+            properties: properties(req)
+        }) as requirements
+
+        // Get deadlines
+        OPTIONAL MATCH (t)-[:HAS_DEADLINE]->(deadline:Deadline)
+        WITH t, organizations, requirements, collect(DISTINCT {
+            id: deadline.id,
+            type: deadline.type,
+            date_text: deadline.date_text,
+            properties: properties(deadline)
+        }) as deadlines
+
+        // Get lots
+        OPTIONAL MATCH (t)-[:HAS_LOT]->(lot:Lot)
+        WITH t, organizations, requirements, deadlines, collect(DISTINCT {
+            id: lot.id,
+            name: lot.name,
+            cpv_code: lot.cpv_code,
+            base_amount: lot.base_amount,
+            properties: properties(lot)
+        }) as lots
+
+        // Get locations (if any entity has location)
+        OPTIONAL MATCH (t)-[:HAS_LOCATION]->(loc:Location)
+        WITH t, organizations, requirements, deadlines, lots, collect(DISTINCT {
+            name: loc.name,
+            address: loc.address,
+            properties: properties(loc)
+        }) as locations
+
+        // Get persons mentioned
+        OPTIONAL MATCH (t)-[:MENTIONS_PERSON]->(person:Person)
+        WITH t, organizations, requirements, deadlines, lots, locations, collect(DISTINCT {
+            name: person.name,
+            role: person.role,
+            properties: properties(person)
+        }) as persons
+
+        // Get CPV codes (additional ones beyond main)
+        OPTIONAL MATCH (t)-[:HAS_CPV]->(cpv:CPVCode)
+        WITH t, organizations, requirements, deadlines, lots, locations, persons, collect(DISTINCT {
+            code: cpv.code,
+            description: cpv.description,
+            properties: properties(cpv)
+        }) as cpv_codes
+
+        // Get amounts/values
+        OPTIONAL MATCH (t)-[:HAS_AMOUNT]->(amount:Amount)
+        WITH t, organizations, requirements, deadlines, lots, locations, persons, cpv_codes, collect(DISTINCT {
+            value: amount.value,
+            type: amount.type,
+            currency: amount.currency,
+            properties: properties(amount)
+        }) as amounts
+
+        RETURN {
+            tender: {
+                code: t.code,
+                title: t.title,
+                cpv_code: t.cpv_code,
+                base_amount: t.base_amount,
+                buyer_name: t.buyer_name,
+                publication_date: toString(t.publication_date)
+            },
+            entities: {
+                organization: organizations,
+                requirement: requirements,
+                date: deadlines,
+                lot: lots,
+                location: locations,
+                person: persons,
+                cpv_code: cpv_codes,
+                amount: amounts
+            }
+        } as result
+        """
+
+        results = await self.execute_query(query, {"tender_code": tender_code})
+
+        if not results or not results[0]:
+            return None
+
+        data = results[0].get("result", {})
+
+        # Filter out empty entity arrays
+        if "entities" in data:
+            data["entities"] = {
+                k: v for k, v in data["entities"].items()
+                if v and len(v) > 0 and any(
+                    item for item in v
+                    if item and any(val for val in item.values() if val not in (None, "", []))
+                )
+            }
+
+        return data
 
 
 def get_tender_graph_client() -> TenderGraphClient:
