@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   loadTender();
   loadDocuments();
+  loadGraphEntities();
   setupEventListeners();
 });
 
@@ -44,6 +45,12 @@ function setupEventListeners() {
   const ingestBtn = document.getElementById("ingest-all-btn");
   if (ingestBtn) {
     ingestBtn.addEventListener("click", handleIngestAll);
+  }
+
+  // Refresh entities button
+  const refreshEntitiesBtn = document.getElementById("refresh-entities-btn");
+  if (refreshEntitiesBtn) {
+    refreshEntitiesBtn.addEventListener("click", loadGraphEntities);
   }
 
   // File dropzone
@@ -146,7 +153,7 @@ async function handleUpdateTender(e) {
 // Load documents
 async function loadDocuments() {
   const id = getTenderId();
-  const container = document.getElementById("documents-list-container");
+  const container = document.getElementById("documents-list");
   if (!container) return;
 
   try {
@@ -159,10 +166,54 @@ async function loadDocuments() {
   } catch (error) {
     console.error("Errore:", error);
     container.innerHTML = `
-      <div class="empty-state">
+      <li class="list-group-item">
+        <div class="empty-state">
+          <i class="bi bi-exclamation-triangle text-warning"></i>
+          <h5>Errore nel caricamento</h5>
+          <p>${escapeHtml(error.message)}</p>
+        </div>
+      </li>
+    `;
+  }
+}
+
+// Load graph entities from Neo4j
+async function loadGraphEntities() {
+  const id = getTenderId();
+  const container = document.getElementById("graph-entities-container");
+  if (!container) return;
+
+  // Show loading
+  container.innerHTML = `
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Caricamento entità...</span>
+      </div>
+    </div>
+  `;
+
+  try {
+    const response = await fetch(`${apiBase}/tenders/${id}/entities`);
+    if (!response.ok) throw new Error("Errore nel caricamento delle entità");
+
+    const data = await response.json();
+    console.log('Neo4j entities received:', data);
+    console.log('Entity keys:', Object.keys(data));
+    
+    // Log each entity type
+    Object.entries(data).forEach(([key, value]) => {
+      console.log(`${key}:`, value?.length || 0, 'items', value?.[0]);
+    });
+    
+    renderGraphEntities(data);
+
+  } catch (error) {
+    console.error("Errore:", error);
+    container.innerHTML = `
+      <div class="empty-state p-4">
         <i class="bi bi-exclamation-triangle text-warning"></i>
         <h5>Errore nel caricamento</h5>
-        <p>${escapeHtml(error.message)}</p>
+        <p class="text-muted mb-0">${escapeHtml(error.message)}</p>
       </div>
     `;
   }
@@ -170,51 +221,293 @@ async function loadDocuments() {
 
 // Render documents list
 function renderDocuments(documents) {
-  const container = document.getElementById("documents-list-container");
+  const container = document.getElementById("documents-list");
   if (!container) return;
 
   if (documents.length === 0) {
     container.innerHTML = `
-      <div class="empty-state">
-        <i class="bi bi-file-earmark-x"></i>
-        <h5>Nessun documento</h5>
-        <p>Carica il primo documento per questa gara</p>
-      </div>
+      <li class="list-group-item">
+        <div class="empty-state">
+          <i class="bi bi-file-earmark-x"></i>
+          <h5>Nessun documento</h5>
+          <p>Carica il primo documento per questa gara</p>
+        </div>
+      </li>
     `;
     return;
   }
 
   const html = documents.map(doc => `
-    <div class="document-item">
-      <div class="d-flex align-items-start gap-3">
-        <div class="doc-icon">
-          <i class="bi bi-file-earmark-pdf text-danger"></i>
-        </div>
-        <div class="flex-grow-1">
-          <h6 class="mb-1">${escapeHtml(doc.filename || 'Documento')}</h6>
-          <div class="d-flex flex-wrap gap-2 mb-2">
-            <span class="badge bg-primary">${escapeHtml(doc.document_type || 'N/D')}</span>
-            ${doc.ingestion_status ? `<span class="badge bg-success">Indicizzato</span>` : ''}
+    <li class="list-group-item">
+      <div class="document-item">
+        <div class="d-flex align-items-start gap-3">
+          <div class="doc-icon">
+            <i class="bi bi-file-earmark-pdf text-danger"></i>
           </div>
-          <div class="small text-muted">
-            <i class="bi bi-calendar me-1"></i>
-            ${formatDate(doc.created_at)}
-            ${doc.uploaded_by ? ` • <i class="bi bi-person me-1"></i>${escapeHtml(doc.uploaded_by)}` : ''}
+          <div class="flex-grow-1">
+            <h6 class="mb-1">${escapeHtml(doc.filename || 'Documento')}</h6>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+              <span class="badge bg-primary">${escapeHtml(doc.document_type || 'N/D')}</span>
+              ${doc.ingestion_status ? `<span class="badge bg-success">Indicizzato</span>` : ''}
+            </div>
+            <div class="small text-muted">
+              <i class="bi bi-calendar me-1"></i>
+              ${formatDate(doc.created_at)}
+              ${doc.uploaded_by ? ` • <i class="bi bi-person me-1"></i>${escapeHtml(doc.uploaded_by)}` : ''}
+            </div>
           </div>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-sm btn-outline-primary" onclick="handleIngestDocument('${doc.id}')">
-            <i class="bi bi-lightning-charge"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteDocument('${doc.id}')">
-            <i class="bi bi-trash"></i>
-          </button>
+          <div class="btn-group">
+            <button class="btn btn-sm btn-outline-primary" onclick="handleIngestDocument('${doc.id}')">
+              <i class="bi bi-lightning-charge"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="handleDeleteDocument('${doc.id}')">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </li>
   `).join('');
 
   container.innerHTML = html;
+}
+
+// Render graph entities from Neo4j
+function renderGraphEntities(data) {
+  const container = document.getElementById("graph-entities-container");
+  if (!container) return;
+
+  // Check if entities exist
+  if (!data || Object.keys(data).length === 0) {
+    container.innerHTML = `
+      <div class="empty-state p-4">
+        <i class="bi bi-diagram-3 text-muted"></i>
+        <h5>Nessuna entità estratta</h5>
+        <p class="text-muted mb-0">Carica e indicizza i documenti per estrarre entità nel grafo</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Map Neo4j keys to display labels (matching the actual API response)
+  const entityTypes = [
+    { key: 'organization', label: 'Organizzazioni', icon: 'building', color: 'primary' },
+    { key: 'requirement', label: 'Requisiti', icon: 'list-check', color: 'info' },
+    { key: 'date', label: 'Scadenze', icon: 'calendar-event', color: 'warning' },
+    { key: 'lot', label: 'Lotti', icon: 'box', color: 'success' },
+    { key: 'location', label: 'Luoghi', icon: 'geo-alt', color: 'danger' },
+    { key: 'person', label: 'Persone', icon: 'person', color: 'secondary' },
+    { key: 'cpv_code', label: 'Codici CPV', icon: 'tag', color: 'dark' },
+    { key: 'amount', label: 'Importi', icon: 'cash-coin', color: 'success' },
+  ];
+
+  let html = '<div class="p-3">';
+  let totalEntities = 0;
+
+  entityTypes.forEach(type => {
+    const entities = data[type.key] || [];
+    
+    // Filter out empty objects (objects with only null/undefined/empty values)
+    const validEntities = entities.filter(entity => {
+      if (!entity || typeof entity !== 'object') return false;
+      
+      // Check if at least one property has a meaningful value
+      return Object.values(entity).some(val => {
+        if (val === null || val === undefined || val === '') return false;
+        if (typeof val === 'object' && Object.keys(val).length === 0) return false;
+        return true;
+      });
+    });
+    
+    if (validEntities.length === 0) return;
+
+    totalEntities += validEntities.length;
+
+    html += `
+      <div class="mb-4">
+        <h6 class="text-${type.color} mb-3">
+          <i class="bi bi-${type.icon} me-2"></i>
+          ${type.label}
+          <span class="badge bg-${type.color} ms-2">${validEntities.length}</span>
+        </h6>
+        <div class="entity-list">
+    `;
+
+    validEntities.forEach(entity => {
+      html += renderEntityItem(entity, type);
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  if (totalEntities === 0) {
+    container.innerHTML = `
+      <div class="empty-state p-4">
+        <i class="bi bi-diagram-3 text-muted"></i>
+        <h5>Nessuna entità estratta</h5>
+        <p class="text-muted mb-0">Carica e indicizza i documenti per estrarre entità nel grafo</p>
+      </div>
+    `;
+    return;
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// Render individual entity item
+function renderEntityItem(entity, type) {
+  let content = '';
+
+  // Different rendering based on entity type
+  switch (type.key) {
+    case 'organization':
+      content = `
+        <div class="entity-item">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-${type.icon} text-${type.color}"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">${escapeHtml(entity.name || 'N/D')}</div>
+              ${entity.type ? `<div class="small text-muted">Tipo: ${escapeHtml(entity.type)}</div>` : ''}
+              ${entity.role ? `<div class="small text-muted">Ruolo: ${escapeHtml(entity.role)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+
+    case 'requirement':
+      const reqText = entity.description || entity.requirement_text || entity.text || 'N/D';
+      const reqType = entity.type || entity.category;
+      const isMandatory = entity.mandatory;
+      
+      content = `
+        <div class="entity-item">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-${type.icon} text-${type.color}"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">${escapeHtml(reqText)}</div>
+              <div class="d-flex gap-2 mt-1">
+                ${reqType ? `<span class="badge bg-${type.color}">${escapeHtml(reqType)}</span>` : ''}
+                ${isMandatory ? `<span class="badge bg-danger">Obbligatorio</span>` : ''}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+
+    case 'date':
+      const dateType = entity.type || entity.deadline_type || 'Scadenza';
+      const dateValue = entity.date || entity.date_text;
+      
+      content = `
+        <div class="entity-item">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-${type.icon} text-${type.color}"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">${escapeHtml(dateType)}</div>
+              ${dateValue ? `<div class="small text-muted"><i class="bi bi-calendar3 me-1"></i>${escapeHtml(dateValue)}</div>` : ''}
+              ${entity.description ? `<div class="small text-muted">${escapeHtml(entity.description)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+
+    case 'lot':
+      const lotName = entity.name || entity.title;
+      const lotNumber = entity.lot_number || entity.number;
+      const lotAmount = entity.base_amount || entity.amount;
+      
+      content = `
+        <div class="entity-item">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-${type.icon} text-${type.color}"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">${lotName ? escapeHtml(lotName) : (lotNumber ? `Lotto ${escapeHtml(lotNumber)}` : 'Lotto N/D')}</div>
+              ${entity.cpv_code ? `<div class="small text-muted">CPV: ${escapeHtml(entity.cpv_code)}</div>` : ''}
+              ${lotAmount ? `<div class="small text-muted">Importo: €${escapeHtml(lotAmount)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+
+    case 'location':
+      const locationName = entity.name || entity.location;
+      const locationType = entity.type;
+      const locationAddress = entity.address;
+      
+      content = `
+        <div class="entity-item">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-${type.icon} text-${type.color}"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">${escapeHtml(locationName || 'N/D')}</div>
+              ${locationAddress ? `<div class="small text-muted">${escapeHtml(locationAddress)}</div>` : ''}
+              ${locationType ? `<div class="small text-muted">${escapeHtml(locationType)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+
+    case 'person':
+      content = `
+        <div class="entity-item">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-${type.icon} text-${type.color}"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">${escapeHtml(entity.name || 'N/D')}</div>
+              ${entity.role ? `<div class="small text-muted">${escapeHtml(entity.role)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+
+    case 'cpv_code':
+      content = `
+        <div class="entity-item">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-${type.icon} text-${type.color}"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold font-monospace">${escapeHtml(entity.code || 'N/D')}</div>
+              ${entity.description ? `<div class="small text-muted">${escapeHtml(entity.description)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+
+    case 'amount':
+      content = `
+        <div class="entity-item">
+          <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-${type.icon} text-${type.color}"></i>
+            <div class="flex-grow-1">
+              <div class="fw-semibold">€ ${escapeHtml(entity.value || entity.amount || 'N/D')}</div>
+              ${entity.currency ? `<div class="small text-muted">${escapeHtml(entity.currency)}</div>` : ''}
+              ${entity.type ? `<div class="small text-muted">${escapeHtml(entity.type)}</div>` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+      break;
+
+    default:
+      content = `
+        <div class="entity-item">
+          <div class="small">${escapeHtml(JSON.stringify(entity))}</div>
+        </div>
+      `;
+  }
+
+  return content;
 }
 
 // Handle document creation
@@ -476,6 +769,42 @@ style.textContent = `
     justify-content: center;
     background: #fee2e2;
     border-radius: 12px;
+  }
+
+  .entity-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border-left: 3px solid var(--bs-primary);
+    transition: all 0.2s ease;
+  }
+
+  .entity-item:hover {
+    background: #f1f5f9;
+    transform: translateX(2px);
+  }
+
+  .entity-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .empty-state {
+    padding: 3rem 2rem;
+    text-align: center;
+    color: #64748b;
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+
+  .empty-state h5 {
+    color: #475569;
+    margin-bottom: 0.5rem;
   }
 `;
 document.head.appendChild(style);

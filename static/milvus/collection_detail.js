@@ -67,12 +67,40 @@ async function loadData() {
         const data = await response.json();
         
         if (data.rows && data.rows.length > 0) {
-            // Crea tabella
-            const keys = Object.keys(data.rows[0]);
-            let html = '<table class="table table-striped table-hover"><thead><tr>';
+            // Crea tabella con tender_code/tender_id sempre visibile per primo
+            let keys = Object.keys(data.rows[0]);
+            
+            console.log('Available keys in data:', keys); // Debug
+            
+            // Riordina le chiavi per mettere tender_code/tender_id per primo se esiste
+            const priorityKeys = ['tender_code', 'tender_id', 'id', 'chunk_id'];
+            const reorderedKeys = [];
+            
+            // Aggiungi prima le chiavi prioritarie
+            priorityKeys.forEach(pk => {
+                if (keys.includes(pk)) {
+                    reorderedKeys.push(pk);
+                }
+            });
+            
+            // Aggiungi le altre chiavi
+            keys.forEach(key => {
+                if (!reorderedKeys.includes(key)) {
+                    reorderedKeys.push(key);
+                }
+            });
+            
+            keys = reorderedKeys;
+            
+            let html = '<table class="table table-striped table-hover table-sm"><thead><tr>';
             
             keys.forEach(key => {
-                html += `<th>${key}</th>`;
+                // Evidenzia tender_code/tender_id
+                if (key === 'tender_code' || key === 'tender_id') {
+                    html += `<th class="table-primary">${key}</th>`;
+                } else {
+                    html += `<th>${key}</th>`;
+                }
             });
             html += '</tr></thead><tbody>';
             
@@ -80,15 +108,23 @@ async function loadData() {
                 html += '<tr>';
                 keys.forEach(key => {
                     let value = row[key];
-                    // Tronca array lunghi
+                    // Tronca array lunghi (vettori embeddings)
                     if (Array.isArray(value) && value.length > 5) {
-                        value = `[${value.slice(0, 5).join(", ")}...]`;
+                        value = `[${value.length} elementi]`;
                     } else if (Array.isArray(value)) {
                         value = `[${value.join(", ")}]`;
-                    } else if (typeof value === 'object') {
+                    } else if (typeof value === 'object' && value !== null) {
                         value = JSON.stringify(value);
+                    } else if (value === null || value === undefined) {
+                        value = '<span class="text-muted">null</span>';
                     }
-                    html += `<td>${value}</td>`;
+                    
+                    // Evidenzia tender_code/tender_id
+                    if (key === 'tender_code' || key === 'tender_id') {
+                        html += `<td class="table-primary"><strong>${value}</strong></td>`;
+                    } else {
+                        html += `<td>${value}</td>`;
+                    }
                 });
                 html += '</tr>';
             });

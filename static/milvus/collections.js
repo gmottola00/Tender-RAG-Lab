@@ -209,9 +209,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </small>
                             </p>
                         </div>
-                        <div class="card-footer bg-transparent border-top-0">
+                        <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
                             <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); copyExistingCollection('${collection.name}')">
                                 <i class="bi bi-files"></i> Copia Schema
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCollection('${collection.name}')">
+                                <i class="bi bi-trash"></i> Elimina
                             </button>
                         </div>
                     </div>
@@ -466,4 +469,34 @@ function showToast(message, type = 'info') {
     toastElement.addEventListener('hidden.bs.toast', () => {
         toastElement.remove();
     });
+}
+
+// Delete collection function
+async function deleteCollection(collectionName) {
+    if (!confirm(`Sei sicuro di voler eliminare la collection "${collectionName}"?\n\nQuesta azione è irreversibile e cancellerà tutti i dati.`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${apiBase}/collections/${collectionName}`, {
+            method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(error || 'Errore nell\'eliminazione della collection');
+        }
+        
+        const result = await response.json();
+        showToast(result.message || `Collection "${collectionName}" eliminata con successo`, 'success');
+        
+        // Ricarica la lista delle collection
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+        
+    } catch (error) {
+        console.error('Errore:', error);
+        showToast(`Errore nell'eliminazione: ${error.message}`, 'danger');
+    }
 }

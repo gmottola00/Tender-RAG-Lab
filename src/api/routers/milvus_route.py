@@ -54,12 +54,42 @@ async def collection_preview(
     name: str,
     limit: int = Query(20, ge=1, le=200),
 ) -> dict:
-    explorer = get_milvus_explorer()
+    """Preview collection data with all available fields."""
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    service = get_milvus_service()
     try:
-        rows = explorer.preview(name, limit=limit)
-        return {"collection": name, "count": len(rows), "rows": rows}
-    except CollectionError as exc:
-        raise HTTPException(status_code=500, detail=str(exc)) from exc
+        logger.info(f"Querying collection {name} with limit {limit}")
+        
+        client = service.connection.client
+        
+        # First, get schema to see available fields
+        schema_info = client.describe_collection(collection_name=name)
+        logger.info(f"Schema fields: {schema_info}")
+        
+        # Extract field names (exclude vector fields for readability)
+        field_names = [
+            field['name'] for field in schema_info.get('fields', [])
+            if field.get('type') not in ['FLOAT_VECTOR', 'BINARY_VECTOR']
+        ]
+        
+        logger.info(f"Available scalar fields: {field_names}")
+        
+        # Use MilvusClient.query() with discovered fields
+        results = client.query(
+            collection_name=name,
+            filter="",  # Empty filter = get all
+            output_fields=field_names if field_names else ["*"],
+            limit=limit
+        )
+        
+        logger.info(f"Query successful, got {len(results)} results")
+        return {"collection": name, "count": len(results), "rows": results}
+        
+    except Exception as exc:
+        logger.error(f"Error querying collection {name}: {exc}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to query collection: {str(exc)}") from exc
 
 
 @router.post("/collections")
