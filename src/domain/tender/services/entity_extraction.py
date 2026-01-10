@@ -30,7 +30,7 @@ class EntityExtractionService:
         """
         self.ner = ner or create_tender_ner()
         self.neo4j_client = neo4j_client
-        logger.info(f"EntityExtractionService initialized with {self.ner}")
+        logger.debug(f"EntityExtractionService initialized")
     
     def extract_from_chunks(
         self,
@@ -97,8 +97,7 @@ class EntityExtractionService:
         }
         
         logger.info(
-            f"Extracted {total_entities} entities from {len(chunks_with_entities)} chunks",
-            extra=result
+            f"Extracted {total_entities} entities from {len(chunks_with_entities)}/{len(chunks)} chunks"
         )
         
         return result
@@ -158,7 +157,6 @@ class EntityExtractionService:
                 )
                 stats["organizations_created"] += 1
                 stats["relationships_created"] += 1  # ISSUED_BY relationship
-                logger.debug(f"Created Organization: {org_name}")
             except Exception as e:
                 logger.warning(f"Failed to create Organization '{org_name}': {e}")
 
@@ -183,7 +181,8 @@ class EntityExtractionService:
             except Exception as e:
                 logger.warning(f"Failed to create Chunk '{chunk_id}': {e}")
 
-        logger.debug(f"Created {chunks_created} chunk nodes")
+        if chunks_created > 0:
+            logger.debug(f"Created {chunks_created} chunk nodes")
 
         # 3. Extract Requirements from patterns
         # Pattern matching for mandatory requirements

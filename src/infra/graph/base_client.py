@@ -153,12 +153,14 @@ class Neo4jClient:
             async with self.session() as session:
                 result = await session.run(query, parameters)
                 records = await result.data()
-                logger.debug(f"Query executed: {query[:100]}... | Results: {len(records)}")
+                # Query logging disabled for performance (enable for debugging)
+                # logger.debug(f"Query executed: {query[:100]}... | Results: {len(records)}")
+                pass
                 return records
         except Exception as e:
             logger.error(f"Query execution failed: {e}")
-            logger.error(f"Query: {query}")
-            logger.error(f"Parameters: {parameters}")
+            logger.error(f"Query: {query[:200]}...")  # Truncate query
+            # Parameters not logged to avoid large data dumps
             raise
     
     async def execute_write(
@@ -198,7 +200,7 @@ class Neo4jClient:
                     "properties_set": summary.counters.properties_set,
                 }
                 
-                logger.info(f"Write query executed: {stats}")
+                logger.debug(f"Write query executed: {stats}")
                 return stats
         except Exception as e:
             logger.error(f"Write query failed: {e}")

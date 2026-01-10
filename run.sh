@@ -37,7 +37,8 @@ run-api() {
   ( cd "$BACKEND_DIR" && \
     uv run uvicorn main:app \
       --host 0.0.0.0 --port "${BACKEND_PORT}" \
-      --env-file "${ENV_FILE}" --reload )
+      --env-file "${ENV_FILE}" --reload \
+      --log-level info )
 }
 
 # ── Dispatcher ────────────────────────────────────────────────────────────────

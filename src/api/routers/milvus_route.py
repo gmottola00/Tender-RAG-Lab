@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.api.deps import get_milvus_explorer, get_milvus_service
 from src.api.deps import get_indexer, get_embedding_client
@@ -12,8 +12,11 @@ from rag_toolkit.infra.vectorstores.milvus.exceptions import CollectionError
 class CreateCollectionRequest(BaseModel):
     name: str
     shards_num: int = 2
-    schema: list[dict]
+    schema_: list[dict] = Field(..., alias="schema")  # Use alias to avoid shadowing
     index_params: Optional[dict] = None
+
+    class Config:
+        populate_by_name = True  # Allow both "schema" and "schema_"
 
 
 router = APIRouter(prefix="/milvus", tags=["milvus"])
@@ -65,7 +68,7 @@ async def create_collection(request: CreateCollectionRequest) -> dict:
     try:
         # Converti lo schema da lista di dict al formato atteso
         schema_dict = {}
-        for field in request.schema:
+        for field in request.schema_:
             field_name = field.get("name")
             if field_name:
                 field_data = {k: v for k, v in field.items() if k != "name"}

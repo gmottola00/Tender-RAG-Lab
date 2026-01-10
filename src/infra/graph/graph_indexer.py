@@ -46,7 +46,7 @@ async def index_tender_to_graph(
     
     try:
         # 1. Create tender node
-        logger.info(f"Creating tender node: {tender_code}")
+        logger.debug(f"Creating tender node: {tender_code}")
         await graph.create_tender(
             code=tender_code,
             title=tender_metadata["title"],
@@ -57,7 +57,7 @@ async def index_tender_to_graph(
         )
         
         # 2. Create chunk nodes and link to tender
-        logger.info(f"Linking {len(chunks)} chunks to tender {tender_code}")
+        logger.debug(f"Linking {len(chunks)} chunks to tender {tender_code}")
         for chunk in chunks:
             # Handle both dict and object chunks
             chunk_id = chunk.get("id") if isinstance(chunk, dict) else chunk.id
@@ -115,7 +115,9 @@ async def get_tender_context_for_chunks(
         
         for result in search_results:
             tender_info = contexts.get(result.id)
-            print(f"Chunk from tender: {tender_info['tender_title']}")
+            # Chunk data logging disabled for performance
+            # print(f"Chunk from tender: {tender_info['tender_title']}")
+            pass
     """
     graph = get_tender_graph_client()
     
@@ -173,7 +175,9 @@ async def find_related_tenders(
         related = await find_related_tenders("2025-001", limit=3)
         
         for tender in related:
-            print(f"Similar: {tender['title']} (score: {tender['similarity']})")
+            # Similar tender logging disabled for performance
+            # print(f"Similar: {tender['title']} (score: {tender['similarity']})")
+            pass
     """
     graph = get_tender_graph_client()
     

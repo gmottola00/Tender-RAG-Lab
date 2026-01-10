@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+import logging
 
 from configs.config import settings
 from src.api.routers.ingestion import ingestion
@@ -9,6 +10,12 @@ from src.api.routers.lots import router as lots_router
 from src.api.routers.documents import router as documents_router
 from src.api.routers.ui import router as ui_router
 from src.api.routers.milvus_route import router as milvus_router
+
+# Reduce verbose access logging (keep startup logs visible)
+# Only reduce noise from individual request logging
+logging.getLogger("uvicorn.access").setLevel(logging.INFO)  # Show access logs
+logging.getLogger("neo4j").setLevel(logging.ERROR)  # Hide Neo4j warnings
+logging.getLogger("neo4j.notifications").setLevel(logging.ERROR)  # Hide Neo4j notifications
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
