@@ -44,15 +44,23 @@ function fillForm(tender) {
 async function loadTender() {
   const id = getTenderId();
   if (!id) {
-    document.getElementById("detail-message").textContent = "Nessun id fornito";
+    showMessage("detail-message", "Nessun id fornito", "danger");
     return;
   }
   try {
     const tender = await fetchJSON(`${apiBase}/tenders/${id}`);
     fillForm(tender);
     fillMeta(tender);
+    updatePageTitle(tender);
   } catch (err) {
-    document.getElementById("detail-message").textContent = `Errore: ${err.message}`;
+    showMessage("detail-message", `Errore: ${err.message}`, "danger");
+  }
+}
+
+function updatePageTitle(tender) {
+  const pageTitle = document.getElementById("page-title");
+  if (pageTitle && tender.title) {
+    pageTitle.textContent = tender.title;
   }
 }
 
@@ -75,11 +83,12 @@ async function handleUpdate(e) {
       method: "PUT",
       body: JSON.stringify(payload),
     });
-    document.getElementById("detail-message").textContent = "Aggiornamento eseguito";
+    showMessage("detail-message", "Modifiche salvate con successo!", "success");
     fillForm(updated);
     fillMeta(updated);
+    updatePageTitle(updated);
   } catch (err) {
-    document.getElementById("detail-message").textContent = `Errore: ${err.message}`;
+    showMessage("detail-message", `Errore: ${err.message}`, "danger");
   }
 }
 
@@ -88,7 +97,7 @@ async function handleCreateDocument(e) {
   const form = e.target;
   const tenderId = getTenderId();
   if (!tenderId) {
-    document.getElementById("document-message").textContent = "ID gara mancante";
+    showMessage("document-message", "ID gara mancante", "danger");
     return;
   }
   const fd = new FormData();
@@ -99,7 +108,7 @@ async function handleCreateDocument(e) {
   const fileInput = document.getElementById("doc-file-input");
   const file = fileInput?.files?.[0];
   if (!file) {
-    document.getElementById("document-message").textContent = "Seleziona un file";
+    showMessage("document-message", "Seleziona un file", "warning");
     return;
   }
   fd.append("file", file);
@@ -113,7 +122,7 @@ async function handleCreateDocument(e) {
       throw new Error(text || resp.statusText);
     }
     const data = await resp.json();
-    document.getElementById("document-message").textContent = `Documento registrato: ${data.id}`;
+    showMessage("document-message", `Documento caricato con successo! ID: ${data.id}`, "success");
     form.reset();
     if (fileInput) fileInput.value = "";
     document.getElementById("filename-input").value = "";
@@ -122,8 +131,9 @@ async function handleCreateDocument(e) {
       const p = dz.querySelector("p");
       if (p) p.textContent = "Trascina un file qui oppure clicca per selezionarlo";
     }
+    loadDocuments();
   } catch (err) {
-    document.getElementById("document-message").textContent = `Errore: ${err.message}`;
+    showMessage("document-message", `Errore: ${err.message}`, "danger");
   }
 }
 
@@ -180,9 +190,18 @@ document.addEventListener("DOMContentLoaded", () => {
   setupDropzone();
   loadTender();
   loadDocuments();
+  loadGraphEntities();
   const ingestAllBtn = document.getElementById("ingest-all-btn");
   if (ingestAllBtn) {
     ingestAllBtn.addEventListener("click", ingestAllDocuments);
+  }
+  const refreshEntitiesBtn = document.getElementById("refresh-entities-btn");
+  if (refreshEntitiesBtn) {
+    refreshEntitiesBtn.addEventListener("click", loadGraphEntities);
+  }
+  const deleteTenderBtn = document.getElementById("delete-tender-btn");
+  if (deleteTenderBtn) {
+    deleteTenderBtn.addEventListener("click", handleDeleteTender);
   }
 });
 
@@ -191,31 +210,127 @@ async function loadDocuments() {
   if (!listEl) return;
   const tenderId = getTenderId();
   if (!tenderId) return;
-  listEl.innerHTML = "";
+
+  listEl.innerHTML = '<li class="list-group-item text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Caricamento...</span></div></li>';
+
   try {
     const docs = await fetchJSON(`${apiBase}/documents?tender_id=${tenderId}&limit=200`);
+
+    if (docs.length === 0) {
+      listEl.innerHTML = `
+        <li class="list-group-item text-center py-5">
+          <i class="bi bi-folder-x text-muted fs-1 mb-3 d-block"></i>
+          <p class="text-muted mb-0">Nessun documento caricato</p>
+        </li>
+      `;
+      return;
+    }
+
+    listEl.innerHTML = "";
     docs.forEach((d) => {
       const li = document.createElement("li");
-      li.innerHTML = `<strong>${d.filename}</strong> — ${d.document_type || "n/d"} (${d.id})`;
-      const btn = document.createElement("button");
-      btn.textContent = "Indicizza";
-      btn.style.marginLeft = "0.5rem";
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
+
+      const docTypeIcon = getDocumentIcon(d.document_type);
+      const docTypeLabel = getDocumentTypeLabel(d.document_type);
+
+      li.innerHTML = `
+        <div class="d-flex align-items-center gap-3 flex-grow-1">
+          <div class="doc-icon">
+            <i class="bi bi-${docTypeIcon} fs-4 text-primary"></i>
+          </div>
+          <div>
+            <div class="fw-semibold">${escapeHtml(d.filename)}</div>
+            <div class="small text-muted">
+              <span class="badge bg-secondary-subtle text-secondary">${docTypeLabel}</span>
+              <span class="ms-2">ID: ${d.id}</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-primary" data-doc-id="${d.id}">
+          <i class="bi bi-lightning-charge me-1"></i>Indicizza
+        </button>
+      `;
+
+      const btn = li.querySelector("button");
       btn.addEventListener("click", () => ingestDocument(d.id));
-      li.appendChild(btn);
       listEl.appendChild(li);
     });
   } catch (err) {
-    document.getElementById("documents-message").textContent = `Errore caricamento documenti: ${err.message}`;
+    listEl.innerHTML = `
+      <li class="list-group-item">
+        <div class="alert alert-danger mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          Errore caricamento documenti: ${err.message}
+        </div>
+      </li>
+    `;
   }
+}
+
+function getDocumentIcon(type) {
+  const icons = {
+    bando: 'file-earmark-text',
+    capitolato: 'file-earmark-ruled',
+    disciplinare: 'file-earmark-check',
+    rettifica: 'file-earmark-diff',
+    avviso: 'megaphone',
+    chiarimenti: 'question-circle',
+    qa: 'chat-left-text',
+    altro: 'file-earmark'
+  };
+  return icons[type] || 'file-earmark-pdf';
+}
+
+function getDocumentTypeLabel(type) {
+  const labels = {
+    bando: 'Bando',
+    capitolato: 'Capitolato',
+    disciplinare: 'Disciplinare',
+    rettifica: 'Rettifica',
+    avviso: 'Avviso',
+    chiarimenti: 'Chiarimenti',
+    qa: 'Q&A',
+    altro: 'Altro'
+  };
+  return labels[type] || type || 'N/D';
 }
 
 async function ingestDocument(documentId) {
   try {
     const resp = await fetchJSON(`${apiBase}/documents/${documentId}/ingest`, { method: "POST" });
-    document.getElementById("documents-message").textContent = `Indicizzato documento ${documentId} (chunks: ${resp.inserted})`;
+    showMessage("documents-message", `Documento indicizzato con successo! Chunks inseriti: ${resp.inserted}`, "success");
   } catch (err) {
-    document.getElementById("documents-message").textContent = `Errore indicizzazione: ${err.message}`;
+    showMessage("documents-message", `Errore indicizzazione: ${err.message}`, "danger");
   }
+}
+
+function showMessage(elementId, message, type = "info") {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+
+  const iconMap = {
+    success: "check-circle-fill",
+    danger: "exclamation-triangle-fill",
+    warning: "exclamation-circle-fill",
+    info: "info-circle-fill"
+  };
+
+  element.innerHTML = `
+    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+      <i class="bi bi-${iconMap[type]} me-2"></i>
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const alert = element.querySelector('.alert');
+    if (alert) {
+      alert.classList.remove('show');
+      setTimeout(() => element.innerHTML = '', 150);
+    }
+  }, 5000);
 }
 
 async function ingestAllDocuments() {
@@ -230,5 +345,133 @@ async function ingestAllDocuments() {
       // swallow per non fermare gli altri
       console.error("Errore indicizzazione doc", d.id, err);
     }
+  }
+}
+
+async function loadGraphEntities() {
+  const container = document.getElementById("graph-entities-container");
+  if (!container) return;
+
+  const tenderId = getTenderId();
+  if (!tenderId) {
+    container.innerHTML = '<div class="p-4 text-center text-muted">ID gara mancante</div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="text-center py-5">
+      <div class="spinner-border text-success" role="status">
+        <span class="visually-hidden">Caricamento entità...</span>
+      </div>
+    </div>
+  `;
+
+  try {
+    const response = await fetch(`${apiBase}/tenders/${tenderId}/entities`);
+    if (!response.ok) {
+      throw new Error("Impossibile recuperare le entità dal grafo");
+    }
+    const entities = await response.json();
+    renderGraphEntities(entities);
+  } catch (err) {
+    container.innerHTML = `
+      <div class="p-4">
+        <div class="alert alert-warning mb-0">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          ${err.message}
+        </div>
+      </div>
+    `;
+  }
+}
+
+function renderGraphEntities(entities) {
+  const container = document.getElementById("graph-entities-container");
+  if (!container) return;
+
+  if (!entities || Object.keys(entities).length === 0) {
+    container.innerHTML = `
+      <div class="p-4 text-center">
+        <i class="bi bi-diagram-3 text-muted fs-1 mb-3 d-block"></i>
+        <p class="text-muted mb-0">Nessuna entità estratta dal grafo</p>
+      </div>
+    `;
+    return;
+  }
+
+  const entityTypeConfig = {
+    organization: { icon: 'building', color: 'primary', label: 'Organizzazioni' },
+    person: { icon: 'person', color: 'info', label: 'Persone' },
+    location: { icon: 'geo-alt', color: 'warning', label: 'Luoghi' },
+    requirement: { icon: 'clipboard-check', color: 'success', label: 'Requisiti' },
+    date: { icon: 'calendar-event', color: 'danger', label: 'Date' },
+    amount: { icon: 'cash', color: 'secondary', label: 'Importi' },
+    cpv_code: { icon: 'tag', color: 'dark', label: 'Codici CPV' }
+  };
+
+  let html = '<div class="p-4">';
+
+  Object.entries(entities).forEach(([type, items]) => {
+    if (!items || items.length === 0) return;
+
+    const config = entityTypeConfig[type] || { icon: 'circle', color: 'secondary', label: type };
+
+    html += `
+      <div class="entity-group mb-4">
+        <h6 class="entity-group-header text-${config.color} mb-3">
+          <i class="bi bi-${config.icon} me-2"></i>
+          ${config.label} <span class="badge bg-${config.color} ms-2">${items.length}</span>
+        </h6>
+        <div class="entity-list">
+    `;
+
+    items.forEach(entity => {
+      const name = entity.name || entity.value || entity.text || 'N/D';
+      const properties = entity.properties || {};
+      const propsHtml = Object.entries(properties)
+        .map(([key, value]) => `<small class="text-muted">${key}: ${value}</small>`)
+        .join(' · ');
+
+      html += `
+        <div class="entity-badge bg-${config.color}-subtle">
+          <i class="bi bi-${config.icon} text-${config.color} me-2"></i>
+          <div class="entity-content">
+            <span class="entity-name">${escapeHtml(name)}</span>
+            ${propsHtml ? `<div class="entity-props">${propsHtml}</div>` : ''}
+          </div>
+        </div>
+      `;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+async function handleDeleteTender() {
+  const tenderId = getTenderId();
+  if (!tenderId) return;
+
+  if (!confirm('Sei sicuro di voler eliminare questa gara? Questa azione non può essere annullata.')) {
+    return;
+  }
+
+  try {
+    await fetchJSON(`${apiBase}/tenders/${tenderId}`, { method: 'DELETE' });
+    window.location.href = '/demo';
+  } catch (err) {
+    alert(`Errore durante l'eliminazione: ${err.message}`);
   }
 }

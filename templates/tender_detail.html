@@ -5,97 +5,242 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dettaglio gara</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/static/offcanvas.css">
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/demo.css">
 </head>
 <body>
-  <nav class="navbar navbar-light bg-light shadow-sm sticky-top">
-    <div class="container-fluid">
-      <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#global-offcanvas" aria-controls="global-offcanvas">
-        ☰
-      </button>
-      <div class="d-flex flex-column">
-        <span class="fw-bold">Dettaglio gara</span>
-        <small class="text-muted">Visualizza, aggiorna e registra documenti</small>
+  <!-- Modern Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top custom-navbar">
+    <div class="container-fluid px-4">
+      <a href="/demo" class="btn btn-link text-white p-0 me-3">
+        <i class="bi bi-arrow-left fs-4"></i>
+      </a>
+
+      <a class="navbar-brand fw-bold" href="/">
+        <i class="bi bi-lightning-charge-fill text-warning"></i>
+        Tender <span class="text-warning">RAG</span> Lab
+      </a>
+
+      <div class="d-flex align-items-center gap-3">
+        <div class="d-none d-md-flex align-items-center gap-2 text-white-50">
+          <i class="bi bi-file-earmark-text"></i>
+          <span class="small">Dettaglio gara</span>
+        </div>
+        <a href="/demo" class="btn btn-outline-light btn-sm rounded-pill">
+          <i class="bi bi-list me-1"></i>
+          <span class="d-none d-md-inline">Tutte le gare</span>
+        </a>
       </div>
-      <a href="/demo" class="btn btn-link btn-sm">Torna alla lista</a>
     </div>
   </nav>
 
-  <header class="container py-3">
-    <h1 class="h4">Dettaglio gara</h1>
-    <p class="text-muted">Visualizza e aggiorna i dati di una gara esistente.</p>
-  </header>
-
-  <main class="grid">
-    <section class="card">
-      <h2>Informazioni gara</h2>
-      <form id="tender-detail-form">
-        <label>Codice <input type="text" name="code"></label>
-        <label>Titolo <input type="text" name="title" required></label>
-        <label>Descrizione <textarea name="description"></textarea></label>
-        <label>Buyer <input type="text" name="buyer"></label>
-        <label>Stato
-          <select name="status" id="status-select">
-            <option value="">(nessuno)</option>
-            <option value="draft">draft</option>
-            <option value="published">published</option>
-            <option value="open">open</option>
-            <option value="closed">closed</option>
-            <option value="awarded">awarded</option>
-            <option value="cancelled">cancelled</option>
-          </select>
-        </label>
-        <label>Data pubblicazione <input type="date" name="publish_date"></label>
-        <label>Data chiusura <input type="date" name="closing_date"></label>
-        <button type="submit">Aggiorna</button>
-      </form>
-      <div id="detail-message" class="message"></div>
-    </section>
-
-    <section class="card">
-      <h2>Registra documento (metadata)</h2>
-      <form id="document-form">
-        <input type="hidden" name="tender_id" id="doc-tender-id">
-        <label>Lot (opzionale) <input type="text" name="lot_id" placeholder="UUID lotto"></label>
-        <label>Nome file selezionato
-          <input type="text" name="filename" id="filename-input" placeholder="Seleziona o trascina un file" readonly required>
-        </label>
-        <div class="dropzone" id="doc-dropzone" role="button" tabindex="0" aria-label="Carica documento">
-          <p>Trascina un file qui oppure clicca per selezionarlo</p>
-          <input type="file" id="doc-file-input" name="file" style="display:none">
+  <!-- Page Header -->
+  <div class="container-fluid px-4 py-4">
+    <div class="row mb-4">
+      <div class="col-12">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item"><a href="/demo">Dashboard</a></li>
+            <li class="breadcrumb-item active">Dettaglio gara</li>
+          </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div>
+            <h1 class="h3 mb-2" id="page-title">Caricamento...</h1>
+            <p class="text-muted mb-0" id="page-subtitle">Gestisci i dettagli e i documenti della gara</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-outline-danger btn-sm" id="delete-tender-btn">
+              <i class="bi bi-trash me-1"></i>Elimina
+            </button>
+          </div>
         </div>
-        <label>Tipo documento
-          <select name="document_type" id="document-type-select" required>
-            <option value="">Seleziona...</option>
-            <option value="bando">Bando</option>
-            <option value="capitolato">Capitolato</option>
-            <option value="disciplinare">Disciplinare</option>
-            <option value="rettifica">Rettifica</option>
-            <option value="avviso">Avviso</option>
-            <option value="chiarimenti">Chiarimenti</option>
-            <option value="qa">Q&A</option>
-            <option value="altro">Altro</option>
-          </select>
-        </label>
-        <label>Hash file (opzionale) <input type="text" name="file_hash"></label>
-        <label>Caricato da <input type="text" name="uploaded_by"></label>
-        <button type="submit">Registra documento</button>
-      </form>
-      <div id="document-message" class="message"></div>
-    </section>
+      </div>
+    </div>
 
-    <section class="card" id="documents-card">
-      <h2>Documenti della gara</h2>
-      <ul class="list" id="documents-list"></ul>
-      <button id="ingest-all-btn" type="button">Indicizza tutti i documenti</button>
-      <div id="documents-message" class="message"></div>
-    </section>
+    <div class="row g-4">
+      <!-- Left Column: Tender Info -->
+      <div class="col-lg-8">
+        <!-- Tender Information Card -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-gradient-primary text-white">
+            <h5 class="mb-0">
+              <i class="bi bi-info-circle me-2"></i>
+              Informazioni gara
+            </h5>
+          </div>
+          <div class="card-body p-4">
+            <form id="tender-detail-form">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Codice</label>
+                  <input type="text" class="form-control" name="code" readonly>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Stato</label>
+                  <select class="form-select" name="status" id="status-select">
+                    <option value="">(nessuno)</option>
+                    <option value="draft">Bozza</option>
+                    <option value="published">Pubblicata</option>
+                    <option value="open">Aperta</option>
+                    <option value="closed">Chiusa</option>
+                    <option value="awarded">Aggiudicata</option>
+                    <option value="cancelled">Annullata</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Titolo *</label>
+                  <input type="text" class="form-control" name="title" required>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Descrizione</label>
+                  <textarea class="form-control" name="description" rows="4"></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Buyer</label>
+                  <input type="text" class="form-control" name="buyer">
+                </div>
+                <div class="col-md-6"></div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Data pubblicazione</label>
+                  <input type="date" class="form-control" name="publish_date">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Data chiusura</label>
+                  <input type="date" class="form-control" name="closing_date">
+                </div>
+              </div>
 
-  </main>
+              <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary px-4">
+                  <i class="bi bi-check-lg me-2"></i>Salva modifiche
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="window.location.reload()">
+                  <i class="bi bi-arrow-clockwise me-2"></i>Annulla
+                </button>
+              </div>
+            </form>
+
+            <div id="detail-message" class="mt-3"></div>
+          </div>
+        </div>
+
+        <!-- Graph Entities Card -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-gradient-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="bi bi-diagram-3 me-2"></i>
+              Entità estratte (Neo4j Graph)
+            </h5>
+            <button class="btn btn-sm btn-light" id="refresh-entities-btn" type="button">
+              <i class="bi bi-arrow-clockwise me-1"></i>Ricarica
+            </button>
+          </div>
+          <div class="card-body p-0">
+            <div id="graph-entities-container">
+              <div class="text-center py-5">
+                <div class="spinner-border text-success" role="status">
+                  <span class="visually-hidden">Caricamento entità...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Documents List Card -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+              <i class="bi bi-files me-2"></i>
+              Documenti caricati
+            </h5>
+            <button class="btn btn-sm btn-primary" id="ingest-all-btn" type="button">
+              <i class="bi bi-lightning-charge me-1"></i>Indicizza tutti
+            </button>
+          </div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush" id="documents-list">
+              <li class="list-group-item text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Caricamento...</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div id="documents-message" class="p-3"></div>
+        </div>
+      </div>
+
+      <!-- Right Column: Upload Document -->
+      <div class="col-lg-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 80px;">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+              <i class="bi bi-cloud-upload me-2"></i>
+              Carica documento
+            </h5>
+          </div>
+          <div class="card-body p-4">
+            <form id="document-form">
+              <input type="hidden" name="tender_id" id="doc-tender-id">
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">File</label>
+                <div class="dropzone" id="doc-dropzone">
+                  <div class="text-center">
+                    <i class="bi bi-cloud-upload fs-1 text-primary mb-3 d-block"></i>
+                    <p class="mb-1 fw-semibold">Trascina qui il file</p>
+                    <p class="small text-muted mb-0">oppure clicca per selezionare</p>
+                  </div>
+                </div>
+                <input type="file" id="doc-file-input" name="file" class="d-none">
+                <input type="text" name="filename" id="filename-input" class="form-control mt-2" placeholder="Nessun file selezionato" readonly required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Tipo documento *</label>
+                <select class="form-select" name="document_type" id="document-type-select" required>
+                  <option value="">Seleziona...</option>
+                  <option value="bando">Bando</option>
+                  <option value="capitolato">Capitolato</option>
+                  <option value="disciplinare">Disciplinare</option>
+                  <option value="rettifica">Rettifica</option>
+                  <option value="avviso">Avviso</option>
+                  <option value="chiarimenti">Chiarimenti</option>
+                  <option value="qa">Q&A</option>
+                  <option value="altro">Altro</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Lot ID (opzionale)</label>
+                <input type="text" class="form-control" name="lot_id" placeholder="UUID lotto">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Caricato da</label>
+                <input type="text" class="form-control" name="uploaded_by" placeholder="Nome utente">
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Hash file (opzionale)</label>
+                <input type="text" class="form-control" name="file_hash" placeholder="Hash SHA-256">
+              </div>
+
+              <button type="submit" class="btn btn-success w-100">
+                <i class="bi bi-upload me-2"></i>Carica documento
+              </button>
+            </form>
+
+            <div id="document-message" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/static/offcanvas.js"></script>
-  <script src="/static/tender_detail.js?v=6"></script>
+  <script src="/static/tender_detail.js?v=7"></script>
 </body>
 </html>

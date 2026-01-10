@@ -3,59 +3,299 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tender Management Demo</title>
+  <title>Tender Management - Dashboard</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/static/offcanvas.css">
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/static/demo.css">
 </head>
 <body>
-  <nav class="navbar navbar-light bg-light shadow-sm sticky-top">
-    <div class="container-fluid">
-      <button class="btn btn-outline-dark btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#global-offcanvas" aria-controls="global-offcanvas">
-        ☰
+  <!-- Modern Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark sticky-top custom-navbar">
+    <div class="container-fluid px-4">
+      <button class="btn btn-link text-white p-0 me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
+        <i class="bi bi-list fs-3"></i>
       </button>
-      <div class="d-flex flex-column">
-        <span class="fw-bold">Tender Management Demo</span>
-        <small class="text-muted">Crea gare e registra documenti</small>
+
+      <a class="navbar-brand fw-bold" href="/">
+        <i class="bi bi-lightning-charge-fill text-warning"></i>
+        Tender <span class="text-warning">RAG</span> Lab
+      </a>
+
+      <div class="d-flex align-items-center gap-3">
+        <div class="d-none d-md-flex align-items-center gap-2 text-white-50">
+          <i class="bi bi-clock"></i>
+          <span class="small" id="current-time"></span>
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-outline-light btn-sm rounded-pill" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle me-1"></i>
+            <span class="d-none d-md-inline">Admin</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i>Impostazioni</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/"><i class="bi bi-box-arrow-left me-2"></i>Home</a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </nav>
 
-  <div class="container py-3">
-    <header>
-      <h1>Tender Management Demo</h1>
-      <p>Creazione gara e registrazione documenti (demo front-end)</p>
-    </header>
+  <!-- Offcanvas Sidebar -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas">
+    <div class="offcanvas-header bg-gradient-primary text-white">
+      <h5 class="offcanvas-title fw-bold">
+        <i class="bi bi-lightning-charge-fill text-warning"></i>
+        Menu
+      </h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      <div class="list-group list-group-flush">
+        <a href="#" class="list-group-item list-group-item-action active" data-section="dashboard">
+          <i class="bi bi-house-door me-2"></i>Dashboard
+        </a>
+        <a href="#" class="list-group-item list-group-item-action" data-section="create">
+          <i class="bi bi-plus-circle me-2"></i>Crea nuova gara
+        </a>
+        <a href="#" class="list-group-item list-group-item-action" data-section="search">
+          <i class="bi bi-search me-2"></i>Cerca gare
+        </a>
+        <a href="/milvus" class="list-group-item list-group-item-action">
+          <i class="bi bi-database me-2"></i>Milvus Explorer
+        </a>
+        <a href="#" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#statsModal">
+          <i class="bi bi-graph-up me-2"></i>Statistiche
+        </a>
+      </div>
 
-    <main class="grid">
-      <section class="card">
-        <h2>Crea gara</h2>
-        <form id="tender-form">
-          <label>Codice <input type="text" name="code" required></label>
-          <label>Titolo <input type="text" name="title" required></label>
-          <label>Descrizione <textarea name="description"></textarea></label>
-          <label>Buyer <input type="text" name="buyer"></label>
-          <label>Data pubblicazione <input type="date" name="publish_date"></label>
-          <label>Data chiusura <input type="date" name="closing_date"></label>
-          <button type="submit">Crea gara</button>
-        </form>
-        <div id="tender-message" class="message"></div>
-      </section>
-
-      <section class="card">
-        <h2>Gare esistenti</h2>
-        <button id="refresh-tenders">Ricarica</button>
-        <ul id="tender-list" class="list"></ul>
-        <p class="hint">Clicca una gara per vedere il dettaglio e modificarla.</p>
-      </section>
-    </main>
+      <div class="p-3 mt-auto border-top">
+        <div class="small text-muted mb-2">Quick Actions</div>
+        <button class="btn btn-sm btn-outline-primary w-100 mb-2" id="refresh-all">
+          <i class="bi bi-arrow-clockwise me-2"></i>Aggiorna tutto
+        </button>
+        <button class="btn btn-sm btn-outline-secondary w-100" data-bs-toggle="modal" data-bs-target="#uploadModal">
+          <i class="bi bi-upload me-2"></i>Upload documento
+        </button>
+      </div>
+    </div>
   </div>
 
-  <noscript>
-    <p class="message error">Abilita JavaScript per vedere l'elenco gare e i link al dettaglio.</p>
-  </noscript>
+  <!-- Main Content -->
+  <div class="container-fluid px-4 py-4">
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary">
+            <i class="bi bi-folder-fill"></i>
+          </div>
+          <div>
+            <div class="stat-label">Gare totali</div>
+            <div class="stat-value" id="total-tenders">0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-success">
+            <i class="bi bi-check-circle-fill"></i>
+          </div>
+          <div>
+            <div class="stat-label">Attive</div>
+            <div class="stat-value" id="active-tenders">0</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-warning">
+            <i class="bi bi-clock-fill"></i>
+          </div>
+          <div>
+            <div class="stat-label">In scadenza</div>
+            <div class="stat-value">2</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-info">
+            <i class="bi bi-file-earmark-text-fill"></i>
+          </div>
+          <div>
+            <div class="stat-label">Documenti</div>
+            <div class="stat-value">127</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Sections -->
+    <div id="dashboard-section" class="content-section active">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h4 mb-0">
+          <i class="bi bi-folder-check me-2 text-primary"></i>
+          Gare d'appalto
+        </h2>
+        <div class="d-flex gap-2">
+          <div class="input-group" style="width: 300px;">
+            <span class="input-group-text bg-white">
+              <i class="bi bi-search"></i>
+            </span>
+            <input type="text" class="form-control" placeholder="Cerca per codice o titolo..." id="search-input">
+          </div>
+          <button class="btn btn-primary" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
+            <i class="bi bi-plus-lg me-2"></i>Nuova gara
+          </button>
+        </div>
+      </div>
+
+      <!-- Tender List -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <div id="tender-list-container">
+              <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Caricamento...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Tender Section -->
+    <div id="create-section" class="content-section">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient-primary text-white">
+              <h5 class="mb-0">
+                <i class="bi bi-plus-circle me-2"></i>
+                Crea gara con AI - Upload e Estrai Dati
+              </h5>
+            </div>
+            <div class="card-body p-4">
+              <!-- Upload Area -->
+              <div class="mb-4">
+                <label class="form-label fw-bold fs-5">
+                  <i class="bi bi-cloud-upload me-2"></i>
+                  Carica documenti della gara
+                </label>
+                <p class="text-muted small mb-3">
+                  Carica i documenti (bando, capitolato, disciplinare, ecc.) e l'AI estrarrà automaticamente tutti i dati
+                </p>
+
+                <div class="upload-dropzone" id="create-dropzone">
+                  <div class="text-center">
+                    <i class="bi bi-cloud-upload fs-1 text-primary mb-3 d-block"></i>
+                    <p class="mb-1 fw-semibold fs-5">Trascina qui i documenti</p>
+                    <p class="small text-muted mb-0">oppure clicca per selezionare (PDF, DOCX, TXT)</p>
+                  </div>
+                </div>
+                <input type="file" id="create-file-input" class="d-none" multiple accept=".pdf,.docx,.doc,.txt">
+              </div>
+
+              <!-- Files List -->
+              <div id="files-list" class="mb-4" style="display: none;">
+                <label class="form-label fw-semibold">
+                  <i class="bi bi-files me-2"></i>
+                  File selezionati
+                </label>
+                <div id="files-container" class="list-group"></div>
+              </div>
+
+              <!-- Extract Button -->
+              <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary btn-lg" id="extract-btn" disabled>
+                  <i class="bi bi-magic me-2"></i>Estrai dati con AI
+                </button>
+                <button type="button" class="btn btn-outline-secondary" id="reset-upload-btn">
+                  <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                </button>
+              </div>
+
+              <!-- Message Area -->
+              <div id="tender-message" class="mt-3"></div>
+
+              <!-- Extracted Data Preview -->
+              <div id="extracted-data" class="mt-4" style="display: none;">
+                <hr>
+                <h6 class="fw-bold mb-3">
+                  <i class="bi bi-check-circle text-success me-2"></i>
+                  Dati estratti
+                </h6>
+                <div id="extracted-data-content" class="alert alert-info"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search Section -->
+    <div id="search-section" class="content-section">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="bi bi-search me-2"></i>
+            Ricerca avanzata
+          </h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted">Funzionalità in arrivo...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-upload me-2"></i>
+            Upload documento
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="dropzone" id="file-dropzone">
+            <div class="text-center">
+              <i class="bi bi-cloud-upload fs-1 text-primary mb-3"></i>
+              <p class="mb-0">Trascina qui i tuoi file</p>
+              <p class="small text-muted">oppure clicca per selezionare</p>
+            </div>
+          </div>
+          <input type="file" id="file-input" class="d-none" multiple>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Modal -->
+  <div class="modal fade" id="statsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-graph-up me-2"></i>
+            Statistiche
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted">Dashboard statistiche in arrivo...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/static/offcanvas.js"></script>
-  <script src="/static/app.js?v=5"></script>
+  <script src="/static/demo.js"></script>
 </body>
 </html>

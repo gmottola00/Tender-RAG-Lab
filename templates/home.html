@@ -3,43 +3,444 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tender Lab Portal</title>
+  <title>Tender RAG Lab - Home</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/static/home.css">
 </head>
 <body>
-  <div class="container py-5">
-    <header class="text-center mb-5">
-      <h1 class="fw-bold">Tender RAG Lab</h1>
-      <p class="text-muted">Gestione gare, ingestion e Milvus explorer</p>
-    </header>
-
-    <div class="row g-4">
-      <div class="col-md-6">
-        <a href="/demo" class="card link-card shadow-lg border-0 h-100">
-          <div class="row g-0 h-100">
-            <div class="col-6 img-col tender-img"></div>
-            <div class="col-6 d-flex flex-column justify-content-center p-4">
-              <h3 class="h5 mb-2">Tender Management</h3>
-              <p class="text-muted small mb-3">Crea gare, registra documenti e avvia ingestion/chunking.</p>
-              <span class="badge bg-primary">Ingestion & CRUD</span>
-            </div>
-          </div>
-        </a>
-      </div>
-      <div class="col-md-6">
-        <a href="/milvus" class="card link-card shadow-lg border-0 h-100">
-          <div class="row g-0 h-100">
-            <div class="col-6 img-col milvus-img"></div>
-            <div class="col-6 d-flex flex-column justify-content-center p-4">
-              <h3 class="h5 mb-2">Milvus Explorer</h3>
-              <p class="text-muted small mb-3">Preview collection, schema, ricerca vettoriale e dati.</p>
-              <span class="badge bg-success">Vector DB</span>
-            </div>
-          </div>
-        </a>
+  <!-- Modern Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top modern-navbar">
+    <div class="container">
+      <a class="navbar-brand fw-bold fs-4" href="/">
+        <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+        Tender <span class="text-warning">RAG</span>
+      </a>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto align-items-center">
+          <li class="nav-item">
+            <a class="nav-link" href="#features">Funzionalità</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#how-it-works">Come funziona</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#tech">Tecnologie</a>
+          </li>
+          <li class="nav-item ms-3">
+            <a href="/demo" class="btn btn-warning btn-sm px-4 rounded-pill fw-semibold">
+              Dashboard
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-bg"></div>
+    <div class="particles"></div>
+
+    <div class="container">
+      <div class="row align-items-center min-vh-100 py-5">
+        <div class="col-lg-6 text-black hero-content">
+          <div class="badge-pill mb-4">
+            <i class="bi bi-stars me-2"></i>
+            <span>Powered by AI & RAG Technology</span>
+          </div>
+
+          <h1 class="display-2 fw-bold mb-4 animate-fade-in">
+            Gestisci le tue<br>
+            <span class="gradient-text-hero">Gare d'Appalto</span><br>
+            con l'AI
+          </h1>
+
+          <p class="lead mb-4 pe-lg-5 animate-fade-in-delay" style="font-size: 1.25rem; line-height: 1.8;">
+            Piattaforma intelligente che sfrutta RAG e vector search per automatizzare
+            l'analisi dei documenti e velocizzare le tue gare
+          </p>
+
+          <div class="d-flex flex-wrap gap-3 mb-5 animate-fade-in-delay-2">
+            <a href="/demo" class="btn btn-warning btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg btn-hover">
+              <i class="bi bi-rocket-takeoff me-2"></i>
+              Inizia Gratis
+            </a>
+            <a href="#how-it-works" class="btn btn-outline-light btn-lg px-5 py-3 rounded-pill fw-semibold">
+              <i class="bi bi-play-circle me-2"></i>
+              Vedi Demo
+            </a>
+          </div>
+
+          <!-- Stats Pills -->
+          <div class="d-flex flex-wrap gap-4 animate-fade-in-delay-3">
+            <div class="stat-pill">
+              <div class="stat-number">10k+</div>
+              <div class="stat-label">Documenti Processati</div>
+            </div>
+            <div class="stat-pill">
+              <div class="stat-number">99.9%</div>
+              <div class="stat-label">Accuratezza AI</div>
+            </div>
+            <div class="stat-pill">
+              <div class="stat-number">5x</div>
+              <div class="stat-label">Più Veloce</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-6 d-none d-lg-block">
+          <div class="hero-visual">
+            <!-- Animated Dashboard Preview -->
+            <div class="dashboard-preview">
+              <div class="preview-window">
+                <div class="window-header">
+                  <div class="window-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                  <div class="window-title">Tender Dashboard</div>
+                </div>
+                <div class="window-content">
+                  <div class="content-row">
+                    <div class="pulse-dot"></div>
+                    <div class="content-bar" style="width: 80%;"></div>
+                  </div>
+                  <div class="content-row">
+                    <div class="pulse-dot"></div>
+                    <div class="content-bar" style="width: 60%;"></div>
+                  </div>
+                  <div class="content-row">
+                    <div class="pulse-dot"></div>
+                    <div class="content-bar" style="width: 90%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Floating Elements -->
+              <div class="float-element float-1">
+                <i class="bi bi-file-earmark-text"></i>
+              </div>
+              <div class="float-element float-2">
+                <i class="bi bi-cpu"></i>
+              </div>
+              <div class="float-element float-3">
+                <i class="bi bi-graph-up-arrow"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator">
+      <a href="#features" class="text-white text-decoration-none">
+        <div class="scroll-text mb-2">Scorri per scoprire</div>
+        <div class="scroll-icon">
+          <i class="bi bi-chevron-down"></i>
+        </div>
+      </a>
+    </div>
   </div>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section py-5">
+    <div class="container py-5">
+      <div class="text-center mb-5">
+        <div class="section-badge mb-3">Funzionalità</div>
+        <h2 class="display-4 fw-bold mb-3">Tutto ciò di cui hai bisogno</h2>
+        <p class="lead text-muted">Strumenti avanzati per gestire le tue gare d'appalto</p>
+      </div>
+
+      <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+          <div class="feature-card-modern h-100">
+            <div class="feature-header">
+              <div class="feature-icon-modern bg-gradient-primary">
+                <i class="bi bi-folder-check"></i>
+              </div>
+              <div>
+                <h3 class="h4 mb-1">Tender Management</h3>
+                <p class="text-muted small mb-0">Dashboard completa per le tue gare</p>
+              </div>
+            </div>
+
+            <p class="text-muted mb-4">
+              Crea e gestisci gare d'appalto, carica documenti e avvia l'ingestion automatica
+              con chunking intelligente powered by AI
+            </p>
+
+            <div class="features-list mb-4">
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <span>Upload e gestione documenti multi-formato</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <span>Ingestion automatica con chunking AI</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <span>CRUD completo con interfaccia moderna</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill text-primary"></i>
+                <span>Real-time search e filtering</span>
+              </div>
+            </div>
+
+            <a href="/demo" class="btn btn-primary btn-lg w-100 rounded-pill">
+              Vai al Dashboard
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-lg-6">
+          <div class="feature-card-modern h-100">
+            <div class="feature-header">
+              <div class="feature-icon-modern bg-gradient-success">
+                <i class="bi bi-database-fill-gear"></i>
+              </div>
+              <div>
+                <h3 class="h4 mb-1">Milvus Explorer</h3>
+                <p class="text-muted small mb-0">Database vettoriale avanzato</p>
+              </div>
+            </div>
+
+            <p class="text-muted mb-4">
+              Esplora il database vettoriale, visualizza collection, schema e dati.
+              Effettua ricerche semantiche avanzate con AI embeddings
+            </p>
+
+            <div class="features-list mb-4">
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span>Vector similarity search semantico</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span>Schema viewer interattivo</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span>Data preview e analytics</span>
+              </div>
+              <div class="feature-item">
+                <i class="bi bi-check-circle-fill text-success"></i>
+                <span>Performance monitoring real-time</span>
+              </div>
+            </div>
+
+            <a href="/milvus" class="btn btn-success btn-lg w-100 rounded-pill">
+              Esplora il Database
+              <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it Works Section -->
+  <section id="how-it-works" class="how-it-works-section py-5 bg-dark text-white">
+    <div class="container py-5">
+      <div class="text-center mb-5">
+        <div class="section-badge-dark mb-3">Come Funziona</div>
+        <h2 class="display-4 fw-bold mb-3">Semplice ed Efficace</h2>
+        <p class="lead text-white-50">In 3 passaggi sei operativo</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">01</div>
+            <div class="step-icon">
+              <i class="bi bi-upload"></i>
+            </div>
+            <h4 class="mb-3">Carica i Documenti</h4>
+            <p class="text-white-50">
+              Upload dei documenti della gara (bandi, capitolati, disciplinari)
+              tramite drag & drop o selezione file
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">02</div>
+            <div class="step-icon">
+              <i class="bi bi-cpu"></i>
+            </div>
+            <h4 class="mb-3">AI Processerà Tutto</h4>
+            <p class="text-white-50">
+              L'AI esegue chunking intelligente, estrazione entità e indicizzazione
+              vettoriale automatica con RAG
+            </p>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">03</div>
+            <div class="step-icon">
+              <i class="bi bi-search-heart"></i>
+            </div>
+            <h4 class="mb-3">Cerca e Analizza</h4>
+            <p class="text-white-50">
+              Effettua ricerche semantiche, analisi comparative e ottieni
+              insights immediati sui tuoi documenti
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technologies Section -->
+  <section id="tech" class="tech-section py-5">
+    <div class="container py-5">
+      <div class="text-center mb-5">
+        <div class="section-badge mb-3">Stack Tecnologico</div>
+        <h2 class="display-4 fw-bold mb-3">Tecnologie all'Avanguardia</h2>
+        <p class="lead text-muted">Performance eccezionali grazie alle migliori tecnologie</p>
+      </div>
+
+      <div class="row g-4 justify-content-center">
+        <div class="col-6 col-md-3">
+          <div class="tech-card">
+            <div class="tech-icon">
+              <i class="bi bi-robot"></i>
+            </div>
+            <h5 class="mt-3 mb-2">RAG</h5>
+            <p class="text-muted small mb-0">Retrieval Augmented Generation</p>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="tech-card">
+            <div class="tech-icon">
+              <i class="bi bi-diagram-3"></i>
+            </div>
+            <h5 class="mt-3 mb-2">Milvus</h5>
+            <p class="text-muted small mb-0">Vector Database</p>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="tech-card">
+            <div class="tech-icon">
+              <i class="bi bi-lightning-charge"></i>
+            </div>
+            <h5 class="mt-3 mb-2">FastAPI</h5>
+            <p class="text-muted small mb-0">High Performance</p>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+          <div class="tech-card">
+            <div class="tech-icon">
+              <i class="bi bi-bootstrap"></i>
+            </div>
+            <h5 class="mt-3 mb-2">Bootstrap 5</h5>
+            <p class="text-muted small mb-0">Modern UI</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section py-5">
+    <div class="container py-5">
+      <div class="cta-box">
+        <div class="row align-items-center">
+          <div class="col-lg-8">
+            <h2 class="display-5 fw-bold text-white mb-3">
+              Pronto a rivoluzionare la gestione delle tue gare?
+            </h2>
+            <p class="lead text-white-50 mb-0">
+              Inizia subito a utilizzare Tender RAG Lab e scopri il potere dell'AI
+            </p>
+          </div>
+          <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+            <a href="/demo" class="btn btn-warning btn-lg px-5 py-3 rounded-pill fw-bold shadow-lg">
+              <i class="bi bi-rocket-takeoff me-2"></i>
+              Inizia Ora
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer-section">
+    <div class="container py-5">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="mb-4">
+            <h4 class="fw-bold mb-3">
+              <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+              Tender <span class="text-warning">RAG</span>
+            </h4>
+            <p class="text-white-50">
+              Piattaforma intelligente per la gestione delle gare d'appalto
+              powered by AI e RAG Technology
+            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-2 col-md-4">
+          <h6 class="fw-bold mb-3">Prodotto</h6>
+          <ul class="list-unstyled">
+            <li class="mb-2"><a href="#features" class="text-white-50 text-decoration-none">Funzionalità</a></li>
+            <li class="mb-2"><a href="#how-it-works" class="text-white-50 text-decoration-none">Come Funziona</a></li>
+            <li class="mb-2"><a href="#tech" class="text-white-50 text-decoration-none">Tecnologie</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-2 col-md-4">
+          <h6 class="fw-bold mb-3">Risorse</h6>
+          <ul class="list-unstyled">
+            <li class="mb-2"><a href="/demo" class="text-white-50 text-decoration-none">Dashboard</a></li>
+            <li class="mb-2"><a href="/milvus" class="text-white-50 text-decoration-none">Milvus Explorer</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-4 col-md-4">
+          <h6 class="fw-bold mb-3">Contatti</h6>
+          <p class="text-white-50 small">
+            Per informazioni e supporto
+          </p>
+          <div class="d-flex gap-3">
+            <a href="#" class="social-link">
+              <i class="bi bi-github"></i>
+            </a>
+            <a href="#" class="social-link">
+              <i class="bi bi-linkedin"></i>
+            </a>
+            <a href="#" class="social-link">
+              <i class="bi bi-envelope"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <hr class="my-4 border-secondary">
+
+      <div class="text-center text-white-50 small">
+        <p class="mb-0">&copy; 2026 Tender RAG Lab. Powered by AI & RAG Technology</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/home.js"></script>
 </body>
 </html>
