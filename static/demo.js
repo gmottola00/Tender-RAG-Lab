@@ -11,8 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeDashboard();
   setupEventListeners();
   loadTenders();
-  updateClock();
-  setInterval(updateClock, 1000);
 });
 
 // Initialize dashboard
@@ -30,13 +28,9 @@ function setupEventListeners() {
       const section = link.dataset.section;
       showSection(section);
 
-      // Update active state
-      document.querySelectorAll('[data-section]').forEach(l => l.classList.remove('active'));
+      // Update active state in navbar
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
       link.classList.add('active');
-
-      // Close offcanvas on mobile
-      const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('sidebarOffcanvas'));
-      if (offcanvas) offcanvas.hide();
     });
   });
 
@@ -46,20 +40,35 @@ function setupEventListeners() {
     searchInput.addEventListener('input', handleSearch);
   }
 
-  // Refresh all button
-  const refreshAllBtn = document.getElementById('refresh-all');
-  if (refreshAllBtn) {
-    refreshAllBtn.addEventListener('click', () => {
-      showToast('Aggiornamento in corso...', 'info');
-      loadTenders();
-    });
-  }
-
-  // File dropzone
-  setupDropzone();
-
   // Create section upload
   setupCreateUpload();
+}
+
+// Delete all tenders
+async function deleteAllTenders() {
+  if (!confirm('Sei sicuro di voler eliminare TUTTE le gare? Questa operazione non può essere annullata.')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${apiBase}/tenders`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) {
+      throw new Error('Errore nell\'eliminazione delle gare');
+    }
+
+    const data = await response.json();
+    showToast(`${data.deleted_count} gara/e eliminate con successo`, 'success');
+    
+    // Reload tenders list
+    await loadTenders();
+
+  } catch (error) {
+    console.error('Errore:', error);
+    showToast('Errore nell\'eliminazione delle gare', 'danger');
+  }
 }
 
 // Show section
@@ -101,8 +110,8 @@ function renderTenderList(tenders) {
         <i class="bi bi-folder-x"></i>
         <h5>Nessuna gara trovata</h5>
         <p>Crea la tua prima gara per iniziare</p>
-        <button class="btn btn-primary mt-3" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas">
-          <i class="bi bi-plus-lg me-2"></i>Crea gara
+        <button class="btn btn-primary btn-lg mt-4 px-5 rounded-pill fw-semibold shadow" onclick="showSection('create')">
+          <i class="bi bi-plus-lg me-2"></i>Crea Prima Gara
         </button>
       </div>
     `;
@@ -273,9 +282,8 @@ async function handleExtractData() {
   extractBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Estrazione in corso...';
 
   const formData = new FormData();
-  uploadedFiles.forEach(file => {
-    formData.append('files', file);
-  });
+  // The endpoint expects a single 'file' parameter
+  formData.append('file', uploadedFiles[0]);
 
   try {
     const response = await fetch(`${apiBase}/ingestion/extract-all`, {
@@ -290,19 +298,11 @@ async function handleExtractData() {
 
     const data = await response.json();
 
-    // Show extracted data
-    displayExtractedData(data);
-    showSuccess(messageEl, 'Dati estratti con successo! La gara è stata creata.');
+    // Show success message
+    showSuccess(messageEl, `Gara ${data.tender_code} creata con successo!`);
 
-    // Reload tenders
-    await loadTenders();
-
-    // Auto switch to dashboard after 3 seconds
-    setTimeout(() => {
-      showSection('dashboard');
-      document.querySelector('[data-section="dashboard"]').click();
-      resetUpload();
-    }, 3000);
+    // Redirect to tender detail page
+    window.location.href = `/tender-detail?id=${data.tender_id}`;
 
   } catch (error) {
     showError(messageEl, error.message);
@@ -382,58 +382,6 @@ function handleSearch(e) {
   );
 
   renderTenderList(filtered);
-}
-
-// Setup dropzone
-function setupDropzone() {
-  const dropzone = document.getElementById('file-dropzone');
-  const fileInput = document.getElementById('file-input');
-
-  if (!dropzone || !fileInput) return;
-
-  dropzone.addEventListener('click', () => fileInput.click());
-
-  dropzone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropzone.classList.add('dragover');
-  });
-
-  dropzone.addEventListener('dragleave', () => {
-    dropzone.classList.remove('dragover');
-  });
-
-  dropzone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropzone.classList.remove('dragover');
-
-    const files = Array.from(e.dataTransfer.files);
-    handleFileUpload(files);
-  });
-
-  fileInput.addEventListener('change', (e) => {
-    const files = Array.from(e.target.files);
-    handleFileUpload(files);
-  });
-}
-
-// Handle file upload
-function handleFileUpload(files) {
-  console.log('Files selected:', files);
-  showToast(`${files.length} file selezionati`, 'info');
-  // TODO: Implement actual upload logic
-}
-
-// Update clock
-function updateClock() {
-  const clockEl = document.getElementById('current-time');
-  if (!clockEl) return;
-
-  const now = new Date();
-  const timeString = now.toLocaleTimeString('it-IT', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-  clockEl.textContent = timeString;
 }
 
 // Utility functions

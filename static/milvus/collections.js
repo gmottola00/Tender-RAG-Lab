@@ -188,44 +188,91 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadCollections() {
         try {
+            const emptyState = document.getElementById('empty-state');
+
             const response = await fetch(`${apiBase}/collections`);
             const collections = await response.json();
 
+            // Show empty state if no collections
+            if (!collections || collections.length === 0) {
+                collectionsGrid.classList.add('d-none');
+                if (emptyState) emptyState.classList.remove('d-none');
+                return;
+            }
+
+            // Hide empty state and show grid
+            collectionsGrid.classList.remove('d-none');
+            if (emptyState) emptyState.classList.add('d-none');
             collectionsGrid.innerHTML = "";
-            
-            collections.forEach(collection => {
-                const card = document.createElement("div");
-                card.className = "col-md-6 col-lg-4";
-                card.innerHTML = `
-                    <div class="card collection-card h-100">
-                        <div class="card-body" onclick="window.location.href='/milvus/collections/${collection.name}'" style="cursor: pointer;">
-                            <h5 class="card-title">
-                                <i class="bi bi-collection-fill text-primary"></i>
-                                ${collection.name}
-                            </h5>
-                            <p class="card-text text-muted">
-                                <small>
-                                    <i class="bi bi-diagram-3"></i> ${collection.row_count ?? 0} record
-                                </small>
-                            </p>
+
+            collections.forEach((collection, index) => {
+                const col = document.createElement("div");
+                col.className = "col-lg-4 col-md-6";
+
+                const cardDiv = document.createElement("div");
+                cardDiv.className = "modern-card fade-in-up";
+                cardDiv.style.cssText = `animation-delay: ${index * 0.05}s; border-left: 4px solid #3b82f6; cursor: pointer;`;
+
+                cardDiv.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="card-icon primary" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                            <i class="bi bi-collection-fill"></i>
                         </div>
-                        <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between">
-                            <button class="btn btn-sm btn-outline-info" onclick="event.stopPropagation(); copyExistingCollection('${collection.name}')">
-                                <i class="bi bi-files"></i> Copia Schema
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCollection('${collection.name}')">
-                                <i class="bi bi-trash"></i> Elimina
-                            </button>
-                        </div>
+                        <span class="badge-modern success">${collection.row_count ?? 0} record</span>
+                    </div>
+                    <h4 class="mb-2">${collection.name}</h4>
+                    <p class="text-muted mb-3">
+                        <i class="bi bi-diagram-3 me-1"></i>
+                        Collection vettoriale
+                    </p>
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-sm btn-outline-primary rounded-pill flex-fill copy-schema-btn">
+                            <i class="bi bi-files me-1"></i> Copia
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill delete-collection-btn">
+                            <i class="bi bi-trash me-1"></i>
+                        </button>
                     </div>
                 `;
-                collectionsGrid.appendChild(card);
+
+                // Add click event to the entire card for navigation
+                cardDiv.addEventListener('click', (e) => {
+                    // Navigate to collection detail
+                    window.location.href = `/milvus/collections/${collection.name}`;
+                });
+
+                // Add event listeners to buttons
+                const copyBtn = cardDiv.querySelector('.copy-schema-btn');
+                const deleteBtn = cardDiv.querySelector('.delete-collection-btn');
+
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        copyExistingCollection(collection.name);
+                    });
+                }
+
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        deleteCollection(collection.name);
+                    });
+                }
+
+                col.appendChild(cardDiv);
+                collectionsGrid.appendChild(col);
             });
+
         } catch (error) {
             console.error("Errore nel caricamento delle collection:", error);
             collectionsGrid.innerHTML = `
                 <div class="col-12">
-                    <div class="alert alert-danger">Errore nel caricamento delle collection</div>
+                    <div class="alert alert-danger border-0" style="border-radius: 12px;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Errore!</strong> Impossibile caricare le collection: ${error.message}
+                    </div>
                 </div>
             `;
         }

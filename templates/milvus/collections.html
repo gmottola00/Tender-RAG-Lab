@@ -1,104 +1,169 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestione Collection</title>
+    <title>Collections - Milvus Explorer</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .collection-card {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-left: 4px solid #0d6efd;
-        }
-
-        .collection-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .create-card {
-            border: 2px dashed #dee2e6;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .create-card:hover {
-            border-color: #0d6efd;
-            background-color: #f0f7ff;
-        }
-
-        .modal-xl {
-            max-width: 90%;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/milvus/milvus-modern.css">
 </head>
-
 <body>
-    <nav class="navbar navbar-dark bg-primary shadow-sm sticky-top">
-        <div class="container-fluid">
-            <a href="/milvus" class="btn btn-outline-light btn-sm">&larr; Dashboard</a>
-            <span class="navbar-brand mb-0 h1"><i class="bi bi-collection"></i> Collections</span>
-            <div></div>
+    <!-- Modern Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top modern-navbar">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="/">
+                <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+                Tender <span class="text-warning">RAG</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">
+                            <i class="bi bi-house-door me-1"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/demo">
+                            <i class="bi bi-grid-3x3-gap me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/milvus">
+                            <i class="bi bi-database-fill-gear me-1"></i> Milvus
+                        </a>
+                    </li>
+                    <li class="nav-item ms-3">
+                        <a href="/milvus/databases" class="btn btn-outline-light btn-sm px-4 rounded-pill fw-semibold">
+                            <i class="bi bi-server me-1"></i> Databases
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
+    <!-- Hero Section -->
+    <div class="milvus-hero" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+        <div class="container">
+            <div class="hero-badge">
+                <i class="bi bi-collection me-2"></i>
+                Collection Management
+            </div>
+            <h1 class="mb-3">
+                Vector <span class="gradient-text">Collections</span>
+            </h1>
+            <p class="lead">
+                Gestisci le tue collection vettoriali con semplicità.
+                <br>Crea, esplora e ottimizza i tuoi indici vettoriali.
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
     <div class="container py-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="mb-0">Le tue Collection</h1>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCollectionModal">
-                <i class="bi bi-plus-circle"></i> Crea Nuova Collection
-            </button>
+        <!-- Header Row -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="h3 mb-2">
+                            <i class="bi bi-collection-fill text-primary me-2"></i>
+                            Le tue Collection
+                        </h2>
+                        <p class="text-muted mb-0">Gestisci schema, indici e dati vettoriali</p>
+                    </div>
+                    <button class="btn btn-primary btn-lg px-4 rounded-pill fw-semibold shadow-sm"
+                            data-bs-toggle="modal" data-bs-target="#createCollectionModal">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Nuova Collection
+                    </button>
+                </div>
+            </div>
         </div>
 
+        <!-- Collections Grid -->
         <div class="row g-4" id="collections-grid">
-            <!-- Le collection verranno caricate dinamicamente -->
+            <!-- Collections will be loaded dynamically -->
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="text-muted mt-3">Caricamento collections...</p>
+            </div>
+        </div>
+
+        <!-- Empty State (hidden by default) -->
+        <div class="row d-none" id="empty-state">
+            <div class="col-lg-6 mx-auto text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 5rem; color: #e5e7eb;"></i>
+                <h3 class="mt-4 mb-3">Nessuna Collection Trovata</h3>
+                <p class="text-muted mb-4">
+                    Inizia creando la tua prima collection per indicizzare dati vettoriali.
+                </p>
+                <button class="btn btn-primary btn-lg px-5 rounded-pill" data-bs-toggle="modal" data-bs-target="#createCollectionModal">
+                    <i class="bi bi-plus-circle me-2"></i>
+                    Crea Prima Collection
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Modal per creare una nuova collection -->
     <div class="modal fade" id="createCollectionModal" tabindex="-1">
         <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Crea Nuova Collection</h5>
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+                <div class="modal-header border-0" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Crea Nuova Collection
+                    </h5>
                     <div>
-                        <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="showImportSchemaModal()">
-                            <i class="bi bi-upload"></i> Importa Schema
+                        <button type="button" class="btn btn-sm btn-light me-2 rounded-pill" onclick="showImportSchemaModal()">
+                            <i class="bi bi-upload me-1"></i> Importa Schema
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="exportSchema()">
-                            <i class="bi bi-download"></i> Esporta Schema
+                        <button type="button" class="btn btn-sm btn-outline-light me-2 rounded-pill" onclick="exportSchema()">
+                            <i class="bi bi-download me-1"></i> Esporta Schema
                         </button>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-4">
                     <form id="create-collection-form">
                         <div class="row g-3 mb-4">
                             <div class="col-md-8">
-                                <label for="collection-name" class="form-label">Nome Collection</label>
-                                <input type="text" class="form-control" id="collection-name" required>
+                                <label for="collection-name" class="form-label fw-semibold">
+                                    <i class="bi bi-collection me-2 text-primary"></i>Nome Collection
+                                </label>
+                                <input type="text" class="form-control form-control-lg" id="collection-name"
+                                       placeholder="es: tender_vectors" required
+                                       style="border-radius: 12px; border: 2px solid #e5e7eb;">
                             </div>
                             <div class="col-md-4">
-                                <label for="shards-num" class="form-label">Numero di Shard</label>
-                                <input type="number" class="form-control" id="shards-num" value="2" min="1" required>
+                                <label for="shards-num" class="form-label fw-semibold">
+                                    <i class="bi bi-grid me-2 text-primary"></i>Numero di Shard
+                                </label>
+                                <input type="number" class="form-control form-control-lg" id="shards-num" value="2" min="1" required
+                                       style="border-radius: 12px; border: 2px solid #e5e7eb;">
                             </div>
                         </div>
 
-                        <h6>Schema della Collection</h6>
+                        <div class="alert alert-info border-0" style="background: rgba(59, 130, 246, 0.1); border-radius: 12px;">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Schema della Collection:</strong> Definisci i campi che compongono la struttura dati
+                        </div>
+
                         <div id="fields-container" class="mb-3">
-                            <div class="row g-2 mb-2 field-row">
+                            <div class="row g-2 mb-2 field-row p-3 rounded" style="background: #f9fafb;">
                                 <div class="col-md-4">
-                                    <input type="text" class="form-control" placeholder="Nome Campo" required>
+                                    <input type="text" class="form-control" placeholder="Nome Campo" required
+                                           style="border-radius: 8px;">
                                 </div>
                                 <div class="col-md-3">
-                                    <select class="form-select" required>
+                                    <select class="form-select" required style="border-radius: 8px;">
                                         <option value="">Tipo di Dato</option>
                                         <option value="BOOL">Bool</option>
                                         <option value="INT8">Int8</option>
@@ -118,34 +183,42 @@
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <input type="number" class="form-control" placeholder="Dimensione">
+                                    <input type="number" class="form-control" placeholder="Dimensione"
+                                           style="border-radius: 8px;">
                                 </div>
                                 <div class="col-md-2">
                                     <div class="form-check mt-2">
                                         <input class="form-check-input is-primary" type="checkbox">
-                                        <label class="form-check-label">Primary</label>
+                                        <label class="form-check-label fw-semibold">Primary</label>
                                     </div>
                                 </div>
                                 <div class="col-md-1">
-                                    <button type="button" class="btn btn-danger btn-sm remove-field">&times;</button>
+                                    <button type="button" class="btn btn-danger btn-sm rounded-circle remove-field"
+                                            style="width: 35px; height: 35px;">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-secondary btn-sm" id="add-field">
+                        <button type="button" class="btn btn-outline-primary rounded-pill px-4" id="add-field">
                             <i class="bi bi-plus"></i> Aggiungi Campo
                         </button>
 
                         <hr class="my-4">
 
-                        <h6>Parametri Indice (opzionale)</h6>
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-gear-fill text-primary me-2"></i>
+                            Parametri Indice (opzionale)
+                        </h6>
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label for="index-field-name" class="form-label">Campo per Indice</label>
-                                <input type="text" class="form-control" id="index-field-name">
+                                <input type="text" class="form-control" id="index-field-name"
+                                       style="border-radius: 8px;">
                             </div>
                             <div class="col-md-4">
                                 <label for="index-type" class="form-label">Tipo di Indice</label>
-                                <select class="form-select" id="index-type">
+                                <select class="form-select" id="index-type" style="border-radius: 8px;">
                                     <option value="">Seleziona</option>
                                     <option value="HNSW">HNSW</option>
                                     <option value="IVF_FLAT">IVF_FLAT</option>
@@ -154,7 +227,7 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="metric-type" class="form-label">Metrica</label>
-                                <select class="form-select" id="metric-type">
+                                <select class="form-select" id="metric-type" style="border-radius: 8px;">
                                     <option value="">Seleziona</option>
                                     <option value="IP">Inner Product</option>
                                     <option value="L2">L2 Distance</option>
@@ -164,9 +237,14 @@
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="button" class="btn btn-primary" id="create-collection-btn">Crea Collection</button>
+                <div class="modal-footer border-0 p-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                        Annulla
+                    </button>
+                    <button type="button" class="btn btn-primary rounded-pill px-5 fw-semibold" id="create-collection-btn">
+                        <i class="bi bi-check-lg me-2"></i>
+                        Crea Collection
+                    </button>
                 </div>
             </div>
         </div>
@@ -175,25 +253,26 @@
     <!-- Import Schema Modal -->
     <div class="modal fade" id="importSchemaModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-upload"></i> Importa Schema
+            <div class="modal-content" style="border-radius: 20px; border: none;">
+                <div class="modal-header border-0" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-upload me-2"></i> Importa Schema
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0" style="background: rgba(59, 130, 246, 0.1); border-radius: 12px;">
+                        <i class="bi bi-info-circle me-2"></i>
                         <strong>Formato JSON:</strong> Incolla il JSON esportato o un schema valido con campi e parametri di indice.
                     </div>
-                    <textarea id="schemaImportText" class="form-control font-monospace" rows="15" 
-                              placeholder='{"schema": [...], "index_params": {...}, "shards_num": 2}'></textarea>
+                    <textarea id="schemaImportText" class="form-control font-monospace" rows="15"
+                              placeholder='{"schema": [...], "index_params": {...}, "shards_num": 2}'
+                              style="border-radius: 12px; border: 2px solid #e5e7eb;"></textarea>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
-                    <button type="button" class="btn btn-primary" onclick="importSchema()">
-                        <i class="bi bi-check-lg"></i> Importa
+                <div class="modal-footer border-0 p-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Annulla</button>
+                    <button type="button" class="btn btn-success rounded-pill px-5 fw-semibold" onclick="importSchema()">
+                        <i class="bi bi-check-lg me-2"></i> Importa
                     </button>
                 </div>
             </div>
@@ -203,35 +282,54 @@
     <!-- Export Schema Modal -->
     <div class="modal fade" id="exportSchemaModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-download"></i> Esporta Schema
+            <div class="modal-content" style="border-radius: 20px; border: none;">
+                <div class="modal-header border-0" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-download me-2"></i> Esporta Schema
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="alert alert-success">
-                        <i class="bi bi-check-circle"></i>
+                <div class="modal-body p-4">
+                    <div class="alert alert-success border-0" style="background: rgba(16, 185, 129, 0.1); border-radius: 12px;">
+                        <i class="bi bi-check-circle me-2"></i>
                         <strong>Schema Pronto:</strong> Copia il JSON qui sotto o scaricalo come file.
                     </div>
-                    <textarea id="schemaExportText" class="form-control font-monospace" rows="15" readonly></textarea>
+                    <textarea id="schemaExportText" class="form-control font-monospace" rows="15" readonly
+                              style="border-radius: 12px; border: 2px solid #e5e7eb;"></textarea>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
-                    <button type="button" class="btn btn-outline-primary" onclick="copyExportedSchema()">
-                        <i class="bi bi-clipboard"></i> Copia
+                <div class="modal-footer border-0 p-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Chiudi</button>
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-4" onclick="copyExportedSchema()">
+                        <i class="bi bi-clipboard me-2"></i> Copia
                     </button>
-                    <button type="button" class="btn btn-primary" onclick="downloadSchema()">
-                        <i class="bi bi-download"></i> Scarica JSON
+                    <button type="button" class="btn btn-warning rounded-pill px-5 fw-semibold" onclick="downloadSchema()">
+                        <i class="bi bi-download me-2"></i> Scarica JSON
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="py-4 mt-5" style="background: rgba(15, 15, 35, 0.95); color: white;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <p class="mb-0 opacity-75">
+                        <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+                        Tender RAG Lab - Collections Manager
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="mb-0 opacity-75">
+                        Powered by <strong>Milvus</strong> Vector Database
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/static/milvus/collections.js"></script>
 </body>
-
 </html>
