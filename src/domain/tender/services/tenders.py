@@ -92,3 +92,20 @@ class TenderService:
         await db.delete(obj)
         await db.commit()
         return True
+
+    @staticmethod
+    async def delete_all(db: AsyncSession) -> int:
+        """Delete all tenders from database.
+        
+        Returns:
+            Number of tenders deleted
+        """
+        result = await db.execute(select(Tender))
+        tenders = result.scalars().all()
+        count = len(tenders)
+        
+        for tender in tenders:
+            await db.delete(tender)
+        
+        await db.commit()
+        return count

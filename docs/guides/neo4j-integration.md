@@ -9,6 +9,7 @@ Before following this guide, ensure you have:
 - Completed [Neo4j Setup](neo4j-setup.md)
 - Understanding of [Document Indexing](indexing-documents.md)
 - Familiarity with [Search & Retrieval](search-retrieval.md)
+- **NEW:** Read [Hybrid Entity Extraction](hybrid-entity-extraction.md) for improved entity detection
 ```
 
 ## Architecture Overview
@@ -17,11 +18,13 @@ Before following this guide, ensure you have:
 
 ```
 Tender (CIG: unique code)
-  ├─ HAS_CHUNK ──> Chunk (from document)
-  ├─ HAS_LOT ────> Lot (sub-tenders)
+  ├─ HAS_CHUNK ──────> Chunk (from document)
+  ├─ HAS_LOT ────────> Lot (sub-tenders) ✨ NEW
+  ├─ HAS_SECTION ────> Section (hierarchical structure) ✨ NEW
+  ├─ HAS_CODE ───────> Code (CIG, CUP, CPV) ✨ NEW
   ├─ HAS_REQUIREMENT ──> Requirement (technical/economic)
   ├─ HAS_DEADLINE ────> Deadline (submission dates)
-  └─ PUBLISHED_BY ───> Organization (buyer)
+  └─ PUBLISHED_BY ───> Organization (buyer) ✨ Enhanced
 
 Chunk
   ├─ text_preview (first 200 chars)
@@ -29,7 +32,28 @@ Chunk
   ├─ chunk_index
   ├─ section_type (requirements, evaluation, etc.)
   └─ tender_id (link back to parent)
+
+Lot ✨ NEW
+  ├─ id (LOT-0001, LOT-0002, etc.)
+  ├─ name (Lotto description)
+  ├─ section_path (original hierarchy)
+  └─ source: "structure" (high confidence)
+
+Section ✨ NEW
+  ├─ number (2.1, 3.1.2, etc.)
+  ├─ type (procedure, requirement, criteria, etc.)
+  ├─ name (full section name)
+  └─ full_path (complete hierarchy)
+
+Code ✨ NEW
+  ├─ type (CIG, CUP, CPV)
+  └─ value (actual code string)
 ```
+
+**Key Enhancement:** Structured entities (Lot, Section, Code) are now extracted from `section_path` 
+with **95% confidence** vs traditional NER-only approach (~60-80% confidence).
+
+See [Hybrid Entity Extraction](hybrid-entity-extraction.md) for details.
 
 ### Integration Points in RAG Pipeline
 
@@ -747,8 +771,9 @@ scripts/
 - ✅ **Query expansion** (explore related tenders automatically)
 - ✅ **Performance** (pre-computed relationships, indexed lookups)
 
-**Next Steps (Q1 2025):**
-- Entity extraction (NER for organizations, amounts, dates)
+**Next Steps (Q1 2026):**
+- ✅ **COMPLETED:** Structure-based entity extraction (lots, sections, codes) — [See Guide](hybrid-entity-extraction.md)
+- Entity extraction (NER for organizations, amounts, dates) — **Enhanced with hybrid approach**
 - Requirement classification (mandatory vs optional)
 - Lot-level relationships (subdivide tenders)
 - Evaluation criteria linking (scoring requirements)

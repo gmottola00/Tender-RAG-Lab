@@ -30,6 +30,8 @@ class TenderChunk:
         text: The actual text content of the chunk
         blocks: List of structured text blocks within this chunk
         page_numbers: List of page numbers where this chunk appears
+        section_path: Hierarchical path to the section (e.g., "5. Lotto > 5.1. LOT-0001")
+        metadata: Additional metadata as key-value pairs
         tender_id: ID of the tender this chunk belongs to
         lot_id: Optional ID of the specific lot within the tender
         section_type: Classification of the section (e.g., "requirements", "evaluation_criteria")
@@ -41,7 +43,11 @@ class TenderChunk:
     text: str
     blocks: List[Dict[str, Any]] = field(default_factory=list)
     page_numbers: List[int] = field(default_factory=list)
-    
+
+    # Structure extraction fields (needed for StructureExtractor)
+    section_path: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
     # Tender-specific fields
     tender_id: str = ""
     lot_id: Optional[str] = None
@@ -62,6 +68,8 @@ class TenderChunk:
             "heading_level": self.heading_level,
             "text": self.text,
             "page_numbers": self.page_numbers,
+            "section_path": self.section_path,
+            "metadata": self.metadata,
             "tender_id": self.tender_id,
             "lot_id": self.lot_id,
             "section_type": self.section_type,

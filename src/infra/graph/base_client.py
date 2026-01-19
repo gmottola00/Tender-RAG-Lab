@@ -7,11 +7,50 @@ Domain-specific logic (schema, queries) should go in separate files.
 import logging
 from typing import Any, Dict, List, Optional
 from contextlib import asynccontextmanager
+from datetime import datetime, date, time
 
 from neo4j import AsyncGraphDatabase, AsyncDriver, AsyncSession
 from neo4j.exceptions import ServiceUnavailable, AuthError
+from neo4j.time import DateTime, Date, Time
 
 logger = logging.getLogger(__name__)
+
+
+def convert_neo4j_types(obj: Any) -> Any:
+    """
+    Recursively convert Neo4j types to JSON-serializable Python types.
+    
+    Converts:
+    - neo4j.time.DateTime → ISO 8601 string
+    - neo4j.time.Date → ISO 8601 date string
+    - neo4j.time.Time → ISO 8601 time string
+    - dict → recursively convert values
+    - list → recursively convert items
+    
+    Args:
+        obj: Object to convert (can be dict, list, Neo4j type, or primitive)
+        
+    Returns:
+        JSON-serializable version of the object
+    """
+    if isinstance(obj, DateTime):
+        # Convert Neo4j DateTime to ISO string
+        return obj.iso_format()
+    elif isinstance(obj, Date):
+        # Convert Neo4j Date to ISO string (YYYY-MM-DD)
+        return obj.iso_format()
+    elif isinstance(obj, Time):
+        # Convert Neo4j Time to ISO string (HH:MM:SS)
+        return obj.iso_format()
+    elif isinstance(obj, dict):
+        # Recursively convert dict values
+        return {k: convert_neo4j_types(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        # Recursively convert list/tuple items
+        return [convert_neo4j_types(item) for item in obj]
+    else:
+        # Return as-is (int, float, str, bool, None)
+        return obj
 
 
 class Neo4jClient:

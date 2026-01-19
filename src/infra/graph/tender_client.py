@@ -9,7 +9,7 @@ This module contains domain-specific logic for the Tender Knowledge Graph:
 import logging
 from typing import Any, Dict, List, Optional
 
-from src.infra.graph.base_client import Neo4jClient
+from src.infra.graph.base_client import Neo4jClient, convert_neo4j_types
 
 logger = logging.getLogger(__name__)
 
@@ -430,6 +430,183 @@ class TenderGraphClient(Neo4jClient):
 
         return await self.execute_write(query, params)
 
+    async def add_lot_from_structure(
+        self,
+        tender_code: str,
+        lot_id: str,
+        lot_name: str,
+        section_path: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Add a Lot node extracted from document structure (section_path).
+        
+        Args:
+            tender_code: Parent tender code
+            lot_id: Lot identifier (e.g., "LOT-0001")
+            lot_name: Lot description
+            section_path: Original section path from chunk
+            **kwargs: Additional properties (page_numbers, etc.)
+            
+        Returns:
+            Created lot node summary
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+        MERGE (l:Lot {id: $lot_id, tender_code: $tender_code})
+        ON CREATE SET
+            l.name = $lot_name,
+            l.section_path = $section_path,
+            l.source = 'structure',
+            l.created_at = datetime()
+        ON MATCH SET
+            l.updated_at = datetime()
+        MERGE (t)-[:HAS_LOT]->(l)
+        RETURN l
+        """
+        
+        params = {
+            "tender_code": tender_code,
+            "lot_id": lot_id,
+            "lot_name": lot_name,
+            "section_path": section_path,
+        }
+        params.update(kwargs)
+        
+        return await self.execute_write(query, params)
+
+    async def add_section_from_structure(
+        self,
+        tender_code: str,
+        section_number: str,
+        section_type: str,
+        section_name: str,
+        full_path: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Add a Section node extracted from document structure.
+        
+        Args:
+            tender_code: Parent tender code
+            section_number: Section number (e.g., "2.1")
+            section_type: Section type (procedure, requirement, criteria, etc.)
+            section_name: Section full name
+            full_path: Full hierarchical path
+            **kwargs: Additional properties
+            
+        Returns:
+            Created section node summary
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+        MERGE (s:Section {
+            number: $section_number,
+            tender_code: $tender_code
+        })
+        ON CREATE SET
+            s.type = $section_type,
+            s.name = $section_name,
+            s.full_path = $full_path,
+            s.source = 'structure',
+            s.created_at = datetime()
+        ON MATCH SET
+            s.updated_at = datetime()
+        MERGE (t)-[:HAS_SECTION]->(s)
+        RETURN s
+        """
+        
+        params = {
+            "tender_code": tender_code,
+            "section_number": section_number,
+            "section_type": section_type,
+            "section_name": section_name,
+            "full_path": full_path,
+        }
+        params.update(kwargs)
+        
+        return await self.execute_write(query, params)
+
+    async def add_code_from_structure(
+        self,
+        tender_code: str,
+        code_type: str,
+        code_value: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Add a Code node (CIG, CUP, CPV) extracted from structure.
+        
+        Args:
+            tender_code: Parent tender code
+            code_type: Type of code (CIG, CUP, CPV)
+            code_value: Code value
+            **kwargs: Additional properties
+            
+        Returns:
+            Created code node summary
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+        MERGE (c:Code {type: $code_type, value: $code_value})
+        ON CREATE SET
+            c.source = 'structure',
+            c.created_at = datetime()
+        MERGE (t)-[:HAS_CODE]->(c)
+        RETURN c
+        """
+        
+        params = {
+            "tender_code": tender_code,
+            "code_type": code_type,
+            "code_value": code_value,
+        }
+        params.update(kwargs)
+        
+        return await self.execute_write(query, params)
+
+    async def add_buyer_from_structure(
+        self,
+        tender_code: str,
+        buyer_name: str,
+        section_path: str,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Add buyer/contracting authority from structure extraction.
+        
+        Args:
+            tender_code: Parent tender code
+            buyer_name: Organization name
+            section_path: Source section path
+            **kwargs: Additional properties
+            
+        Returns:
+            Created organization node summary
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+        MERGE (o:Organization {name: $buyer_name})
+        ON CREATE SET
+            o.role = 'buyer',
+            o.section_path = $section_path,
+            o.source = 'structure',
+            o.created_at = datetime()
+        ON MATCH SET
+            o.updated_at = datetime()
+        MERGE (t)-[:PUBLISHED_BY]->(o)
+        RETURN o
+        """
+        
+        params = {
+            "tender_code": tender_code,
+            "buyer_name": buyer_name,
+            "section_path": section_path,
+        }
+        params.update(kwargs)
+        
+        return await self.execute_write(query, params)
+
     async def add_organization(
         self,
         name: str,
@@ -680,6 +857,9 @@ class TenderGraphClient(Neo4jClient):
 
         data = results[0].get("result", {})
 
+        # Convert Neo4j types (DateTime, Date, Time) to JSON-serializable types
+        data = convert_neo4j_types(data)
+
         # Filter out empty entity arrays
         if "entities" in data:
             data["entities"] = {
@@ -691,6 +871,154 @@ class TenderGraphClient(Neo4jClient):
             }
 
         return data
+
+    async def delete_tender(self, tender_code: str) -> bool:
+        """
+        Delete a tender and ALL related entities from Neo4j (cascade delete).
+        
+        Deletes:
+        - Tender node
+        - All Lots (HAS_LOT)
+        - All Sections (HAS_SECTION)
+        - All Requirements (HAS_REQUIREMENT)
+        - All Deadlines (HAS_DEADLINE)
+        - All Codes (HAS_CODE)
+        - All Chunks (MENTIONED_IN from requirements/deadlines)
+        
+        Args:
+            tender_code: The tender code to delete
+            
+        Returns:
+            True if tender was deleted, False if not found
+        """
+        query = """
+        MATCH (t:Tender {code: $tender_code})
+        
+        // Collect all related entities into lists (so we can delete them even if some are empty)
+        OPTIONAL MATCH (t)-[:HAS_LOT]->(lot:Lot)
+        WITH t, collect(DISTINCT lot) as lots
+        
+        OPTIONAL MATCH (t)-[:HAS_SECTION]->(section:Section)
+        WITH t, lots, collect(DISTINCT section) as sections
+        
+        OPTIONAL MATCH (t)-[:HAS_REQUIREMENT]->(req:Requirement)
+        WITH t, lots, sections, collect(DISTINCT req) as requirements
+        
+        OPTIONAL MATCH (t)-[:HAS_DEADLINE]->(deadline:Deadline)
+        WITH t, lots, sections, requirements, collect(DISTINCT deadline) as deadlines
+        
+        OPTIONAL MATCH (t)-[:HAS_CODE]->(code:Code)
+        WITH t, lots, sections, requirements, deadlines, collect(DISTINCT code) as codes
+        
+        // Collect chunks from requirements and deadlines
+        OPTIONAL MATCH (req)-[:MENTIONED_IN]->(chunk:Chunk)
+        WHERE req IN requirements
+        WITH t, lots, sections, requirements, deadlines, codes, collect(DISTINCT chunk) as req_chunks
+        
+        OPTIONAL MATCH (dl)-[:MENTIONED_IN]->(chunk:Chunk)
+        WHERE dl IN deadlines
+        WITH t, lots, sections, requirements, deadlines, codes, req_chunks, collect(DISTINCT chunk) as deadline_chunks
+        
+        // Combine all chunks
+        WITH t, lots, sections, requirements, deadlines, codes, req_chunks + deadline_chunks as all_chunks
+        
+        // Delete all collected entities using FOREACH
+        FOREACH (lot IN lots | DETACH DELETE lot)
+        FOREACH (section IN sections | DETACH DELETE section)
+        FOREACH (req IN requirements | DETACH DELETE req)
+        FOREACH (deadline IN deadlines | DETACH DELETE deadline)
+        FOREACH (code IN codes | DETACH DELETE code)
+        FOREACH (chunk IN all_chunks | DETACH DELETE chunk)
+        
+        // Finally delete the tender
+        DETACH DELETE t
+        
+        RETURN count(t) as deleted_count
+        """
+        
+        result = await self.execute_write(query, {"tender_code": tender_code})
+        if result and len(result) > 0:
+            deleted_count = result[0].get("deleted_count", 0)
+            if deleted_count > 0:
+                logger.info(f"Cascade deleted tender {tender_code} and all related entities from Neo4j")
+                return True
+        
+        logger.warning(f"Tender {tender_code} not found in Neo4j")
+        return False
+
+    async def delete_all_tenders(self) -> int:
+        """
+        Delete all tenders and ALL their related entities from Neo4j (cascade delete).
+        
+        Deletes:
+        - All Tender nodes
+        - All Lots, Sections, Requirements, Deadlines, Codes
+        - All Chunks connected to requirements/deadlines
+        
+        Returns:
+            Number of tenders deleted
+        """
+        query = """
+        MATCH (t:Tender)
+        
+        // Collect all tenders first
+        WITH collect(t) as tenders
+        
+        // For each tender, find and collect all related entities
+        UNWIND tenders as tender
+        
+        OPTIONAL MATCH (tender)-[:HAS_LOT]->(lot:Lot)
+        WITH tenders, tender, collect(DISTINCT lot) as lots
+        
+        OPTIONAL MATCH (tender)-[:HAS_SECTION]->(section:Section)
+        WITH tenders, tender, lots, collect(DISTINCT section) as sections
+        
+        OPTIONAL MATCH (tender)-[:HAS_REQUIREMENT]->(req:Requirement)
+        WITH tenders, tender, lots, sections, collect(DISTINCT req) as requirements
+        
+        OPTIONAL MATCH (tender)-[:HAS_DEADLINE]->(deadline:Deadline)
+        WITH tenders, tender, lots, sections, requirements, collect(DISTINCT deadline) as deadlines
+        
+        OPTIONAL MATCH (tender)-[:HAS_CODE]->(code:Code)
+        WITH tenders, tender, lots, sections, requirements, deadlines, collect(DISTINCT code) as codes
+        
+        // Collect chunks from requirements and deadlines
+        OPTIONAL MATCH (req)-[:MENTIONED_IN]->(chunk:Chunk)
+        WHERE req IN requirements
+        WITH tenders, tender, lots, sections, requirements, deadlines, codes, collect(DISTINCT chunk) as req_chunks
+        
+        OPTIONAL MATCH (dl)-[:MENTIONED_IN]->(chunk:Chunk)
+        WHERE dl IN deadlines
+        WITH tenders, tender, lots, sections, requirements, deadlines, codes, req_chunks, collect(DISTINCT chunk) as deadline_chunks
+        
+        // Combine all chunks
+        WITH tenders, tender, lots, sections, requirements, deadlines, codes, req_chunks + deadline_chunks as all_chunks
+        
+        // Delete all collected entities for this tender
+        FOREACH (lot IN lots | DETACH DELETE lot)
+        FOREACH (section IN sections | DETACH DELETE section)
+        FOREACH (req IN requirements | DETACH DELETE req)
+        FOREACH (deadline IN deadlines | DETACH DELETE deadline)
+        FOREACH (code IN codes | DETACH DELETE code)
+        FOREACH (chunk IN all_chunks | DETACH DELETE chunk)
+        
+        // Collect the tender for final deletion
+        WITH tenders, tender
+        
+        // After processing all tenders, delete them
+        WITH tenders
+        FOREACH (t IN tenders | DETACH DELETE t)
+        
+        RETURN size(tenders) as deleted_count
+        """
+        
+        result = await self.execute_write(query, {})
+        if result and len(result) > 0:
+            deleted_count = result[0].get("deleted_count", 0)
+            logger.info(f"Cascade deleted {deleted_count} tender(s) and all related entities from Neo4j")
+            return deleted_count
+        
+        return 0
 
 
 def get_tender_graph_client() -> TenderGraphClient:

@@ -168,6 +168,8 @@ async def extract_entities(file: UploadFile = File(...), tender_id: str = "unkno
             text=chunk.text,
             blocks=chunk.blocks,
             page_numbers=chunk.page_numbers,
+            section_path=getattr(chunk, 'section_path', ''),  # Propagate for StructureExtractor
+            metadata=getattr(chunk, 'metadata', {}),  # Propagate metadata
             tender_id=tender_id,
         )
         for chunk in dyn_chunks
@@ -252,6 +254,8 @@ async def extract_entities_and_populate_graph(
             text=clean_tender_text(chunk.text),  # Clean text before processing
             blocks=chunk.blocks,
             page_numbers=chunk.page_numbers,
+            section_path=getattr(chunk, 'section_path', ''),  # Propagate for StructureExtractor
+            metadata=getattr(chunk, 'metadata', {}),  # Propagate metadata
             tender_id=tender_id,
         )
         for chunk in dyn_chunks
@@ -556,6 +560,8 @@ async def test_with_mock_tender() -> dict:
     mock_chunks = [
         TenderChunk(
             id="chunk-req-001",
+            title="Requisiti di partecipazione",
+            heading_level=2,
             text="""
             Requisiti di partecipazione obbligatori:
             1. Possesso della certificazione ISO 9001:2015 in corso di validità
@@ -564,11 +570,14 @@ async def test_with_mock_tender() -> dict:
             4. Iscrizione alla Camera di Commercio obbligatoria
             5. Possesso dei requisiti di cui all'art. 80 del D.Lgs 50/2016 pena esclusione
             """,
+            section_path="3. Requisiti > 3.1. Requisiti di partecipazione",  # For StructureExtractor
             metadata={"tender_code": "TEST-MOCK-001", "page_number": 5},
             tender_id="test-mock",
         ),
         TenderChunk(
             id="chunk-req-002",
+            title="Requisiti tecnici",
+            heading_level=2,
             text="""
             Ulteriori requisiti tecnici:
             - Il concorrente deve dimostrare esperienza nel settore IT
@@ -576,29 +585,55 @@ async def test_with_mock_tender() -> dict:
             - Necessario possedere almeno 10 dipendenti qualificati
             La mancanza anche di uno solo dei requisiti obbligatori comporta l'esclusione dalla gara.
             """,
+            section_path="3. Requisiti > 3.2. Requisiti tecnici",  # For StructureExtractor
             metadata={"tender_code": "TEST-MOCK-001", "page_number": 6},
             tender_id="test-mock",
         ),
         TenderChunk(
             id="chunk-deadline-001",
+            title="Scadenze",
+            heading_level=2,
             text="""
             Scadenze importanti:
             - Sopralluogo obbligatorio: 15 febbraio 2026 ore 10:00
             - Termine ultimo per richiesta di chiarimenti: entro il 20 febbraio 2026
             - Scadenza presentazione offerte: entro e non oltre il 28 febbraio 2026 ore 12:00
             - Apertura delle buste: 1 marzo 2026 ore 14:00 presso la sede della stazione appaltante
+            CIG: 1234567890ABC
+            CUP: B12C34567890123
             """,
+            section_path="4. Modalità > 4.1. Scadenze e codici",  # For StructureExtractor
             metadata={"tender_code": "TEST-MOCK-001", "page_number": 12},
             tender_id="test-mock",
         ),
         TenderChunk(
             id="chunk-orgs-001",
+            title="Stazione appaltante",
+            heading_level=2,
             text="""
             Il Comune di Milano, in qualità di stazione appaltante, indice la presente gara.
             L'Autorità Nazionale Anticorruzione (ANAC) è l'ente di vigilanza.
             Per informazioni contattare il RUP Dott. Mario Rossi presso l'Ufficio Gare.
+            CPV: 72000000
+            Importo: € 500.000,00
             """,
+            section_path="1. Committente > 1.1. Stazione appaltante",  # For StructureExtractor
             metadata={"tender_code": "TEST-MOCK-001", "page_number": 1},
+            tender_id="test-mock",
+        ),
+        TenderChunk(
+            id="chunk-lot-001",
+            title="Lotto 1",
+            heading_level=2,
+            text="""
+            5. Lotto > 5.1. Lotto: LOT-0001
+            Descrizione: Servizi di sviluppo software per sistema di gestione documentale.
+            Importo base d'asta: € 250.000,00
+            Durata: 12 mesi
+            CIG: 9876543210ZYX
+            """,
+            section_path="5. Lotto > 5.1. Lotto: LOT-0001",  # For StructureExtractor (LOT extraction!)
+            metadata={"tender_code": "TEST-MOCK-001", "page_number": 8},
             tender_id="test-mock",
         ),
     ]
@@ -772,7 +807,18 @@ async def extract_all(
           -F "file=@tender_document.pdf"
         ```
     """
+    log.info("=== extract_all endpoint called ===")
+    log.info(f"File object received: {file}")
+    log.info(f"File type: {type(file)}")
+    log.info(f"File filename: {file.filename if file else 'NO FILE'}")
+    log.info(f"File content_type: {file.content_type if file else 'NO FILE'}")
+    
+    if not file:
+        log.error("No file received!")
+        raise HTTPException(status_code=400, detail="No file uploaded")
+    
     if not file.filename:
+        log.error("File has no filename!")
         raise HTTPException(status_code=400, detail="Filename is required")
 
     log.info("extract_all received file", extra={"uploaded_filename": file.filename})
@@ -806,6 +852,8 @@ async def extract_all(
                 text=clean_tender_text(chunk.text),
                 blocks=chunk.blocks,
                 page_numbers=chunk.page_numbers,
+                section_path=getattr(chunk, 'section_path', ''),  # Propagate for StructureExtractor
+                metadata=getattr(chunk, 'metadata', {}),  # Propagate metadata
                 tender_id=tender_code,  # Use tender_code as tender_id
             )
             for chunk in dyn_chunks

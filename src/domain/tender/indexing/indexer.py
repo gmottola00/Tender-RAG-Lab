@@ -125,10 +125,15 @@ class TenderMilvusIndexer:
         for chunk, emb in zip(chunks, embeddings):
             if len(emb) != self.embedding_dim:
                 raise ValueError(f"Embedding dim mismatch: expected {self.embedding_dim}, got {len(emb)}")
+            
+            # Extract tender_id from metadata (set in ingestion.py)
+            tender_id = chunk.metadata.get("tender_id", "")
+            
             rows.append({
                 "id": chunk.id,
                 "text": chunk.text,
                 "section_path": chunk.section_path,
+                "tender_id": tender_id,  # Add tender_id as top-level field
                 "metadata": chunk.metadata,
                 "page_numbers": chunk.page_numbers,
                 "source_chunk_id": chunk.source_chunk_id,
@@ -172,6 +177,37 @@ class TenderMilvusIndexer:
             output_fields=output_fields or default_fields,
             search_params=params,
         )
+
+    def delete_by_tender_id(self, tender_id: str) -> Dict[str, int]:
+        """Delete all chunks associated with a tender_id.
+        
+        Args:
+            tender_id: The tender ID (UUID string from PostgreSQL).
+            
+        Returns:
+            Dictionary with deletion stats.
+        """
+        # Use filter expression to delete by tender_id field
+        client = self.connection.client
+        result = client.delete(
+            collection_name=self.collection_name,
+            filter=f'tender_id == "{tender_id}"'
+        )
+        return result
+
+    def delete_all(self) -> Dict[str, int]:
+        """Delete all chunks from the collection.
+        
+        Returns:
+            Dictionary with deletion stats.
+        """
+        # Use filter expression to delete all (empty filter or "id != ''")
+        client = self.connection.client
+        result = client.delete(
+            collection_name=self.collection_name,
+            filter='id != ""'  # Matches all records
+        )
+        return result
 
 
 __all__ = ["TenderMilvusIndexer"]
