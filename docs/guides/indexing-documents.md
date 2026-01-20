@@ -655,5 +655,5 @@ print(f"Average similarity: {validation.avg_similarity:.3f}")
 ## Related Documentation
 
 - [Search & Retrieval](search-retrieval.md) - Query indexed documents
-- [rag_toolkit Integration](../rag_toolkit/index.rst) - Generic RAG components
+- [RAG Toolkit](../rag_toolkit/index.md) - Generic RAG components
 - [Environment Setup](environment-setup.md) - Configure Milvus and storage

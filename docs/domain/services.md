@@ -504,12 +504,6 @@ async with async_session() as session:
 ## Related Documentation
 
 - [Domain Layer Overview](README.md)
-- [Domain Entities](entities.md) - ORM models
-- [Apps: API Endpoints](../apps/api-endpoints.md) - How services are used
-- [Core: RAG](../core/rag.md) - Document processing
-
----
-
-**[⬅️ Domain README](README.md) | [⬆️ Documentation Home](../README.md)**
+- [RAG Toolkit](../rag_toolkit/index.md) - Document processing
 
 *Last updated: 2025-12-18*

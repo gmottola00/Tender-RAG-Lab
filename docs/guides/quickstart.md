@@ -426,14 +426,8 @@ uv sync
 
 ---
 
-## 📞 Need Help?
+## Need Help?
 
-- **Documentation:** [Full docs](../README.md)
+- **Documentation:** [Home](../index.md)
 - **Issues:** [GitHub Issues](https://github.com/gmottola00/Tender-RAG-Lab/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/gmottola00/Tender-RAG-Lab/discussions)
-
----
-
-**[⬆️ Documentation Home](../README.md) | [Environment Setup ➡️](environment-setup.md)**
-
-*Last updated: 2025-12-18*

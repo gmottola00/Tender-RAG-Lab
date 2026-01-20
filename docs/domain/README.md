@@ -71,7 +71,7 @@ tender = Tender(
 
 **Note:** These are ORM models, not pure domain entities. For pure domain, see schemas.
 
-**Read more:** [Domain Entities](entities.md)
+**Read more:** See `src/models/` for ORM definitions.
 
 ---
 
@@ -134,7 +134,7 @@ tender_data = TenderCreate(
 # Raises ValidationError if invalid
 ```
 
-**Read more:** [Schemas & Validation](schemas.md)
+**Read more:** See `src/schemas/` for schema definitions.
 
 ---
 
@@ -381,9 +381,7 @@ class TenderService:
 
 **Start here:**
 1. [Architecture Overview](../architecture/overview.md) - Layer structure
-2. [Where to Put Code](../architecture/where-to-put-code.md) - Domain vs apps
-3. [Domain Entities](entities.md) - Understand models
-4. [Domain Services](services.md) - Business logic patterns
+2. [Domain Services](services.md) - Business logic patterns
 
 ### For Adding Features
 
@@ -496,12 +494,6 @@ class TenderService:
 ## Related Documentation
 
 - [Architecture Overview](../architecture/overview.md) - Layer dependencies
-- [Core Layer](../core/README.md) - Reusable abstractions
-- [Apps Layer](../apps/README.md) - API implementation
-- [Where to Put Code](../architecture/where-to-put-code.md) - Decision guide
-
----
-
-**[⬆️ Documentation Home](../README.md) | [Domain Entities ➡️](entities.md)**
+- [RAG Toolkit](../rag_toolkit/index.md) - RAG components
 
 *Last updated: 2025-12-18*

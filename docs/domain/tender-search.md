@@ -308,7 +308,6 @@ def test_hybrid_search():
 
 ## See Also
 
-- [Core Indexing](../core/indexing.md) - Generic search strategies
-- [RAG Pipeline](../core/rag.md) - Using search in RAG
-- [Milvus Vector Store](../infra/milvus.md) - Backend storage
+- [RAG Toolkit](../rag_toolkit/index.md) - RAG components
+- [Search Strategies](../rag_toolkit/search.md) - Search strategies
 - [Architecture Overview](../architecture/overview.md) - Layer separation

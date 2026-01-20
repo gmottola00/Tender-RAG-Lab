@@ -187,6 +187,13 @@ plugins:
   - mermaid2:
       version: 10.6.1
 
+validation:
+  omitted_files: info  # Don't fail on orphan files
+  links:
+    not_found: warn
+    absolute_links: info
+    unrecognized_links: info
+
 nav:
   - Home: index.md
   
@@ -234,7 +241,6 @@ nav:
   - Development:
     - Contributing: development/contributing.md
     - Testing: development/testing.md
-    - Roadmap: roadmap.md
     - Roadmap: roadmap.md
   
   - About:

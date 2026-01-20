@@ -621,12 +621,4 @@ Instead of `.env` files:
 ## Related Documentation
 
 - [Quick Start Guide](quickstart.md) - Get started quickly
-- [Local Development](local-development.md) - Development workflow
-- [Deployment](deployment.md) - Production deployment
-- [Milvus Setup](../infra/milvus.md) - Vector database configuration
-
----
-
-**[⬅️ Quick Start](quickstart.md) | [⬆️ Documentation Home](../README.md) | [Local Dev ➡️](local-development.md)**
-
-*Last updated: 2025-12-18*
+- [Indexing Documents](indexing-documents.md) - Document processing

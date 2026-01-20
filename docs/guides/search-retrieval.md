@@ -673,5 +673,5 @@ if duration > 1.0:
 ## Related Documentation
 
 - [Indexing Documents](indexing-documents.md) - Upload and index documents
-- [rag_toolkit Integration](../rag_toolkit/index.rst) - Generic search components
+- [RAG Toolkit](../rag_toolkit/index.md) - Generic search components
 - [Domain Layer](../domain/README.md) - Tender-specific search logic

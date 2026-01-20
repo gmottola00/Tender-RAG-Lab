@@ -16,7 +16,7 @@
 
     Generic RAG components in external library, domain-specific code stays modular and testable
 
-    [:octicons-arrow-right-24: See integration](#rag_toolkit-library--generic-rag-engine)
+    [:octicons-arrow-right-24: See integration](rag-toolkit.md)
 
 -   :material-chevron-triple-up:{ .lg .middle } __Maximum Reusability__
 
@@ -24,7 +24,7 @@
 
     Share RAG logic across projects without code duplication
 
-    [:octicons-arrow-right-24: View patterns](#factory-pattern-for-domain-infrastructure)
+    [:octicons-arrow-right-24: View patterns](#the-four-layers)
 
 -   :material-lock-open-variant:{ .lg .middle } __Zero Lock-in__
 
