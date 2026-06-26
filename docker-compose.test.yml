@@ -1,0 +1,103 @@
+version: '3.5'
+
+# Test compose: extends base compose adding PostgreSQL for E2E tests.
+# Volumes are ephemeral (no host bind-mounts) so each CI run starts clean.
+#
+# Usage:
+#   docker-compose -f docker-compose.test.yml up -d
+#   E2E_ENABLED=1 uv run pytest tests/e2e/ -v
+#   docker-compose -f docker-compose.test.yml down -v
+
+services:
+  postgres:
+    container_name: tender-test-postgres
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tender_test
+      POSTGRES_USER: tender
+      POSTGRES_PASSWORD: tender_test_pass
+    ports:
+      - "5433:5432"   # 5433 to avoid conflict with local postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tender -d tender_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    # No volumes → ephemeral, destroyed with `down -v`
+
+  etcd:
+    container_name: milvus-etcd-test
+    image: quay.io/coreos/etcd:v3.5.18
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    command: etcd -advertise-client-urls=http://etcd:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio:
+    container_name: milvus-minio-test
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  milvus:
+    container_name: milvus-test
+    image: milvusdb/milvus:v2.6.6
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+      MQ_TYPE: woodpecker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "19531:19530"   # 19531 to avoid conflict with dev Milvus
+      - "9092:9091"
+    depends_on:
+      - etcd
+      - minio
+
+  neo4j:
+    container_name: tender-test-neo4j
+    image: neo4j:5.26.0-community
+    ports:
+      - "7475:7474"   # 7475 HTTP to avoid conflict with dev Neo4j
+      - "7688:7687"   # 7688 Bolt to avoid conflict with dev Neo4j
+    environment:
+      - NEO4J_AUTH=neo4j/test_password
+      - NEO4J_dbms_memory_heap_initial__size=256m
+      - NEO4J_dbms_memory_heap_max__size=512m
+      - NEO4J_dbms_memory_pagecache_size=256m
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+networks:
+  default:
+    name: tender-test
