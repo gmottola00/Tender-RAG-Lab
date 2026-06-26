@@ -55,36 +55,36 @@ uv pip install -e /path/to/Rag-Toolkit
 
 | Old Import (DELETED) | New Import (rag-toolkit) |
 |---------------------|--------------------------|
-| `src.core.rag.pipeline` | `rag_toolkit.rag.pipeline` |
-| `src.core.embedding.base` | `rag_toolkit.core.embedding` |
-| `src.core.llm.base` | `rag_toolkit.core.llm` |
-| `src.core.chunking.dynamic_chunker` | `rag_toolkit.core.chunking` |
-| `src.core.index` | `rag_toolkit.core.index` |
+| `src.core.rag.pipeline` | `quaerum.rag.pipeline` |
+| `src.core.embedding.base` | `quaerum.core.embedding` |
+| `src.core.llm.base` | `quaerum.core.llm` |
+| `src.core.chunking.dynamic_chunker` | `quaerum.core.chunking` |
+| `src.core.index` | `quaerum.core.index` |
 
 ### Key rag-toolkit Modules
 
 ```python
 # Core protocols
-from rag_toolkit.core.embedding import EmbeddingClient
-from rag_toolkit.core.llm import LLMClient
-from rag_toolkit.core.chunking.types import ChunkLike, TokenChunkLike
+from quaerum.core.embedding import EmbeddingClient
+from quaerum.core.llm import LLMClient
+from quaerum.core.chunking.types import ChunkLike, TokenChunkLike
 
 # RAG pipeline
-from rag_toolkit.rag import RagPipeline
-from rag_toolkit.rag.rewriter import QueryRewriter
-from rag_toolkit.rag.assembler import ContextAssembler
-from rag_toolkit.rag.rerankers import LLMReranker
+from quaerum.rag import RagPipeline
+from quaerum.rag.rewriter import QueryRewriter
+from quaerum.rag.assembler import ContextAssembler
+from quaerum.rag.rerankers import LLMReranker
 
 # Infrastructure
-from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
-from rag_toolkit.infra.vectorstores.milvus.service import MilvusService
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
-from rag_toolkit.infra.llm import OllamaLLMClient
-from rag_toolkit.infra.parsers.factory import create_ingestion_service
+from quaerum.infra.vectorstores.factory import create_milvus_service, create_index_service
+from quaerum.infra.vectorstores.milvus.service import MilvusService
+from quaerum.infra.embedding import OllamaEmbeddingClient
+from quaerum.infra.llm import OllamaLLMClient
+from quaerum.infra.parsers.factory import create_ingestion_service
 
 # Index service
-from rag_toolkit.core.index.service import IndexService
-from rag_toolkit.core.index.search_strategies import VectorSearch, HybridSearch
+from quaerum.core.index.service import IndexService
+from quaerum.core.index.search_strategies import VectorSearch, HybridSearch
 ```
 
 ---
@@ -99,7 +99,7 @@ rag-toolkit uses **Protocols** (structural typing) for extensibility. Domain-spe
 
 ```python
 # src/domain/tender/schemas/chunking.py
-from rag_toolkit.core.chunking.types import ChunkLike, TokenChunkLike
+from quaerum.core.chunking.types import ChunkLike, TokenChunkLike
 
 @dataclass
 class TenderChunk:
@@ -136,9 +136,9 @@ Domain-specific infrastructure is created via **factory functions** that wrap ra
 
 ```python
 # src/infra/factory.py
-from rag_toolkit.core.embedding import EmbeddingClient
-from rag_toolkit.core.index.service import IndexService
-from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
+from quaerum.core.embedding import EmbeddingClient
+from quaerum.core.index.service import IndexService
+from quaerum.infra.vectorstores.factory import create_milvus_service, create_index_service
 
 from src.domain.tender.indexing.indexer import TenderMilvusIndexer
 from src.domain.tender.search.searcher import TenderSearcher
@@ -212,7 +212,7 @@ src/domain/tender/
 
 **Key Files:**
 - **schemas/chunking.py**: Protocol-compliant domain chunks
-- **indexing/indexer.py**: Wraps `rag_toolkit.core.index.service.IndexService`
+- **indexing/indexer.py**: Wraps `quaerum.core.index.service.IndexService`
 - **search/searcher.py**: Orchestrates hybrid search (vector + keyword + reranking)
 
 ---
@@ -309,9 +309,9 @@ class TenderChunk:
 
 ### ✅ Completed Phases
 
-- **Phase 1**: Protocol imports (`EmbeddingClient`, `LLMClient`) → `rag_toolkit.core`
-- **Phase 2**: RAG modules (`pipeline`, `rerankers`) → `rag_toolkit.rag`
-- **Phase 3**: Chunking modules → `rag_toolkit.core.chunking`
+- **Phase 1**: Protocol imports (`EmbeddingClient`, `LLMClient`) → `quaerum.core`
+- **Phase 2**: RAG modules (`pipeline`, `rerankers`) → `quaerum.rag`
+- **Phase 3**: Chunking modules → `quaerum.core.chunking`
 
 ### ⚠️ Pending Work
 
@@ -321,10 +321,10 @@ class TenderChunk:
 ### Deleted Modules (replaced by rag-toolkit)
 
 ```
-src/core/rag/          → rag_toolkit.rag
-src/core/chunking/     → rag_toolkit.core.chunking
-src/core/embedding/    → rag_toolkit.core.embedding
-src/core/llm/          → rag_toolkit.core.llm
+src/core/rag/          → quaerum.rag
+src/core/chunking/     → quaerum.core.chunking
+src/core/embedding/    → quaerum.core.embedding
+src/core/llm/          → quaerum.core.llm
 ```
 
 **Result:** ~17 files eliminated, ~60% code reduction in core logic.
@@ -336,7 +336,7 @@ src/core/llm/          → rag_toolkit.core.llm
 ### 1. Dependency Injection (src/api/deps.py)
 
 ```python
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
+from quaerum.infra.embedding import OllamaEmbeddingClient
 from src.infra.factory import create_tender_stack
 
 def get_tender_indexer():
@@ -358,15 +358,15 @@ class TenderChunk:
 
 ### 3. Factory Usage
 
-Use factories from `rag_toolkit.infra.vectorstores.factory`:
+Use factories from `quaerum.infra.vectorstores.factory`:
 ```python
-from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
+from quaerum.infra.vectorstores.factory import create_milvus_service, create_index_service
 
 # ✅ Correct
 milvus_service = create_milvus_service()
 
 # ❌ Wrong: Direct instantiation
-from rag_toolkit.infra.vectorstores.milvus.service import MilvusService
+from quaerum.infra.vectorstores.milvus.service import MilvusService
 milvus_service = MilvusService()  # Don't do this
 ```
 
@@ -379,7 +379,7 @@ milvus_service = MilvusService()  # Don't do this
 1. Import from deleted `src/core/` modules
 2. Modify rag-toolkit source code directly
 3. Put business logic in `src/api/` or `src/infra/`
-4. Use incorrect rag-toolkit import paths (e.g., `rag_toolkit.core.index.base` → use `rag_toolkit.core.index.service`)
+4. Use incorrect rag-toolkit import paths (e.g., `quaerum.core.index.base` → use `quaerum.core.index.service`)
 5. Return objects with methods from FastAPI endpoints (use `.to_dict()` or Pydantic models)
 
 ### ✅ DO
@@ -396,9 +396,9 @@ milvus_service = MilvusService()  # Don't do this
 
 ### Import Errors
 
-If you see `ImportError: cannot import name 'X' from 'rag_toolkit.core.Y'`:
+If you see `ImportError: cannot import name 'X' from 'quaerum.core.Y'`:
 1. Check rag-toolkit source for correct module path
-2. Common mistake: `rag_toolkit.core.index.base` → should be `rag_toolkit.core.index.service`
+2. Common mistake: `quaerum.core.index.base` → should be `quaerum.core.index.service`
 
 ### Pydantic Serialization Errors
 
