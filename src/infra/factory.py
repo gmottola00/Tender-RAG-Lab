@@ -9,9 +9,9 @@ from __future__ import annotations
 import os
 from typing import Tuple
 
-from rag_toolkit.core.embedding import EmbeddingClient
-from rag_toolkit.core.index.service import IndexService
-from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
+from quaerium.core.embedding import EmbeddingClient
+from quaerium.core.index.service import IndexService
+from quaerium.infra.vectorstores.factory import create_milvus_service, create_index_service
 
 from src.domain.tender.indexing.indexer import TenderMilvusIndexer
 from src.domain.tender.search.searcher import TenderSearcher
@@ -39,7 +39,7 @@ def create_tender_stack(
         Tuple of (TenderMilvusIndexer, TenderSearcher)
     
     Example:
-        >>> from rag_toolkit.infra.embedding import OllamaEmbeddingClient
+        >>> from quaerium.infra.embedding import OllamaEmbeddingClient
         >>> embed_client = OllamaEmbeddingClient()
         >>> embedding_dim = len(embed_client.embed("test"))
         >>> indexer, searcher = create_tender_stack(embed_client, embedding_dim)

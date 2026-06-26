@@ -14,9 +14,9 @@ from src.domain.tender.schemas.ingestion import ParsedDocument
 from src.domain.tender.schemas.tenders import TenderCreate
 from src.domain.tender.services.tenders import TenderService
 from src.domain.tender.entities.documents import Document, DocumentType
-from rag_toolkit.infra.parsers.factory import create_ingestion_service
-from rag_toolkit.core.chunking import DynamicChunker, TokenChunker
-from rag_toolkit.core.utils.file_utils import temporary_directory
+from quaerium.infra.parsers.factory import create_ingestion_service
+from quaerium.core.chunking import DynamicChunker, TokenChunker
+from quaerium.core.utils.file_utils import temporary_directory
 from src.api.deps import get_embedding_client, get_indexer, get_searcher, get_rag_pipeline, get_db_session
 from src.domain.tender.services.entity_extraction import create_entity_extraction_service
 from src.domain.tender.services.graph_retriever import create_graph_enriched_retriever

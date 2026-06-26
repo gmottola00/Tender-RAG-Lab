@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from rag_toolkit.core.embedding import EmbeddingClient
-from rag_toolkit.core.index.search_strategies import HybridSearch, KeywordSearch, VectorSearch
+from quaerium.core.embedding import EmbeddingClient
+from quaerium.core.index.search_strategies import HybridSearch, KeywordSearch, VectorSearch
 from src.domain.tender.indexing.indexer import TenderMilvusIndexer
 
 

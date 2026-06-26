@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 from src.api.deps import get_milvus_explorer, get_milvus_service
 from src.api.deps import get_indexer, get_embedding_client
-from rag_toolkit.infra.vectorstores.milvus.exceptions import CollectionError
+from quaerium.infra.vectorstores.milvus.exceptions import CollectionError
 
 
 class CreateCollectionRequest(BaseModel):

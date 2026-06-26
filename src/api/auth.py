@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 import os
-from app.core.config import settings
+from configs.config import settings
 
 bearer_scheme = HTTPBearer()
 # Prefer settings (dotenv already loaded there)
