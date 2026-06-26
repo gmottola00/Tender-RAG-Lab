@@ -1,14 +1,14 @@
-# rag_toolkit Overview
+# quaerum Overview
 
-Integration guide for the rag_toolkit library in Tender-RAG-Lab.
+Integration guide for the quaerum library in Tender-RAG-Lab.
 
-## What is rag_toolkit?
+## What is quaerum?
 
-**rag_toolkit** is a generic, reusable Python library for building Retrieval-Augmented Generation (RAG) systems. It provides protocol-based components that work across different domains.
+**quaerum** is a generic, reusable Python library for building Retrieval-Augmented Generation (RAG) systems. It provides protocol-based components that work across different domains.
 
 ```mermaid
 graph LR
-    A[Generic RAG<br/>rag_toolkit] --> B[Tender-RAG-Lab]
+    A[Generic RAG<br/>quaerum] --> B[Tender-RAG-Lab]
     A --> C[Medical-RAG]
     A --> D[Legal-RAG]
     
@@ -28,8 +28,8 @@ graph LR
 ### 1. Embedding & LLM Protocols
 
 ```python
-from rag_toolkit.core.embedding import EmbeddingClient
-from rag_toolkit.core.llm import LLMClient
+from quaerum.core.embedding import EmbeddingClient
+from quaerum.core.llm import LLMClient
 
 # Any class implementing these protocols works
 embed_client: EmbeddingClient = OllamaEmbeddingClient()
@@ -39,7 +39,7 @@ llm_client: LLMClient = OllamaLLMClient()
 ### 2. RAG Pipeline
 
 ```python
-from rag_toolkit.rag import RagPipeline
+from quaerum.rag import RagPipeline
 
 pipeline = RagPipeline(
     retriever=indexer,
@@ -52,7 +52,7 @@ result = await pipeline.query("What are the requirements?")
 ### 3. Vector Store Abstractions
 
 ```python
-from rag_toolkit.infra.vectorstores.factory import (
+from quaerum.infra.vectorstores.factory import (
     create_milvus_service,
     create_index_service
 )
@@ -68,7 +68,7 @@ index = create_index_service(
 ### 4. Chunking Strategies
 
 ```python
-from rag_toolkit.core.chunking import DynamicChunker
+from quaerum.core.chunking import DynamicChunker
 
 chunker = DynamicChunker(max_tokens=512)
 chunks = chunker.chunk_document(document)
@@ -86,11 +86,11 @@ pip install rag-toolkit
 
 ## Usage in Tender-RAG-Lab
 
-Tender-RAG-Lab uses rag_toolkit for generic components and adds domain-specific logic:
+Tender-RAG-Lab uses quaerum for generic components and adds domain-specific logic:
 
 ```python
-# Generic rag_toolkit component
-from rag_toolkit.core.chunking.types import ChunkLike
+# Generic quaerum component
+from quaerum.core.chunking.types import ChunkLike
 
 # Domain-specific extension
 @dataclass
@@ -116,6 +116,6 @@ class TenderChunk:
 
 ### See Also
 
-- [rag_toolkit Integration Guide](../architecture/rag-toolkit.md) - Detailed integration
+- [quaerum Integration Guide](../architecture/rag-toolkit.md) - Detailed integration
 - [Pipeline Documentation](pipeline.md) - RAG pipeline details
 - [Search Strategies](search.md) - Vector and hybrid search

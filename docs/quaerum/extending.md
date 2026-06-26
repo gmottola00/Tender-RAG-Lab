@@ -1,15 +1,15 @@
-# Extending rag_toolkit
+# Extending quaerum
 
-Guide to extending rag_toolkit with custom components.
+Guide to extending quaerum with custom components.
 
 ## Protocol-Based Extension
 
-rag_toolkit uses **Protocols** for extensibility - implement the protocol, no inheritance needed.
+quaerum uses **Protocols** for extensibility - implement the protocol, no inheritance needed.
 
 ## Custom Embedding Client
 
 ```python
-from rag_toolkit.core.embedding import EmbeddingClient
+from quaerum.core.embedding import EmbeddingClient
 from typing import List
 
 class MyCustomEmbedding:
@@ -35,7 +35,7 @@ indexer = create_index_service(embed_fn=embed_client.embed, ...)
 ## Custom LLM Client
 
 ```python
-from rag_toolkit.core.llm import LLMClient
+from quaerum.core.llm import LLMClient
 from typing import List, Dict, Any
 
 class MyCustomLLM:
@@ -62,7 +62,7 @@ pipeline = RagPipeline(llm_client=llm_client, ...)
 ## Custom Chunk Type
 
 ```python
-from rag_toolkit.core.chunking.types import ChunkLike
+from quaerum.core.chunking.types import ChunkLike
 from dataclasses import dataclass
 from typing import Dict, Any, List
 
@@ -101,8 +101,8 @@ indexer.index(chunks)
 ## Custom Search Strategy
 
 ```python
-from rag_toolkit.core.index.search_strategies import SearchStrategy
-from rag_toolkit.core.index.service import IndexService
+from quaerum.core.index.search_strategies import SearchStrategy
+from quaerum.core.index.service import IndexService
 from typing import List
 
 class SemanticBoostSearch(SearchStrategy):
@@ -138,7 +138,7 @@ results = index_service.search(query, strategy=strategy)
 ## Custom Reranker
 
 ```python
-from rag_toolkit.rag.rerankers import Reranker
+from quaerum.rag.rerankers import Reranker
 from typing import List, Any
 
 class CustomReranker(Reranker):
@@ -174,7 +174,7 @@ pipeline = RagPipeline(reranker=reranker, ...)
 ## Custom Vector Store
 
 ```python
-from rag_toolkit.core.vectorstore import VectorStoreClient
+from quaerum.core.vectorstore import VectorStoreClient
 from typing import List, Dict, Any
 
 class MyVectorStore:
@@ -224,7 +224,7 @@ index_service = create_index_service(vector_store=vector_store, ...)
 
 ```python
 import pytest
-from rag_toolkit.core.embedding import EmbeddingClient
+from quaerum.core.embedding import EmbeddingClient
 
 def test_custom_embedding():
     """Test custom embedding client."""
@@ -241,6 +241,6 @@ def test_custom_embedding():
 
 ## See Also
 
-- [rag_toolkit Integration](../architecture/rag-toolkit.md) - Integration guide
+- [quaerum Integration](../architecture/rag-toolkit.md) - Integration guide
 - [Clean Architecture](../architecture/clean-architecture.md) - Design principles
 - [API Reference](../api/core/embedding.md) - Protocol documentation

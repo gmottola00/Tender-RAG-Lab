@@ -1,6 +1,6 @@
 # RAG Pipeline
 
-Complete guide to the RAG pipeline in rag_toolkit.
+Complete guide to the RAG pipeline in quaerum.
 
 ## Overview
 
@@ -22,10 +22,10 @@ graph LR
 ## Basic Usage
 
 ```python
-from rag_toolkit.rag import RagPipeline
-from rag_toolkit.rag.rewriter import QueryRewriter
-from rag_toolkit.rag.assembler import ContextAssembler
-from rag_toolkit.rag.rerankers import LLMReranker
+from quaerum.rag import RagPipeline
+from quaerum.rag.rewriter import QueryRewriter
+from quaerum.rag.assembler import ContextAssembler
+from quaerum.rag.rerankers import LLMReranker
 
 pipeline = RagPipeline(
     retriever=indexer,
@@ -51,7 +51,7 @@ print(f"Sources: {len(result.sources)}")
 Reformulates queries for better retrieval:
 
 ```python
-from rag_toolkit.rag.rewriter import QueryRewriter
+from quaerum.rag.rewriter import QueryRewriter
 
 rewriter = QueryRewriter(llm_client)
 
@@ -68,7 +68,7 @@ rewritten = await rewriter.rewrite(query, context="tender documents")
 Combines retrieved chunks into LLM context:
 
 ```python
-from rag_toolkit.rag.assembler import ContextAssembler
+from quaerum.rag.assembler import ContextAssembler
 
 assembler = ContextAssembler(
     max_tokens=2048,
@@ -83,7 +83,7 @@ context = assembler.assemble(chunks)
 Reorder results by relevance:
 
 ```python
-from rag_toolkit.rag.rerankers import LLMReranker
+from quaerum.rag.rerankers import LLMReranker
 
 reranker = LLMReranker(llm_client)
 
@@ -131,5 +131,5 @@ pipeline = RagPipeline(
 ## See Also
 
 - [Search Strategies](search.md) - Retrieval methods
-- [Extending rag_toolkit](extending.md) - Custom components
+- [Extending quaerum](extending.md) - Custom components
 - [LLM API](../api/core/llm.md) - LLM client details

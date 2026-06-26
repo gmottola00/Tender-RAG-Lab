@@ -1,10 +1,10 @@
 # Search Strategies
 
-Vector and hybrid search strategies in rag_toolkit.
+Vector and hybrid search strategies in quaerum.
 
 ## Overview
 
-rag_toolkit provides multiple search strategies:
+quaerum provides multiple search strategies:
 
 ```mermaid
 graph TD
@@ -25,7 +25,7 @@ graph TD
 Semantic similarity using embeddings:
 
 ```python
-from rag_toolkit.core.index.search_strategies import VectorSearch
+from quaerum.core.index.search_strategies import VectorSearch
 
 strategy = VectorSearch(
     top_k=10,
@@ -43,7 +43,7 @@ results = await index_service.search(
 BM25-based lexical matching:
 
 ```python
-from rag_toolkit.core.index.search_strategies import KeywordSearch
+from quaerum.core.index.search_strategies import KeywordSearch
 
 strategy = KeywordSearch(
     top_k=10,
@@ -61,7 +61,7 @@ results = await index_service.search(
 Combines vector + keyword:
 
 ```python
-from rag_toolkit.core.index.search_strategies import HybridSearch
+from quaerum.core.index.search_strategies import HybridSearch
 
 strategy = HybridSearch(
     vector_weight=0.7,
@@ -81,7 +81,7 @@ results = await index_service.search(
 Implement your own:
 
 ```python
-from rag_toolkit.core.index.search_strategies import SearchStrategy
+from quaerum.core.index.search_strategies import SearchStrategy
 from typing import List
 
 class CustomSearch(SearchStrategy):
