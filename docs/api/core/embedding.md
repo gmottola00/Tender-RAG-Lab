@@ -4,7 +4,7 @@ Documentation for embedding components.
 
 ## Overview
 
-The embedding system provides text vectorization using Protocol-based interfaces from rag_toolkit.
+The embedding system provides text vectorization using Protocol-based interfaces from quaerum.
 
 ## EmbeddingClient Protocol
 
@@ -25,7 +25,7 @@ class EmbeddingClient(Protocol):
 ### Basic Usage
 
 ```python
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
+from quaerum.infra.embedding import OllamaEmbeddingClient
 
 # Initialize client
 embed_client = OllamaEmbeddingClient(
@@ -46,7 +46,7 @@ vectors = [embed_client.embed(t) for t in texts]
 
 ```python
 from src.infra.factory import create_tender_stack
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
+from quaerum.infra.embedding import OllamaEmbeddingClient
 
 embed_client = OllamaEmbeddingClient()
 embedding_dim = len(embed_client.embed("test"))

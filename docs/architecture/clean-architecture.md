@@ -29,7 +29,7 @@ graph TB
         I3[Storage Adapters]
     end
     
-    subgraph "📦 rag_toolkit"
+    subgraph "📦 quaerum"
         R1[RAG Pipeline]
         R2[Vector Search]
         R3[Protocols]
@@ -59,7 +59,7 @@ graph TB
 | 🌐 **Apps** | HTTP interface | FastAPI routers, auth middleware |
 | 💼 **Domain** | Business logic | TenderService, validation rules |
 | 🔌 **Infrastructure** | Technical adapters | DB models, factories, Milvus client |
-| 📦 **rag_toolkit** | Generic RAG | Protocols, pipeline, chunking |
+| 📦 **quaerum** | Generic RAG | Protocols, pipeline, chunking |
 
 ---
 
@@ -201,7 +201,7 @@ graph TB
 
 ---
 
-### :material-package-variant: 4. rag_toolkit (External Library)
+### :material-package-variant: 4. quaerum (External Library)
 
 !!! info "Purpose"
     Generic RAG components (reusable across projects)
@@ -214,8 +214,8 @@ graph TB
     - :material-file-document-multiple: **Chunking algorithms** — Dynamic, token-based
     
     ```python
-    from rag_toolkit.rag import RagPipeline
-    from rag_toolkit.core.embedding import EmbeddingClient
+    from quaerum.rag import RagPipeline
+    from quaerum.core.embedding import EmbeddingClient
     ```
 
 === "❌ Cannot"
@@ -224,7 +224,7 @@ graph TB
     - Contain domain-specific logic
     
     !!! quote "Zero Dependencies Rule"
-        rag_toolkit is **protocol-based** and has **zero knowledge** of tender, medical, or legal domains.
+        quaerum is **protocol-based** and has **zero knowledge** of tender, medical, or legal domains.
 
 ---
 
@@ -239,11 +239,11 @@ graph TB
     # Domain → Infrastructure (via interfaces)
     from src.infra.factory import create_tender_stack
     
-    # Domain → rag_toolkit
-    from rag_toolkit.core.embedding import EmbeddingClient
+    # Domain → quaerum
+    from quaerum.core.embedding import EmbeddingClient
     
-    # Infrastructure → rag_toolkit
-    from rag_toolkit.infra.vectorstores.factory import create_milvus_service
+    # Infrastructure → quaerum
+    from quaerum.infra.vectorstores.factory import create_milvus_service
     ```
 
 !!! danger "❌ Forbidden Dependencies"
@@ -255,7 +255,7 @@ graph TB
     # Domain importing Apps ❌
     from src.api.routers import documents  # NO!
     
-    # rag_toolkit importing app code ❌
+    # quaerum importing app code ❌
     from src.domain import anything  # NO!
     ```
 
@@ -264,13 +264,13 @@ graph TB
 ## :material-protocol: Protocol-Based Design
 
 !!! abstract "Protocol Pattern"
-    rag_toolkit uses **Protocols** (structural typing) for extensibility without inheritance coupling.
+    quaerum uses **Protocols** (structural typing) for extensibility without inheritance coupling.
 
 === "Generic Protocol"
 
     ```python
-    # rag_toolkit defines generic protocol
-    from rag_toolkit.core.chunking.types import ChunkLike
+    # quaerum defines generic protocol
+    from quaerum.core.chunking.types import ChunkLike
     
     @dataclass
     class ChunkLike(Protocol):
@@ -312,16 +312,16 @@ graph TB
 ## :material-factory: Factory Pattern
 
 !!! tip "Centralized Component Creation"
-    Domain-specific components are created via **factories** that wrap rag_toolkit.
+    Domain-specific components are created via **factories** that wrap quaerum.
 
 ```python title="src/infra/factory.py" hl_lines="8-10 17-20"
-from rag_toolkit.infra.vectorstores.factory import create_milvus_service, create_index_service
+from quaerum.infra.vectorstores.factory import create_milvus_service, create_index_service
 
 def create_tender_stack(
     embed_client: EmbeddingClient,
     embedding_dim: int,
 ) -> Tuple[TenderMilvusIndexer, TenderSearcher]:
-    # 1️⃣ Create generic rag_toolkit components
+    # 1️⃣ Create generic quaerum components
     milvus_service = create_milvus_service()
     index_service = create_index_service(...)
     
@@ -431,7 +431,7 @@ def create_tender_stack(
 
     ---
 
-    rag_toolkit reusable across projects, domain logic portable, infrastructure adapters swappable
+    quaerum reusable across projects, domain logic portable, infrastructure adapters swappable
 
 </div>
 
@@ -483,7 +483,7 @@ def create_tender_stack(
 
 <div class="grid cards" markdown>
 
--   :material-package-variant:{ .lg } **rag_toolkit Integration**
+-   :material-package-variant:{ .lg } **quaerum Integration**
 
     ---
 
@@ -507,7 +507,7 @@ def create_tender_stack(
 
 <div align="center">
 
-**[← Architecture Overview](overview.md)** | **[rag_toolkit Integration →](rag-toolkit.md)**
+**[← Architecture Overview](overview.md)** | **[quaerum Integration →](rag-toolkit.md)**
 
 *Last updated: 2026-01-05*
 

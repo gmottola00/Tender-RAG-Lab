@@ -22,7 +22,7 @@ All notable changes to Tender-RAG-Lab will be documented here.
 ### Added
 - Initial release
 - Hybrid RAG system with Milvus + Neo4j
-- Clean architecture with rag_toolkit integration
+- Clean architecture with quaerum integration
 - FastAPI REST API
 - Document ingestion pipeline
 - Vector and hybrid search

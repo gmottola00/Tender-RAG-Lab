@@ -58,7 +58,7 @@ Semantic search using embeddings.
 
 ```python
 from src.domain.tender.search import VectorSearcher
-from rag_toolkit.core.embedding import EmbeddingClient
+from quaerum.core.embedding import EmbeddingClient
 from src.domain.tender.indexing.indexer import TenderMilvusIndexer
 
 # Initialize
@@ -221,7 +221,7 @@ results = searcher.hybrid_search("query", top_k=5)
 
 ```python
 from src.domain.tender.search import TenderSearcher
-from rag_toolkit.core.rag import RAGPipeline
+from quaerum.core.rag import RAGPipeline
 
 # Setup
 searcher = TenderSearcher(indexer, embed_client)
@@ -244,9 +244,9 @@ answer = pipeline.query("What are the energy requirements?")
 **Before (Old):**
 ```python
 # ❌ Was in core layer (wrong)
-from rag_toolkit.core.search.vector import VectorSearcher
-from rag_toolkit.core.search.keyword import KeywordSearcher
-from rag_toolkit.core.search.hybrid import HybridSearcher
+from quaerum.core.search.vector import VectorSearcher
+from quaerum.core.search.keyword import KeywordSearcher
+from quaerum.core.search.hybrid import HybridSearcher
 ```
 
 **After (New):**
@@ -308,6 +308,6 @@ def test_hybrid_search():
 
 ## See Also
 
-- [RAG Toolkit](../rag_toolkit/index.md) - RAG components
-- [Search Strategies](../rag_toolkit/search.md) - Search strategies
+- [RAG Toolkit](../quaerum/index.md) - RAG components
+- [Search Strategies](../quaerum/search.md) - Search strategies
 - [Architecture Overview](../architecture/overview.md) - Layer separation

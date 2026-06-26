@@ -23,7 +23,7 @@ class LLMClient(Protocol):
 ### Basic Chat
 
 ```python
-from rag_toolkit.infra.llm import OllamaLLMClient
+from quaerum.infra.llm import OllamaLLMClient
 
 llm = OllamaLLMClient(model="llama3")
 
@@ -40,8 +40,8 @@ print(response)
 ### With RAG Pipeline
 
 ```python
-from rag_toolkit.rag import RagPipeline
-from rag_toolkit.infra.llm import OllamaLLMClient
+from quaerum.rag import RagPipeline
+from quaerum.infra.llm import OllamaLLMClient
 
 llm = OllamaLLMClient()
 
@@ -73,4 +73,4 @@ result = await pipeline.query("What are the requirements?")
 ## See Also
 
 - [Embedding API](embedding.md) - Text vectorization
-- [RAG Pipeline](../../rag_toolkit/pipeline.md) - Complete RAG flow
+- [RAG Pipeline](../../quaerum/pipeline.md) - Complete RAG flow

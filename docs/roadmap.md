@@ -539,7 +539,7 @@ graph LR
 
 !!! warning "External Factors"
 
-=== "✅ rag_toolkit"
+=== "✅ quaerum"
 
     - **Status**: Owned by maintainer
     - **Risk**: Low
@@ -1007,13 +1007,13 @@ graph LR
 ## Dependencies & Risks
 
 ### Critical Dependencies
-- ✅ **rag_toolkit**: External library (owned by maintainer)
+- ✅ **quaerum**: External library (owned by maintainer)
 - ⚠️ **ANAC API**: Public API stability uncertain
 - ⚠️ **LLM Providers**: Cost and rate limits
 - ⚠️ **Regulations**: GDPR, public data usage rights
 
 ### Risk Mitigation
-- **rag_toolkit**: Fork if needed, keep minimal coupling
+- **quaerum**: Fork if needed, keep minimal coupling
 - **ANAC API**: Scraper fallback, local caching
 - **LLM Costs**: Self-hosted models (Ollama) as alternative
 - **Legal**: Legal review before launch, ToS alignment

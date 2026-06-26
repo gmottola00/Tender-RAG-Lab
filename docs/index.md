@@ -5,7 +5,7 @@
 ![Architecture](https://img.shields.io/badge/Architecture-Clean-brightgreen.svg)
 ![RAG](https://img.shields.io/badge/RAG-Hybrid-orange.svg)
 
-**Tender-RAG-Lab** is a production-grade Retrieval-Augmented Generation system for analyzing Italian public procurement tender documents, built with clean architecture principles and the rag_toolkit library.
+**Tender-RAG-Lab** is a production-grade Retrieval-Augmented Generation system for analyzing Italian public procurement tender documents, built with clean architecture principles and the quaerum library.
 
 ## Quick Links
 
@@ -23,7 +23,7 @@
 
     ---
 
-    Learn about clean architecture, rag_toolkit integration, and design principles.
+    Learn about clean architecture, quaerum integration, and design principles.
 
     [:octicons-arrow-right-24: Learn More](architecture/overview.md)
 
@@ -67,7 +67,7 @@
 Combines vector search (Milvus) with graph-based reasoning (Neo4j) for comprehensive document analysis and structured metadata tracking.
 
 ### :material-floor-plan: Clean Architecture
-Four-layer design with clear separation: Apps → Domain → Infrastructure → rag_toolkit, following dependency inversion principles.
+Four-layer design with clear separation: Apps → Domain → Infrastructure → quaerum, following dependency inversion principles.
 
 ### :material-file-document: Document Processing
 PDF, DOCX, and TXT parsing with OCR support for scanned documents. Multi-language support for Italian and English tenders.
@@ -135,7 +135,7 @@ Async-first architecture, comprehensive testing, Docker deployment, and PostgreS
     Combines vector similarity search with graph-based reasoning for better accuracy on structured tender data.
 
 !!! abstract "Extensible Architecture"
-    Generic RAG logic lives in rag_toolkit library, while tender-specific logic stays focused in the domain layer.
+    Generic RAG logic lives in quaerum library, while tender-specific logic stays focused in the domain layer.
 
 !!! example "Developer Experience"
     Clear documentation, working examples, type hints throughout, and comprehensive test coverage.
@@ -148,7 +148,7 @@ Tender-RAG-Lab follows clean architecture with four layers:
 graph TD
     A[Apps Layer<br/>FastAPI] --> B[Domain Layer<br/>Tender Management]
     B --> C[Infrastructure Layer<br/>Database, Factory]
-    C --> D[rag_toolkit<br/>Generic RAG]
+    C --> D[quaerum<br/>Generic RAG]
     
     style A fill:#e3f2fd
     style B fill:#f3e5f5
@@ -156,7 +156,7 @@ graph TD
     style D fill:#e8f5e9
 ```
 
-**Key Principle:** Outer layers depend on inner layers, never the reverse. Generic RAG components live in rag_toolkit, domain logic stays in the domain layer.
+**Key Principle:** Outer layers depend on inner layers, never the reverse. Generic RAG components live in quaerum, domain logic stays in the domain layer.
 
 ## Technology Stack
 
@@ -168,7 +168,7 @@ graph TD
 | **SQL DB** | PostgreSQL | Structured data |
 | **Embedding** | Ollama (nomic-embed-text) | Text vectorization |
 | **LLM** | Ollama (llama3) | Text generation |
-| **RAG Library** | rag_toolkit | Generic RAG components |
+| **RAG Library** | quaerum | Generic RAG components |
 | **NER** | spaCy | Entity extraction |
 | **Document Parser** | Docling | PDF/DOCX processing |
 

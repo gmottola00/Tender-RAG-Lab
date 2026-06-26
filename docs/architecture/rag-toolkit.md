@@ -1,19 +1,19 @@
-# rag_toolkit Integration
+# quaerum Integration
 
 !!! abstract "Overview"
-    Learn how Tender-RAG-Lab integrates with **rag_toolkit** for generic RAG components.
+    Learn how Tender-RAG-Lab integrates with **quaerum** for generic RAG components.
     
-    rag_toolkit is a **standalone library** providing reusable RAG primitives that work across domains.
+    quaerum is a **standalone library** providing reusable RAG primitives that work across domains.
 
 ---
 
-## :material-package-variant: What is rag_toolkit?
+## :material-package-variant: What is quaerum?
 
-**rag_toolkit** is a standalone Python library providing **generic, reusable RAG components** that work across different domains and use cases.
+**quaerum** is a standalone Python library providing **generic, reusable RAG components** that work across different domains and use cases.
 
 ```mermaid
 graph LR
-    A[Tender-RAG-Lab] --> B[rag_toolkit]
+    A[Tender-RAG-Lab] --> B[quaerum]
     C[Medical-RAG] --> B
     D[Legal-RAG] --> B
     E[Finance-RAG] --> B
@@ -60,10 +60,10 @@ graph LR
 ## :material-download: Installation
 
 !!! tip "Editable Mode for Development"
-    rag_toolkit is installed in **editable mode** for local development:
+    quaerum is installed in **editable mode** for local development:
 
-```bash title="Install rag_toolkit"
-# Clone rag_toolkit repository
+```bash title="Install quaerum"
+# Clone quaerum repository
 git clone https://github.com/yourusername/Rag-Toolkit.git
 
 # Install in editable mode
@@ -72,7 +72,7 @@ uv pip install -e ../Rag-Toolkit
 ```
 
 !!! info "Why Editable Mode?"
-    - ✅ Changes to rag_toolkit immediately available
+    - ✅ Changes to quaerum immediately available
     - ✅ No need to reinstall after edits
     - ✅ Perfect for parallel development
 
@@ -83,11 +83,11 @@ uv pip install -e ../Rag-Toolkit
 ### :material-protocol: 1. Protocols (Interfaces)
 
 !!! abstract "Protocol Pattern"
-    rag_toolkit defines **Protocols** that domain code implements for type-safe duck typing.
+    quaerum defines **Protocols** that domain code implements for type-safe duck typing.
 
 === "Generic Protocol"
 
-    ```python title="rag_toolkit/core/chunking/types.py"
+    ```python title="quaerum/core/chunking/types.py"
     from typing import Protocol, runtime_checkable
     
     @runtime_checkable
@@ -107,7 +107,7 @@ uv pip install -e ../Rag-Toolkit
 === "Domain Extension"
 
     ```python title="src/domain/tender/schemas/chunking.py"
-    from rag_toolkit.core.chunking.types import ChunkLike
+    from quaerum.core.chunking.types import ChunkLike
     
     @dataclass
     class TenderChunk:
@@ -135,11 +135,11 @@ uv pip install -e ../Rag-Toolkit
 
 | Protocol | Purpose | Location |
 |----------|---------|----------|
-| `ChunkLike` | Document chunks | `rag_toolkit.core.chunking.types` |
-| `TokenChunkLike` | Token-optimized chunks | `rag_toolkit.core.chunking.types` |
-| `EmbeddingClient` | Embedding models | `rag_toolkit.core.embedding` |
-| `LLMClient` | Language models | `rag_toolkit.core.llm` |
-| `VectorStoreClient` | Vector databases | `rag_toolkit.core.vectorstore` |
+| `ChunkLike` | Document chunks | `quaerum.core.chunking.types` |
+| `TokenChunkLike` | Token-optimized chunks | `quaerum.core.chunking.types` |
+| `EmbeddingClient` | Embedding models | `quaerum.core.embedding` |
+| `LLMClient` | Language models | `quaerum.core.llm` |
+| `VectorStoreClient` | Vector databases | `quaerum.core.vectorstore` |
 
 ---
 
@@ -149,9 +149,9 @@ uv pip install -e ../Rag-Toolkit
     End-to-end retrieval and generation workflow.
 
 ```python title="Using RagPipeline"
-from rag_toolkit.rag import RagPipeline
-from rag_toolkit.rag.rewriter import QueryRewriter
-from rag_toolkit.rag.assembler import ContextAssembler
+from quaerum.rag import RagPipeline
+from quaerum.rag.rewriter import QueryRewriter
+from quaerum.rag.assembler import ContextAssembler
 
 pipeline = RagPipeline(
     retriever=indexer,
@@ -172,7 +172,7 @@ result = await pipeline.query("What are the requirements?")
     Create vector store services with factories for easy swapping.
 
 ```python title="Factory Usage"
-from rag_toolkit.infra.vectorstores.factory import (
+from quaerum.infra.vectorstores.factory import (
     create_milvus_service,
     create_index_service
 )
@@ -196,7 +196,7 @@ index_service = create_index_service(
 === "Dynamic Chunking"
 
     ```python
-    from rag_toolkit.core.chunking import DynamicChunker
+    from quaerum.core.chunking import DynamicChunker
     
     # Chunk by document structure
     chunker = DynamicChunker(
@@ -210,7 +210,7 @@ index_service = create_index_service(
 === "Token Chunking"
 
     ```python
-    from rag_toolkit.core.chunking import TokenChunker
+    from quaerum.core.chunking import TokenChunker
     
     # Token-optimized chunking
     token_chunker = TokenChunker(
@@ -226,15 +226,15 @@ index_service = create_index_service(
 ## :material-import: Import Mapping
 
 !!! warning "After Migration (Phases 1-3)"
-    Imports changed from local `src.core.*` to external `rag_toolkit.*`.
+    Imports changed from local `src.core.*` to external `quaerum.*`.
 
-| Old (Deleted) | New (rag_toolkit) |
+| Old (Deleted) | New (quaerum) |
 |---------------|-------------------|
-| `src.core.rag.pipeline` | `rag_toolkit.rag.pipeline` |
-| `src.core.embedding.base` | `rag_toolkit.core.embedding` |
-| `src.core.llm.base` | `rag_toolkit.core.llm` |
-| `src.core.chunking` | `rag_toolkit.core.chunking` |
-| `src.core.index` | `rag_toolkit.core.index` |
+| `src.core.rag.pipeline` | `quaerum.rag.pipeline` |
+| `src.core.embedding.base` | `quaerum.core.embedding` |
+| `src.core.llm.base` | `quaerum.core.llm` |
+| `src.core.chunking` | `quaerum.core.chunking` |
+| `src.core.index` | `quaerum.core.index` |
 
 === "❌ Old (Deleted)"
 
@@ -245,26 +245,26 @@ index_service = create_index_service(
     from src.core.chunking.dynamic_chunker import DynamicChunker
     ```
 
-=== "✅ New (rag_toolkit)"
+=== "✅ New (quaerum)"
 
     ```python
     # Use these instead
-    from rag_toolkit.rag import RagPipeline
-    from rag_toolkit.core.embedding import EmbeddingClient
-    from rag_toolkit.core.chunking import DynamicChunker
+    from quaerum.rag import RagPipeline
+    from quaerum.core.embedding import EmbeddingClient
+    from quaerum.core.chunking import DynamicChunker
     ```
 
 ---
 
 ## :material-factory: Factory Pattern Integration
 
-!!! tip "Wrapping rag_toolkit Components"
-    Domain-specific components wrap rag_toolkit via **factories** for centralized configuration.
+!!! tip "Wrapping quaerum Components"
+    Domain-specific components wrap quaerum via **factories** for centralized configuration.
 
 ```python title="src/infra/factory.py" hl_lines="11-15 21-25"
-from rag_toolkit.core.embedding import EmbeddingClient
-from rag_toolkit.core.index.service import IndexService
-from rag_toolkit.infra.vectorstores.factory import (
+from quaerum.core.embedding import EmbeddingClient
+from quaerum.core.index.service import IndexService
+from quaerum.infra.vectorstores.factory import (
     create_milvus_service,
     create_index_service
 )
@@ -274,9 +274,9 @@ def create_tender_stack(
     embedding_dim: int,
     collection_name: str = "tender_chunks",
 ) -> Tuple[TenderMilvusIndexer, TenderSearcher]:
-    """Create tender-specific stack wrapping rag_toolkit."""
+    """Create tender-specific stack wrapping quaerum."""
     
-    # 1️⃣ Generic rag_toolkit components
+    # 1️⃣ Generic quaerum components
     milvus_service = create_milvus_service()
     index_service = create_index_service(
         embedding_dim=embedding_dim,
@@ -300,7 +300,7 @@ def create_tender_stack(
 ```
 
 !!! success "Factory Pattern Benefits"
-    1. Use rag_toolkit factories for generic components
+    1. Use quaerum factories for generic components
     2. Wrap with domain-specific classes
     3. Inject domain-specific configuration
     4. Single source of truth for infrastructure
@@ -339,19 +339,19 @@ def create_tender_stack(
 
     ---
 
-    rag_toolkit = generic components | Tender-RAG-Lab = domain logic
+    quaerum = generic components | Tender-RAG-Lab = domain logic
 
 -   :material-update:{ .lg } **Upgradability**
 
     ---
 
-    Update rag_toolkit independently — bug fixes benefit all projects
+    Update quaerum independently — bug fixes benefit all projects
 
 -   :material-test-tube:{ .lg } **Testability**
 
     ---
 
-    rag_toolkit has its own tests — domain tests focus on business logic
+    quaerum has its own tests — domain tests focus on business logic
 
 </div>
 
@@ -381,7 +381,7 @@ class TenderChunk:
 ### Pattern 2: Embedding Client Usage
 
 ```python
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
+from quaerum.infra.embedding import OllamaEmbeddingClient
 
 # Initialize
 embed_client = OllamaEmbeddingClient(
@@ -399,7 +399,7 @@ vectors = [embed_client.embed(t) for t in texts]
 ### Pattern 3: Search Strategies
 
 ```python
-from rag_toolkit.core.index.search_strategies import (
+from quaerum.core.index.search_strategies import (
     VectorSearch,
     HybridSearch
 )
@@ -426,14 +426,14 @@ results = index_service.search(
 ## :material-bug: Troubleshooting
 
 !!! failure "ImportError: cannot import name 'X'"
-    Check import paths match rag_toolkit structure:
+    Check import paths match quaerum structure:
     
     ```python
     # ❌ Wrong
-    from rag_toolkit.core.index.base import IndexService
+    from quaerum.core.index.base import IndexService
     
     # ✅ Correct
-    from rag_toolkit.core.index.service import IndexService
+    from quaerum.core.index.service import IndexService
     ```
 
 !!! failure "Protocol Compliance Error"
@@ -474,7 +474,7 @@ results = index_service.search(
 
     ---
 
-    [:octicons-arrow-right-24: rag_toolkit API docs](../api/core/embedding.md)
+    [:octicons-arrow-right-24: quaerum API docs](../api/core/embedding.md)
 
 </div>
 

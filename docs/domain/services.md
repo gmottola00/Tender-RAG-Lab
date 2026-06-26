@@ -504,6 +504,6 @@ async with async_session() as session:
 ## Related Documentation
 
 - [Domain Layer Overview](README.md)
-- [RAG Toolkit](../rag_toolkit/index.md) - Document processing
+- [RAG Toolkit](../quaerum/index.md) - Document processing
 
 *Last updated: 2025-12-18*

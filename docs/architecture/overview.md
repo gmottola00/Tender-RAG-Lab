@@ -10,7 +10,7 @@
 
     [:octicons-arrow-right-24: Learn more](#design-philosophy)
 
--   :material-package-variant:{ .lg .middle } __rag_toolkit Integration__
+-   :material-package-variant:{ .lg .middle } __quaerum Integration__
 
     ---
 
@@ -45,15 +45,15 @@
 
 === "Maximum Reusability"
 
-    **Generic RAG logic lives in rag_toolkit library**
+    **Generic RAG logic lives in quaerum library**
     
     ```python
     # ✅ Reusable across projects
-    from rag_toolkit.rag import RagPipeline
-    from rag_toolkit.core.embedding import EmbeddingClient
+    from quaerum.rag import RagPipeline
+    from quaerum.core.embedding import EmbeddingClient
     ```
     
-    If you need it in multiple projects, it belongs in `rag_toolkit`.
+    If you need it in multiple projects, it belongs in `quaerum`.
 
 === "Clear Separation"
 
@@ -61,7 +61,7 @@
     
     ```mermaid
     graph LR
-        A[rag_toolkit<br/>Generic] -.->|"Used by"| B[Tender-RAG<br/>Domain]
+        A[quaerum<br/>Generic] -.->|"Used by"| B[Tender-RAG<br/>Domain]
         A -.->|"Used by"| C[Medical-RAG<br/>Domain]
         A -.->|"Used by"| D[Legal-RAG<br/>Domain]
         
@@ -134,7 +134,7 @@ graph TB
         INF[Database Models<br/>Factories]
     end
     
-    subgraph "📦 rag_toolkit (External)"
+    subgraph "📦 quaerum (External)"
         RAG[RAG Pipeline<br/>Search<br/>Chunking]
     end
     
@@ -168,7 +168,7 @@ src/
 ├── 🌐 api/           # FastAPI routers, deps, auth
 ├── 💼 domain/        # Tender services, entities, schemas  
 ├── 🔌 infra/         # Factories, DB models, adapters
-└── 📦 rag_toolkit/   # (External library)
+└── 📦 quaerum/   # (External library)
     ├── core/         # Protocols, chunking, embedding
     ├── rag/          # Pipeline, rerankers, assembler
     └── infra/        # Vector stores, parsers, LLMs
@@ -190,18 +190,18 @@ src/
         ```
         Domain uses factories for infrastructure.
     
-    === "Domain → rag_toolkit"
+    === "Domain → quaerum"
         ```python
-        from rag_toolkit.rag import RagPipeline
-        from rag_toolkit.core.embedding import EmbeddingClient
+        from quaerum.rag import RagPipeline
+        from quaerum.core.embedding import EmbeddingClient
         ```
         Domain imports generic RAG components.
     
-    === "Infrastructure → rag_toolkit"
+    === "Infrastructure → quaerum"
         ```python
-        from rag_toolkit.infra.vectorstores.factory import create_milvus_service
+        from quaerum.infra.vectorstores.factory import create_milvus_service
         ```
-        Infrastructure wraps rag_toolkit services.
+        Infrastructure wraps quaerum services.
 
 !!! danger "Forbidden Dependencies"
     
@@ -220,7 +220,7 @@ src/
         ```
         Domain must not know about HTTP.
     
-    === "❌ rag_toolkit → Application"
+    === "❌ quaerum → Application"
         ```python
         # ❌ NEVER DO THIS
         from src.domain import anything
@@ -229,14 +229,14 @@ src/
 
 ---
 
-## :material-package-variant: rag_toolkit Library — Generic RAG Engine
+## :material-package-variant: quaerum Library — Generic RAG Engine
 
 !!! abstract "Purpose"
     Generic, reusable RAG components with **zero domain knowledge** and **zero vendor lock-in**.
     
     Think of it as a "standard library" for RAG systems.
 
-### What rag_toolkit Provides
+### What quaerum Provides
 
 <div class="grid cards" markdown>
 
@@ -293,12 +293,12 @@ src/
 ### Integration in Tender-RAG-Lab
 
 !!! tip "Extension Pattern"
-    Tender-RAG-Lab **extends** rag_toolkit with domain-specific customizations:
+    Tender-RAG-Lab **extends** quaerum with domain-specific customizations:
 
 === "Domain Chunks"
 
     ```python
-    from rag_toolkit.core.chunking.types import ChunkLike
+    from quaerum.core.chunking.types import ChunkLike
     
     @dataclass
     class TenderChunk:
@@ -316,7 +316,7 @@ src/
 === "Domain Indexer"
 
     ```python
-    from rag_toolkit.core.index.service import IndexService
+    from quaerum.core.index.service import IndexService
     
     class TenderMilvusIndexer:
         """Wraps IndexService with tender schema."""
@@ -346,17 +346,17 @@ src/
         embedding_dim: int,
     ) -> Tuple[TenderMilvusIndexer, TenderSearcher]:
         """Complete tender stack with config."""
-        # Wrap rag_toolkit components
+        # Wrap quaerum components
         ...
     ```
 
 !!! quote "Golden Rule"
-    **If another project needs this code, it belongs in rag_toolkit.**
+    **If another project needs this code, it belongs in quaerum.**
     
     Domain-specific → `src/domain/tender/`  
-    Generic reusable → `rag_toolkit/`
+    Generic reusable → `quaerum/`
 
-[:octicons-arrow-right-24: Full rag_toolkit Integration Guide](rag-toolkit.md)
+[:octicons-arrow-right-24: Full quaerum Integration Guide](rag-toolkit.md)
 
 ---
 
@@ -378,7 +378,7 @@ src/
         embed_client: EmbeddingClient,
         embedding_dim: int,
     ) -> Tuple[TenderMilvusIndexer, TenderSearcher]:
-        """Wrap rag_toolkit with tender-specific config."""
+        """Wrap quaerum with tender-specific config."""
         milvus_service = create_milvus_service()
         index_service = create_index_service(...)
         return indexer, searcher
@@ -389,7 +389,7 @@ src/
     - Business logic
     - RAG orchestration
     - HTTP request handling
-    - Generic RAG components (→ use rag_toolkit)
+    - Generic RAG components (→ use quaerum)
 
 ```bash title="Structure"
 infra/
@@ -400,7 +400,7 @@ infra/
 ```
 
 !!! tip "Key Principle"
-    Only **tender-specific** infrastructure lives here. Generic infra is in rag_toolkit.
+    Only **tender-specific** infrastructure lives here. Generic infra is in quaerum.
 
 ---
 
@@ -490,7 +490,7 @@ domain/tender/
     - Business logic
     - Direct database or vector store access
     - RAG orchestration (→ use domain services)
-    - Document parsing (→ use rag_toolkit)
+    - Document parsing (→ use quaerum)
 
 ```bash title="Structure"
 api/
@@ -520,11 +520,11 @@ api/
         from src.domain.tender.services.tenders import TenderService
         ```
     
-    === "Domain → rag_toolkit"
+    === "Domain → quaerum"
         ```python
         # Domain uses generic RAG components
-        from rag_toolkit.rag import RagPipeline
-        from rag_toolkit.core.chunking import DynamicChunker
+        from quaerum.rag import RagPipeline
+        from quaerum.core.chunking import DynamicChunker
         ```
     
     === "Domain → Infrastructure"
@@ -533,20 +533,20 @@ api/
         from src.infra.factory import create_tender_stack
         ```
     
-    === "Infrastructure → rag_toolkit"
+    === "Infrastructure → quaerum"
         ```python
         # Infrastructure wraps generic services
-        from rag_toolkit.infra.vectorstores.factory import create_milvus_service
+        from quaerum.infra.vectorstores.factory import create_milvus_service
         ```
 
 !!! danger "❌ Invalid Imports"
 
-    === "rag_toolkit → Application"
+    === "quaerum → Application"
         ```python
         # ❌ External library importing app code
         from src.domain.tender.entities.tenders import Tender
         ```
-        **Why?** rag_toolkit must stay generic, no domain knowledge.
+        **Why?** quaerum must stay generic, no domain knowledge.
     
     === "Domain → API"
         ```python
@@ -556,10 +556,10 @@ api/
         ```
         **Why?** Domain must not know about HTTP/REST.
     
-    === "API → rag_toolkit (Bypassing Domain)"
+    === "API → quaerum (Bypassing Domain)"
         ```python
         # ❌ API directly using generic components
-        from rag_toolkit.rag import RagPipeline
+        from quaerum.rag import RagPipeline
         pipeline = RagPipeline(...)  # Should go through domain service!
         ```
         **Why?** API should delegate to domain, not orchestrate directly.
@@ -578,7 +578,7 @@ sequenceDiagram
     participant C as 👤 Client
     participant A as 🌐 API Layer
     participant D as 💼 Domain Service
-    participant R as 📦 rag_toolkit
+    participant R as 📦 quaerum
     participant M as 🗄️ Milvus
     
     C->>A: POST /documents/upload
@@ -618,19 +618,19 @@ sequenceDiagram
 |------|-------|--------|-----------|
 | 1️⃣ | **Client** | POST `/documents/upload` | User initiates upload |
 | 2️⃣ | **API** | Delegate to `DocumentService.upload()` | Thin router, no logic |
-| 3️⃣ | **Domain** | Call `rag_toolkit.parse()` | Orchestrate business flow |
-| 4️⃣ | **rag_toolkit** | Parse PDF with Docling | Generic parsing logic |
-| 5️⃣ | **Domain** | Chunk via `rag_toolkit.chunker` | Use generic chunking |
+| 3️⃣ | **Domain** | Call `quaerum.parse()` | Orchestrate business flow |
+| 4️⃣ | **quaerum** | Parse PDF with Docling | Generic parsing logic |
+| 5️⃣ | **Domain** | Chunk via `quaerum.chunker` | Use generic chunking |
 | 6️⃣ | **Domain** | Create `TenderChunk` with domain fields | Add tender_id, lot_id |
-| 7️⃣ | **rag_toolkit** | Embed + index in Milvus | Generic vector operations |
+| 7️⃣ | **quaerum** | Embed + index in Milvus | Generic vector operations |
 | 8️⃣ | **Domain** | Save metadata to PostgreSQL | Tender-specific persistence |
 | 9️⃣ | **API** | Return 201 Created | HTTP response |
 
 !!! success "Key Observations"
     - ✅ **Each layer stays in its lane**
     - ✅ **API doesn't parse** (delegates to domain)
-    - ✅ **Domain orchestrates** (uses rag_toolkit + infrastructure)
-    - ✅ **rag_toolkit stays generic** (no tender knowledge)
+    - ✅ **Domain orchestrates** (uses quaerum + infrastructure)
+    - ✅ **quaerum stays generic** (no tender knowledge)
     - ✅ **Clean separation** (easy to test, modify, scale)
 
 ---
@@ -679,14 +679,14 @@ sequenceDiagram
 ## :material-lightbulb: Core Principle
 
 !!! quote "The Golden Rule"
-    **"Domain logic changes per use case. Generic RAG components stay in rag_toolkit."**
+    **"Domain logic changes per use case. Generic RAG components stay in quaerum."**
     
-    If you need something in **multiple projects**, it's not domain logic — it belongs in `rag_toolkit` library.
+    If you need something in **multiple projects**, it's not domain logic — it belongs in `quaerum` library.
 
 ```mermaid
 graph LR
     A{Need this code<br/>in other projects?}
-    A -->|Yes| B[📦 rag_toolkit<br/>Generic & Reusable]
+    A -->|Yes| B[📦 quaerum<br/>Generic & Reusable]
     A -->|No| C[💼 domain/<br/>Tender-Specific]
     
     style B fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
@@ -699,7 +699,7 @@ graph LR
 
 <div class="grid cards" markdown>
 
--   :material-package-variant-closed:{ .lg } **rag_toolkit Integration**
+-   :material-package-variant-closed:{ .lg } **quaerum Integration**
 
     ---
 
@@ -737,7 +737,7 @@ graph LR
 
 <div align="center">
 
-**[← Back to Home](../index.md)** | **[rag_toolkit Guide →](rag-toolkit.md)**
+**[← Back to Home](../index.md)** | **[quaerum Guide →](rag-toolkit.md)**
 
 *Last updated: 2026-01-05*
 

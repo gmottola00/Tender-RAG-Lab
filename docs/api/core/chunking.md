@@ -7,7 +7,7 @@ Document chunking strategies and token optimization.
 Splits documents by structure (headings, sections):
 
 ```python
-from rag_toolkit.core.chunking import DynamicChunker
+from quaerum.core.chunking import DynamicChunker
 
 class DynamicChunker:
     """Dynamic document chunking by structure."""
@@ -25,7 +25,7 @@ class DynamicChunker:
 ### Basic Chunking
 
 ```python
-from rag_toolkit.core.chunking import DynamicChunker
+from quaerum.core.chunking import DynamicChunker
 
 chunker = DynamicChunker(
     max_tokens=512,
@@ -41,7 +41,7 @@ for chunk in chunks:
 ### Token Optimization
 
 ```python
-from rag_toolkit.core.chunking import TokenChunker
+from quaerum.core.chunking import TokenChunker
 
 token_chunker = TokenChunker(
     max_tokens=512,
@@ -57,7 +57,7 @@ vectors = [embed_client.embed(tc.text) for tc in token_chunks]
 ### Domain Extension
 
 ```python
-from rag_toolkit.core.chunking.types import ChunkLike
+from quaerum.core.chunking.types import ChunkLike
 from dataclasses import dataclass
 
 @dataclass

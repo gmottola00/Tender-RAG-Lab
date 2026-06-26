@@ -58,7 +58,7 @@ docs/
 │   ├── README.md
 │   ├── services.md
 │   └── tender-search.md
-├── rag_toolkit/               # rag_toolkit docs
+├── quaerum/               # quaerum docs
 │   ├── index.md
 │   ├── pipeline.md
 │   ├── search.md

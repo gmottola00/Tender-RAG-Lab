@@ -292,7 +292,7 @@ postgres            postgres   Up            5432/tcp
 
 ```python title="Python health check"
 from src.infra.factory import create_tender_stack
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
+from quaerum.infra.embedding import OllamaEmbeddingClient
 
 # Test embedding client
 embed_client = OllamaEmbeddingClient()

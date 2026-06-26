@@ -494,6 +494,6 @@ class TenderService:
 ## Related Documentation
 
 - [Architecture Overview](../architecture/overview.md) - Layer dependencies
-- [RAG Toolkit](../rag_toolkit/index.md) - RAG components
+- [RAG Toolkit](../quaerum/index.md) - RAG components
 
 *Last updated: 2025-12-18*

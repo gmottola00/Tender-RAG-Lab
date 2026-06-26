@@ -200,7 +200,7 @@ print(f"Extracted text length: {len(parsed_data.text)}")
 ### Strategy
 
 ```python title="Token-based chunking"
-from rag_toolkit.chunking import RecursiveTokenChunker
+from quaerum.chunking import RecursiveTokenChunker
 
 chunker = RecursiveTokenChunker(
     chunk_size=512,        # tokens per chunk
@@ -373,7 +373,7 @@ result = index_tender(
     For documents with complex structure (tables, diagrams):
 
 ```python title="Semantic-based chunking"
-from rag_toolkit.chunking import SemanticChunker
+from quaerum.chunking import SemanticChunker
 
 # Split by semantic similarity instead of fixed size
 chunker = SemanticChunker(
@@ -505,7 +505,7 @@ with ThreadPoolExecutor(max_workers=4) as executor:
     
     3. **Check token counts**:
        ```python
-       from rag_toolkit.chunking import count_tokens
+       from quaerum.chunking import count_tokens
        
        for chunk in chunks:
            tokens = count_tokens(chunk.text)
@@ -655,5 +655,5 @@ print(f"Average similarity: {validation.avg_similarity:.3f}")
 ## Related Documentation
 
 - [Search & Retrieval](search-retrieval.md) - Query indexed documents
-- [RAG Toolkit](../rag_toolkit/index.md) - Generic RAG components
+- [RAG Toolkit](../quaerum/index.md) - Generic RAG components
 - [Environment Setup](environment-setup.md) - Configure Milvus and storage

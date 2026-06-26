@@ -21,7 +21,7 @@ def create_tender_stack(
 
 ```python
 from src.infra.factory import create_tender_stack
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
+from quaerum.infra.embedding import OllamaEmbeddingClient
 
 # Initialize embedding client
 embed_client = OllamaEmbeddingClient()
@@ -46,7 +46,7 @@ results = await searcher.search("requirements", top_k=10)
 ```python
 # src/api/deps.py
 from src.infra.factory import create_tender_stack
-from rag_toolkit.infra.embedding import OllamaEmbeddingClient
+from quaerum.infra.embedding import OllamaEmbeddingClient
 
 def get_tender_indexer():
     """FastAPI dependency for indexer."""
@@ -76,7 +76,7 @@ async def index_doc(
 
 ```mermaid
 graph TD
-    A[Factory Function] --> B[rag_toolkit Components]
+    A[Factory Function] --> B[quaerum Components]
     B --> C[Milvus Service]
     B --> D[Index Service]
     
@@ -94,6 +94,6 @@ graph TD
 
 ## See Also
 
-- [rag_toolkit Integration](../../architecture/rag-toolkit.md) - Generic components
+- [quaerum Integration](../../architecture/rag-toolkit.md) - Generic components
 - [Clean Architecture](../../architecture/clean-architecture.md) - Design principles
 - [Tender Services](../domain/services.md) - Domain layer usage

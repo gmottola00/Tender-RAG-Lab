@@ -164,7 +164,7 @@ async def setup_neo4j():
 ```python
 # Current pipeline: PDF → Chunks → Embeddings → Milvus
 from src.domain.tender.schemas.chunking import TenderTokenChunk
-from rag_toolkit.indexer import MilvusIndexer
+from quaerum.indexer import MilvusIndexer
 
 async def ingest_tender_document(file_path: str, tender_code: str):
     # 1. Extract and chunk document
@@ -262,7 +262,7 @@ async def search_with_graph_enrichment(
     Hybrid retrieval with graph context
     """
     # Step 1: Vector search (existing)
-    from rag_toolkit.indexer import MilvusIndexer
+    from quaerum.indexer import MilvusIndexer
     
     indexer = MilvusIndexer()
     vector_results = await indexer.search(query, top_k=top_k * 2)  # Over-fetch
@@ -440,7 +440,7 @@ async def generate_answer_with_citations(
     """
     Generate answer and track sources
     """
-    from rag_toolkit.llms import get_llm
+    from quaerum.llms import get_llm
     
     llm = get_llm()
     
@@ -742,7 +742,7 @@ curl http://localhost:7474  # Neo4j Browser
 
 ```
 src/infra/graph/
-├── base_client.py          # Generic Neo4j client (→ rag_toolkit future)
+├── base_client.py          # Generic Neo4j client (→ quaerum future)
 ├── tender_client.py        # Tender-specific graph operations
 ├── graph_indexer.py        # Ingestion helpers
 └── __init__.py             # Factory functions

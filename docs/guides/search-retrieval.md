@@ -673,5 +673,5 @@ if duration > 1.0:
 ## Related Documentation
 
 - [Indexing Documents](indexing-documents.md) - Upload and index documents
-- [RAG Toolkit](../rag_toolkit/index.md) - Generic search components
+- [RAG Toolkit](../quaerum/index.md) - Generic search components
 - [Domain Layer](../domain/README.md) - Tender-specific search logic

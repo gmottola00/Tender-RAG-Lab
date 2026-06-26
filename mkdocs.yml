@@ -205,7 +205,7 @@ nav:
   - Architecture:
     - Overview: architecture/overview.md
     - Clean Architecture: architecture/clean-architecture.md
-    - rag_toolkit Integration: architecture/rag-toolkit.md
+    - quaerum Integration: architecture/rag-toolkit.md
   
   - User Guides:
     - Document Ingestion: guides/indexing-documents.md
@@ -222,10 +222,10 @@ nav:
     - Search System: domain/tender-search.md
   
   - RAG Toolkit:
-    - Overview: rag_toolkit/index.md
-    - Pipeline: rag_toolkit/pipeline.md
-    - Search Strategies: rag_toolkit/search.md
-    - Extending: rag_toolkit/extending.md
+    - Overview: quaerum/index.md
+    - Pipeline: quaerum/pipeline.md
+    - Search Strategies: quaerum/search.md
+    - Extending: quaerum/extending.md
   
   - API Reference:
     - Core:
