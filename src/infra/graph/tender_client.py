@@ -9,7 +9,8 @@ This module contains domain-specific logic for the Tender Knowledge Graph:
 import logging
 from typing import Any, Dict, List, Optional
 
-from src.infra.graph.base_client import Neo4jClient, convert_neo4j_types
+from quaerium.infra.graphstores.neo4j import Neo4jClient
+from quaerium.infra.graphstores.neo4j import convert_neo4j_types
 
 logger = logging.getLogger(__name__)
 
