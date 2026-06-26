@@ -17,7 +17,7 @@ import pytest_asyncio
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import StaticPool
 
 # Set test environment
 os.environ["TESTING"] = "true"
@@ -96,11 +96,16 @@ async def test_db_engine() -> AsyncGenerator[AsyncEngine, None]:
     engine = create_async_engine(
         database_url,
         echo=False,
-        poolclass=NullPool,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
     
-    # Create tables
+    # Import all entity models to register them with SQLAlchemy metadata
+    import src.domain.tender.entities.tenders  # noqa: F401
+    import src.domain.tender.entities.lots  # noqa: F401
+    import src.domain.tender.entities.documents  # noqa: F401
     from src.infra.database import Base
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     
@@ -114,21 +119,20 @@ async def test_db_engine() -> AsyncGenerator[AsyncEngine, None]:
 
 @pytest_asyncio.fixture
 async def db_session(test_db_engine: AsyncEngine) -> AsyncGenerator[AsyncSession, None]:
-    """Create test database session with automatic rollback.
-    
-    Each test gets a fresh session that rolls back at the end,
-    ensuring test isolation.
+    """Create test database session.
+
+    Services manage their own commits, so we yield a plain session
+    without wrapping in session.begin() (which would conflict with
+    internal db.commit() calls in service methods).
     """
     async_session = sessionmaker(
         test_db_engine,
         class_=AsyncSession,
         expire_on_commit=False,
     )
-    
+
     async with async_session() as session:
-        async with session.begin():
-            yield session
-            # Rollback happens automatically on exit
+        yield session
 
 
 @pytest.fixture
